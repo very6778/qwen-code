@@ -14,17 +14,17 @@ import type {
   GenerateContentResponseUsageMetadata,
   GenerateContentResponse,
 } from '@google/genai';
+// Import telemetry functions from mock system
 import {
-  ApiRequestEvent,
-  ApiResponseEvent,
-  ApiErrorEvent,
-} from '../telemetry/types.js';
-import type { Config } from '../config/config.js';
-import {
-  logApiError,
   logApiRequest,
   logApiResponse,
-} from '../telemetry/loggers.js';
+  logApiError,
+  ApiRequestEvent,
+  ApiResponseEvent,
+  ApiErrorEvent
+} from '../telemetry-mocks.js';
+
+import type { Config } from '../config/config.js';
 import type { ContentGenerator } from './contentGenerator.js';
 import { toContents } from '../code_assist/converter.js';
 import { isStructuredError } from '../utils/quotaErrorDetection.js';

@@ -52,6 +52,13 @@ export const validateAuthMethod = (authMethod: string): string | null => {
     return null;
   }
 
+  if (authMethod === AuthType.USE_ZAI_OPENROUTER) {
+    if (!process.env['ZAI_API_KEY']) {
+      return 'ZAI_API_KEY environment variable not found. Add it to your .env file and try again!';
+    }
+    return null;
+  }
+
   return 'Invalid auth method selected.';
 };
 

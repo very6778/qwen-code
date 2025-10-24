@@ -209,7 +209,7 @@ export const useGeminiStream = (
       if (turnCount > 0) {
         logConversationFinishedEvent(
           config,
-          new ConversationFinishedEvent(config.getApprovalMode(), turnCount),
+          new ConversationFinishedEvent(config.getSessionId(), `Turn count: ${turnCount}`),
         );
       }
     }
@@ -227,11 +227,9 @@ export const useGeminiStream = (
     abortControllerRef.current?.abort();
 
     // Log API cancellation
-    const prompt_id = config.getSessionId() + '########' + getPromptCount();
     const cancellationEvent = new ApiCancelEvent(
-      config.getModel(),
-      prompt_id,
-      config.getContentGeneratorConfig()?.authType,
+      config.getSessionId(),
+      'User cancelled request',
     );
     logApiCancel(config, cancellationEvent);
 
@@ -291,9 +289,7 @@ export const useGeminiStream = (
         logUserPrompt(
           config,
           new UserPromptEvent(
-            trimmedQuery.length,
             prompt_id,
-            config.getContentGeneratorConfig()?.authType,
             trimmedQuery,
           ),
         );

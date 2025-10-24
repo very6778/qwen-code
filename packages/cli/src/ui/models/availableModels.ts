@@ -53,3 +53,4 @@ export function isVisionModel(modelId: string): boolean {
     (model) => model.id === modelId && model.isVision,
   );
 }
+

@@ -28,10 +28,39 @@ import type {
   ModifiableDeclarativeTool,
   ModifyContext,
 } from './modifiable-tool.js';
-import { FileOperation } from '../telemetry/metrics.js';
-import { logFileOperation } from '../telemetry/loggers.js';
-import { FileOperationEvent } from '../telemetry/types.js';
-import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
+// Import telemetry functions from mock system
+import { FileOperation, FileOperationEvent, logFileOperation } from '../telemetry-mocks.js';
+
+const getProgrammingLanguage = (filePath: string): string => {
+  const ext = filePath.split('.').pop()?.toLowerCase();
+  const languageMap: Record<string, string> = {
+    'js': 'javascript',
+    'ts': 'typescript',
+    'jsx': 'javascript',
+    'tsx': 'typescript',
+    'py': 'python',
+    'java': 'java',
+    'cpp': 'cpp',
+    'c': 'c',
+    'cs': 'csharp',
+    'go': 'go',
+    'rs': 'rust',
+    'rb': 'ruby',
+    'php': 'php',
+    'swift': 'swift',
+    'kt': 'kotlin',
+    'scala': 'scala',
+    'sh': 'bash',
+    'json': 'json',
+    'yaml': 'yaml',
+    'yml': 'yaml',
+    'xml': 'xml',
+    'html': 'html',
+    'css': 'css',
+    'md': 'markdown'
+  };
+  return languageMap[ext || ''] || 'unknown';
+};
 import { getSpecificMimeType } from '../utils/fileUtils.js';
 
 export function applyReplacement(
@@ -393,9 +422,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       const lines = editData.newContent.split('\n').length;
       const mimetype = getSpecificMimeType(this.params.file_path);
       const extension = path.extname(this.params.file_path);
-      const programming_language = getProgrammingLanguage({
-        file_path: this.params.file_path,
-      });
+      const programming_language = getProgrammingLanguage(this.params.file_path);
 
       logFileOperation(
         this.config,
@@ -405,7 +432,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
           lines,
           mimetype,
           extension,
-          diffStat,
+          String(diffStat),
           programming_language,
         ),
       );

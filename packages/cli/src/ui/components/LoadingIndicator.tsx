@@ -12,8 +12,6 @@ import { useStreamingContext } from '../contexts/StreamingContext.js';
 import { StreamingState } from '../types.js';
 import { GeminiRespondingSpinner } from './GeminiRespondingSpinner.js';
 import { formatDuration } from '../utils/formatters.js';
-import { useTerminalSize } from '../hooks/useTerminalSize.js';
-import { isNarrowWidth } from '../utils/isNarrowWidth.js';
 
 interface LoadingIndicatorProps {
   currentLoadingPhrase?: string;
@@ -29,8 +27,6 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
   thought,
 }) => {
   const streamingState = useStreamingContext();
-  const { columns: terminalWidth } = useTerminalSize();
-  const isNarrow = isNarrowWidth(terminalWidth);
 
   if (streamingState === StreamingState.Idle) {
     return null;
@@ -48,8 +44,8 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
       {/* Main loading line */}
       <Box
         width="100%"
-        flexDirection={isNarrow ? 'column' : 'row'}
-        alignItems={isNarrow ? 'flex-start' : 'center'}
+        flexDirection="row"
+        alignItems="center"
       >
         <Box>
           <Box marginRight={1}>
@@ -62,21 +58,15 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
             />
           </Box>
           {primaryText && (
-            <Text color={Colors.AccentPurple}>{primaryText}</Text>
+            <Text color="#54b874">{primaryText}</Text>
           )}
-          {!isNarrow && cancelAndTimerContent && (
+          {cancelAndTimerContent && (
             <Text color={Colors.Gray}> {cancelAndTimerContent}</Text>
           )}
         </Box>
-        {!isNarrow && <Box flexGrow={1}>{/* Spacer */}</Box>}
-        {!isNarrow && rightContent && <Box>{rightContent}</Box>}
+        <Box flexGrow={1}>{/* Spacer */}</Box>
+        {rightContent && <Box>{rightContent}</Box>}
       </Box>
-      {isNarrow && cancelAndTimerContent && (
-        <Box>
-          <Text color={Colors.Gray}>{cancelAndTimerContent}</Text>
-        </Box>
-      )}
-      {isNarrow && rightContent && <Box>{rightContent}</Box>}
     </Box>
   );
 };

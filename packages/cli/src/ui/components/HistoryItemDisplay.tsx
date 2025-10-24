@@ -13,6 +13,7 @@ import { GeminiMessage } from './messages/GeminiMessage.js';
 import { InfoMessage } from './messages/InfoMessage.js';
 import { ErrorMessage } from './messages/ErrorMessage.js';
 import { ToolGroupMessage } from './messages/ToolGroupMessage.js';
+import { MinimalToolGroup } from './minimal/MinimalToolGroup.js';
 import { GeminiMessageContent } from './messages/GeminiMessageContent.js';
 import { CompressionMessage } from './messages/CompressionMessage.js';
 import { SummaryMessage } from './messages/SummaryMessage.js';
@@ -34,6 +35,7 @@ interface HistoryItemDisplayProps {
   config: Config;
   isFocused?: boolean;
   commands?: readonly SlashCommand[];
+  layout?: 'default' | 'minimal';
 }
 
 const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
@@ -44,6 +46,7 @@ const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
   config,
   commands,
   isFocused = true,
+  layout = 'minimal',
 }) => (
   <Box flexDirection="column" key={item.id}>
     {/* Render standard message types */}
@@ -85,7 +88,17 @@ const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
     {item.type === 'quit_confirmation' && (
       <SessionSummaryDisplay duration={item.duration} />
     )}
-    {item.type === 'tool_group' && (
+    {item.type === 'tool_group' && layout === 'minimal' && (
+      <MinimalToolGroup
+        toolCalls={item.tools}
+        groupId={item.id}
+        availableTerminalHeight={availableTerminalHeight}
+        terminalWidth={terminalWidth}
+        config={config}
+        isFocused={isFocused}
+      />
+    )}
+    {item.type === 'tool_group' && layout === 'default' && (
       <ToolGroupMessage
         toolCalls={item.tools}
         groupId={item.id}

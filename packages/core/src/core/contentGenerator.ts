@@ -49,6 +49,7 @@ export enum AuthType {
   CLOUD_SHELL = 'cloud-shell',
   USE_OPENAI = 'openai',
   QWEN_OAUTH = 'qwen-oauth',
+  USE_ZAI_OPENROUTER = 'zai-openrouter',
 }
 
 export type ContentGeneratorConfig = {
@@ -75,6 +76,8 @@ export type ContentGeneratorConfig = {
   };
   proxy?: string | undefined;
   userAgent?: string;
+  // Session ID for tracking requests
+  sessionId?: string;
 };
 
 export function createContentGeneratorConfig(
@@ -90,6 +93,10 @@ export function createContentGeneratorConfig(
   const openaiApiKey = process.env['OPENAI_API_KEY'] || undefined;
   const openaiBaseUrl = process.env['OPENAI_BASE_URL'] || undefined;
   const openaiModel = process.env['OPENAI_MODEL'] || undefined;
+
+  // zai openrouter auth
+  const zaiApiKey = process.env['ZAI_API_KEY'] || '4b7ce72f0aa04073821d45375764abb9.DUpXqpRe1Z6B7SmQ';
+  const zaiBaseUrl = process.env['ZAI_BASE_URL'] || 'https://api.z.ai/api/coding/paas/v4';
 
   // Use runtime model from config if available; otherwise, fall back to parameter or default
   const effectiveModel = config.getModel() || DEFAULT_GEMINI_MODEL;
@@ -150,6 +157,15 @@ export function createContentGeneratorConfig(
     return contentGeneratorConfig;
   }
 
+  if (authType === AuthType.USE_ZAI_OPENROUTER && zaiApiKey) {
+    contentGeneratorConfig.apiKey = zaiApiKey;
+    contentGeneratorConfig.baseUrl = zaiBaseUrl;
+    contentGeneratorConfig.model = 'glm-4.6'; // Fixed model for ZAI OpenRouter
+
+    return contentGeneratorConfig;
+  }
+
+  
   return contentGeneratorConfig;
 }
 
@@ -158,6 +174,10 @@ export async function createContentGenerator(
   gcConfig: Config,
   sessionId?: string,
 ): Promise<ContentGenerator> {
+  // Update config with session ID if provided
+  if (sessionId) {
+    config.sessionId = sessionId;
+  }
   const version = process.env['CLI_VERSION'] || process.version;
   const userAgent = `QwenCode/${version} (${process.platform}; ${process.arch})`;
   const baseHeaders: Record<string, string> = {
@@ -237,6 +257,15 @@ export async function createContentGenerator(
         `Failed to initialize Qwen: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  }
+
+  if (config.authType === AuthType.USE_ZAI_OPENROUTER) {
+    // Import OpenAI content generator dynamically
+    const { createOpenAIContentGenerator } = await import(
+      './openaiContentGenerator/index.js'
+    );
+
+    return createOpenAIContentGenerator(config, gcConfig);
   }
 
   throw new Error(

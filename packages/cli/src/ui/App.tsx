@@ -63,24 +63,22 @@ import { processVisionSwitchOutcome } from './hooks/useVisionAutoSwitch.js';
 import { Colors } from './colors.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';
 import type { LoadedSettings } from '../config/settings.js';
-import { Tips } from './components/Tips.js';
 import { ConsolePatcher } from './utils/ConsolePatcher.js';
 import { registerCleanup } from '../utils/cleanup.js';
 import { DetailedMessagesDisplay } from './components/DetailedMessagesDisplay.js';
 import { HistoryItemDisplay } from './components/HistoryItemDisplay.js';
-import { ContextSummaryDisplay } from './components/ContextSummaryDisplay.js';
+// import { ContextSummaryDisplay } from './components/ContextSummaryDisplay.js';
 import { useHistory } from './hooks/useHistoryManager.js';
 import process from 'node:process';
 import type { EditorType, Config } from '@qwen-code/qwen-code-core';
 import {
   ApprovalMode,
-  getAllGeminiMdFilenames,
   isEditorAvailable,
   getErrorMessage,
   AuthType,
   logFlashFallback,
   FlashFallbackEvent,
-    isProQuotaExceededError,
+  isProQuotaExceededError,
   isGenericQuotaExceededError,
   UserTierId,
 } from '@qwen-code/qwen-code-core';
@@ -168,7 +166,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const nightly = version.includes('nightly');
   const { history, addItem, clearItems, loadHistory } = useHistory();
 
-  
   useEffect(() => {
     const cleanup = setUpdateHandler(addItem, setUpdateInfo);
     return cleanup;
@@ -197,11 +194,11 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     setStaticKey((prev) => prev + 1);
   }, [setStaticKey, stdout]);
 
-  const [geminiMdFileCount, setGeminiMdFileCount] = useState<number>(0);
+    // const [geminiMdFileCount, setGeminiMdFileCount] = useState<number>(0);
   const [debugMessage, setDebugMessage] = useState<string>('');
   const [themeError, setThemeError] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-    const [footerHeight, setFooterHeight] = useState<number>(0);
+  const [footerHeight, setFooterHeight] = useState<number>(0);
   const [corgiMode, setCorgiMode] = useState(false);
   const [isTrustedFolderState, setIsTrustedFolder] = useState(
     config.isTrustedFolder(),
@@ -224,7 +221,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const [modelSwitchedFromQuotaError, setModelSwitchedFromQuotaError] =
     useState<boolean>(false);
   const [userTier, setUserTier] = useState<UserTierId | undefined>(undefined);
-    const [showEscapePrompt, setShowEscapePrompt] = useState(false);
+  const [showEscapePrompt, setShowEscapePrompt] = useState(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const {
     showWorkspaceMigrationDialog,
@@ -247,7 +244,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     reject: () => void;
   } | null>(null);
 
-  
   useEffect(() => {
     const openDebugConsole = () => {
       setShowErrorDetails(true);
@@ -298,7 +294,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const { isSettingsDialogOpen, openSettingsDialog, closeSettingsDialog } =
     useSettingsCommand();
 
-  
   const { isFolderTrustDialogOpen, handleFolderTrustSelect, isRestarting } =
     useFolderTrust(settings, setIsTrustedFolder);
 
@@ -371,7 +366,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     setAuthError,
   ]);
 
-  
   const toggleCorgiMode = useCallback(() => {
     setCorgiMode((prev) => !prev);
   }, []);
@@ -400,7 +394,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
       config.setUserMemory(memoryContent);
       config.setGeminiMdFileCount(fileCount);
-      setGeminiMdFileCount(fileCount);
+      // setGeminiMdFileCount(fileCount);
 
       addItem(
         {
@@ -642,7 +636,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         const openAIModel = getOpenAIAvailableModelFromEnv();
         return openAIModel ? [openAIModel] : [];
       }
-      default:
+            default:
         return [];
     }
   }, [config, settings.merged.experimental?.visionModelPreview]);
@@ -672,14 +666,14 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     setDebugMessage,
     openThemeDialog,
     openAuthDialog,
-        toggleCorgiMode,
+    toggleCorgiMode,
     setQuittingMessages,
     openPrivacyNotice,
     openSettingsDialog,
     handleModelSelectionOpen,
-        toggleVimEnabled,
+    toggleVimEnabled,
     setIsProcessing,
-    setGeminiMdFileCount,
+    null as any, // setGeminiMdFileCount (disabled for now)
     showQuitConfirmation,
   );
 
@@ -803,7 +797,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     [addMessage],
   );
 
-  
   const { handleInput: vimHandleInput } = useVim(buffer, handleFinalSubmit);
 
   const { elapsedTime, currentLoadingPhrase } =
@@ -945,12 +938,11 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     isActive: true,
   });
 
-  useEffect(() => {
-    if (config) {
-      setGeminiMdFileCount(config.getGeminiMdFileCount());
-    }
-  }, [config, config.getGeminiMdFileCount]);
-
+  // useEffect(() => {
+//   if (config) {
+//     setGeminiMdFileCount(config.getGeminiMdFileCount());
+//   }
+// }, [config, config.getGeminiMdFileCount()]);
   const logger = useLogger(config.storage);
 
   useEffect(() => {
@@ -1052,15 +1044,13 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   }, [consoleMessages, config]);
 
   const branchName = useGitBranchName(config.getTargetDir());
-
-  const contextFileNames = useMemo(() => {
-    const fromSettings = settings.merged.context?.fileName;
-    if (fromSettings) {
-      return Array.isArray(fromSettings) ? fromSettings : [fromSettings];
-    }
-    return getAllGeminiMdFilenames();
-  }, [settings.merged.context?.fileName]);
-
+  // const contextFileNames = useMemo(() => {
+//   const fromSettings = settings.merged.context?.fileName;
+//   if (fromSettings) {
+//     return Array.isArray(fromSettings) ? fromSettings : [fromSettings];
+//   }
+//   return getAllGeminiMdFilenames();
+// }, [settings.merged.context?.fileName]);
   const initialPrompt = useMemo(() => config.getQuestion(), [config]);
   const geminiClient = config.getGeminiClient();
 
@@ -1073,7 +1063,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
       !isThemeDialogOpen &&
       !isModelSelectionDialogOpen &&
       !isVisionSwitchDialogOpen &&
-            !showPrivacyNotice &&
+      !showPrivacyNotice &&
       !showWelcomeBackDialog &&
       welcomeBackChoice !== 'restart' &&
       geminiClient?.isInitialized?.()
@@ -1087,7 +1077,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     isAuthenticating,
     isAuthDialogOpen,
     isThemeDialogOpen,
-            showPrivacyNotice,
+    showPrivacyNotice,
     showWelcomeBackDialog,
     welcomeBackChoice,
     geminiClient,
@@ -1144,10 +1134,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
               {!(
                 settings.merged.ui?.hideBanner || config.getScreenReader()
               ) && <Header version={version} nightly={nightly} />}
-              {!(settings.merged.ui?.hideTips || config.getScreenReader()) && (
-                <Tips config={config} />
-              )}
-            </Box>,
+              </Box>,
             ...history.map((h) => (
               <HistoryItemDisplay
                 terminalWidth={mainAreaWidth}
@@ -1157,6 +1144,13 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 isPending={false}
                 config={config}
                 commands={slashCommands}
+                layout={
+                  h.type === 'tool_group'
+                    ? (settings.merged.ui?.toolLayout === 'default' || settings.merged.ui?.toolLayout === 'minimal'
+                        ? settings.merged.ui.toolLayout
+                        : 'minimal')
+                    : 'default'
+                }
               />
             )),
           ]}
@@ -1175,6 +1169,13 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 item={item}
                 isPending={true}
                 config={config}
+                layout={
+                  item.type === 'tool_group'
+                    ? (settings.merged.ui?.toolLayout === 'default' || settings.merged.ui?.toolLayout === 'minimal'
+                        ? settings.merged.ui.toolLayout
+                        : 'minimal')
+                    : 'default'
+                }
               />
             ))}
             <ShowMoreLines constrainHeight={constrainHeight} />
@@ -1413,15 +1414,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                     </Text>
                   ) : showEscapePrompt ? (
                     <Text color={Colors.Gray}>Press Esc again to clear.</Text>
-                  ) : (
-                    <ContextSummaryDisplay
-                      geminiMdFileCount={geminiMdFileCount}
-                      contextFileNames={contextFileNames}
-                      mcpServers={config.getMcpServers()}
-                      blockedMcpServers={config.getBlockedMcpServers()}
-                      showToolDescriptions={showToolDescriptions}
-                    />
-                  )}
+                  ) : null}
                 </Box>
                 <Box paddingTop={isNarrow ? 1 : 0}>
                   {showAutoAcceptIndicator !== ApprovalMode.DEFAULT &&
@@ -1522,6 +1515,12 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
               nightly={nightly}
               vimMode={vimModeEnabled ? vimMode : undefined}
               isTrustedFolder={isTrustedFolderState}
+              // Temporary CLI space-saving options
+              hideGitInfo={true}
+              hideSandboxInfo={true}
+              hideModelInfo={true}
+              hideProjectPath={true}
+              hideModelName={true}
             />
           )}
         </Box>

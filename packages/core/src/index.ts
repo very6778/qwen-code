@@ -99,8 +99,13 @@ export type {
 } from './mcp/oauth-utils.js';
 export { OAuthUtils } from './mcp/oauth-utils.js';
 
-// Export telemetry functions
+// Export telemetry functions from mock system (both direct and via telemetry redirects)
+export * from './telemetry-mocks.js';
 export * from './telemetry/index.js';
+export * from './telemetry/types.js';
+export * from './telemetry/loggers.js';
+
+// Note: logToolCall and ToolCallEvent are now exported from telemetry-mocks.js
 export { sessionId } from './utils/session.js';
 export * from './utils/browser.js';
 // OpenAI Logging Utilities

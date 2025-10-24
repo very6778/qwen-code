@@ -65,6 +65,59 @@ Please create a todo list for these tasks.`;
     }
   });
 
+  it('should automatically detect expansion types for analysis tasks', async () => {
+    const rig = new TestRig();
+    await rig.setup('should automatically detect expansion types for analysis tasks');
+
+    const prompt = `I need to develop a comprehensive UI/UX improvement strategy. Please create a todo list for:
+1. UI/UX iyileştirmeleri için profesyonel öneriler geliştir
+2. Önerilen iyileştirmeleri uygula
+
+This should automatically add expansion types.`;
+
+    const result = await rig.run(prompt);
+
+    const foundToolCall = await rig.waitForToolCall('todo_write');
+
+    if (!foundToolCall) {
+      printDebugInfo(rig, result);
+    }
+
+    expect(foundToolCall).toBeTruthy();
+    validateModelOutput(result, null, 'Auto-expansion test');
+
+    const toolLogs = rig.readToolLogs();
+    const todoWriteCalls = toolLogs.filter(
+      (t) => t.toolRequest.name === 'todo_write',
+    );
+
+    expect(todoWriteCalls.length).toBeGreaterThan(0);
+
+    const todoArgs = JSON.parse(todoWriteCalls[0].toolRequest.args);
+
+    // Check for auto-detected expansion types
+    const analysisTask = todoArgs.todos.find((t: any) =>
+      t.content.includes('öneriler geliştir')
+    );
+
+    expect(analysisTask).toBeDefined();
+    expect(analysisTask.expansionType).toBe('ANALYSIS-DRIVEN');
+    expect(analysisTask.expansionHint).toBeDefined();
+    expect(analysisTask.depth).toBe(0);
+
+    // Check for multi-component task
+    const implementTask = todoArgs.todos.find((t: any) =>
+      t.content.includes('iyileştirmeleri uygula')
+    );
+
+    expect(implementTask).toBeDefined();
+    expect(implementTask.expansionType).toBe('MULTI-COMPONENT');
+
+    if (process.env['VERBOSE'] === 'true') {
+      console.log('Auto-expansion detection test passed');
+    }
+  });
+
   it('should be able to update todo status', async () => {
     const rig = new TestRig();
     await rig.setup('should be able to update todo status');

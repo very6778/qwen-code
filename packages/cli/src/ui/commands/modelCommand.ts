@@ -26,7 +26,7 @@ function getAvailableModelsForAuthType(authType: AuthType): AvailableModel[] {
       const openAIModel = getOpenAIAvailableModelFromEnv();
       return openAIModel ? [openAIModel] : [];
     }
-    default:
+        default:
       // For other auth types, return empty array for now
       // This can be expanded later according to the design doc
       return [];

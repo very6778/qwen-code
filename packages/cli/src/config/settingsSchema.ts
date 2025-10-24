@@ -165,6 +165,15 @@ export const SETTINGS_SCHEMA = {
         description: 'Custom theme definitions.',
         showInDialog: false,
       },
+      toolLayout: {
+        type: 'string',
+        label: 'Tool Layout',
+        category: 'UI',
+        requiresRestart: false,
+        default: 'minimal' as 'default' | 'minimal',
+        description: 'Layout style for tool messages.',
+        showInDialog: false,
+      },
       hideWindowTitle: {
         type: 'boolean',
         label: 'Hide Window Title',

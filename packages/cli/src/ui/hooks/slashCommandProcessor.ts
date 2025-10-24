@@ -391,6 +391,9 @@ export const useSlashCommandProcessor = (
                     case 'subagent_list':
                       // Sub-agent functionality removed
                       return { type: 'handled' };
+                    case 'editor':
+                      // Editor functionality removed
+                      return { type: 'handled' };
                     default: {
                       const unhandled: never = result.dialog;
                       throw new Error(
@@ -597,11 +600,12 @@ export const useSlashCommandProcessor = (
       } catch (e: unknown) {
         hasError = true;
         if (config) {
-          const event = makeSlashCommandEvent({
-            command: resolvedCommandPath[0],
+          const event = new makeSlashCommandEvent(
+            session.stats.sessionId,
+            resolvedCommandPath[0],
             subcommand,
-            status: SlashCommandStatus.ERROR,
-          });
+          );
+          event.status = SlashCommandStatus.ERROR;
           logSlashCommand(config, event);
         }
         addItem(
@@ -614,11 +618,12 @@ export const useSlashCommandProcessor = (
         return { type: 'handled' };
       } finally {
         if (config && resolvedCommandPath[0] && !hasError) {
-          const event = makeSlashCommandEvent({
-            command: resolvedCommandPath[0],
+          const event = new makeSlashCommandEvent(
+            session.stats.sessionId,
+            resolvedCommandPath[0],
             subcommand,
-            status: SlashCommandStatus.SUCCESS,
-          });
+          );
+          event.status = SlashCommandStatus.SUCCESS;
           logSlashCommand(config, event);
         }
         setIsProcessing(false);

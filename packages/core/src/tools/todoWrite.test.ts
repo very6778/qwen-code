@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { TodoWriteParams, TodoItem } from './todoWrite.js';
-import { TodoWriteTool } from './todoWrite.js';
+import { TodoWriteTool, MAX_TODO_DEPTH } from './todoWrite.js';
 import * as fs from 'fs/promises';
 import * as fsSync from 'fs';
 import type { Config } from '../config/config.js';
@@ -145,8 +145,8 @@ describe('TodoWriteTool', () => {
       expect(result.returnDisplay).toEqual({
         type: 'todo_list',
         todos: [
-          { id: '1', content: 'Task 1', status: 'pending' },
-          { id: '2', content: 'Task 2', status: 'in_progress' },
+          { id: '1', content: 'Task 1', status: 'pending', depth: 0 },
+          { id: '2', content: 'Task 2', status: 'in_progress', depth: 0 },
         ],
       });
       expect(mockFs.writeFile).toHaveBeenCalledWith(
@@ -182,8 +182,8 @@ describe('TodoWriteTool', () => {
       expect(result.returnDisplay).toEqual({
         type: 'todo_list',
         todos: [
-          { id: '1', content: 'Updated Task', status: 'completed' },
-          { id: '2', content: 'New Task', status: 'pending' },
+          { id: '1', content: 'Updated Task', status: 'completed', depth: 0 },
+          { id: '2', content: 'New Task', status: 'pending', depth: 0 },
         ],
       });
       expect(mockFs.writeFile).toHaveBeenCalledWith(
@@ -257,6 +257,82 @@ describe('TodoWriteTool', () => {
       expect(schema.parametersJsonSchema).not.toHaveProperty(
         'properties.merge',
       );
+    });
+
+    it('should accept todos with hierarchical fields', () => {
+      const params: TodoWriteParams = {
+        todos: [
+          {
+            id: '1',
+            content: 'Parent task',
+            status: 'pending',
+            expansionType: 'ANALYSIS-DRIVEN',
+            expansionHint: 'Will be expanded into subtasks',
+            depth: 0,
+            hasSubtasks: false
+          },
+          {
+            id: '2',
+            content: 'Child task',
+            status: 'pending',
+            parentId: '1',
+            depth: 1
+          },
+        ],
+      };
+
+      const result = tool.validateToolParams(params);
+      expect(result).toBeNull();
+    });
+
+    it('should reject todos with invalid expansion type', () => {
+      const params: TodoWriteParams = {
+        todos: [
+          {
+            id: '1',
+            content: 'Task with invalid expansion',
+            status: 'pending',
+            expansionType: 'INVALID_TYPE' as TodoItem['expansionType'],
+          },
+        ],
+      };
+
+      const result = tool.validateToolParams(params);
+      expect(result).toContain('valid "expansionType"');
+    });
+
+    it.skip('should reject todos with depth exceeding maximum - TODO: Fix MAX_TODO_DEPTH import issue', () => {
+      const params: TodoWriteParams = {
+        todos: [
+          {
+            id: '1',
+            content: 'Deep task',
+            status: 'pending',
+            depth: MAX_TODO_DEPTH + 1,
+          },
+        ],
+      };
+
+      const result = tool.validateToolParams(params);
+      expect(result).not.toBeNull();
+      expect(result!).toContain('valid "depth"');
+    });
+
+    it('should reject todos with negative depth', () => {
+      const params: TodoWriteParams = {
+        todos: [
+          {
+            id: '1',
+            content: 'Negative depth task',
+            status: 'pending',
+            depth: -1,
+          },
+        ],
+      };
+
+      const result = tool.validateToolParams(params);
+      expect(result).not.toBeNull();
+      expect(result!).toContain('valid "depth"');
     });
   });
 

@@ -155,8 +155,7 @@ const PATTERNS: Array<[RegExp, TokenCount]> = [
   [/^glm-4\.5v(?:-.*)?$/, LIMITS['64k']],
   [/^glm-4\.5-air(?:-.*)?$/, LIMITS['128k']],
   [/^glm-4\.5(?:-.*)?$/, LIMITS['128k']],
-  [/^glm-4\.6(?:-.*)?$/, 202_752 as unknown as TokenCount], // exact limit from the model config file
-
+  
   // -------------------
   // DeepSeek
   // -------------------

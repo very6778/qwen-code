@@ -20,14 +20,13 @@ import type { Config } from '../config/config.js';
 import { ApprovalMode } from '../config/config.js';
 import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { LoopDetectionService } from '../services/loopDetectionService.js';
+// Import telemetry functions from mock system
 import {
   logChatCompression,
   logNextSpeakerCheck,
-} from '../telemetry/loggers.js';
-import {
   makeChatCompressionEvent,
-  NextSpeakerCheckEvent,
-} from '../telemetry/types.js';
+  NextSpeakerCheckEvent
+} from '../telemetry-mocks.js';
 import {
   getDirectoryContextString,
   getEnvironmentContext,
@@ -781,7 +780,7 @@ export class GeminiClient {
 
     logChatCompression(
       this.config,
-      makeChatCompressionEvent({
+      new makeChatCompressionEvent({
         tokens_before: originalTokenCount,
         tokens_after: newTokenCount,
       }),
@@ -802,7 +801,7 @@ export class GeminiClient {
 
     logChatCompression(
       this.config,
-      makeChatCompressionEvent({
+      new makeChatCompressionEvent({
         tokens_before: originalTokenCount,
         tokens_after: newTokenCount,
       }),

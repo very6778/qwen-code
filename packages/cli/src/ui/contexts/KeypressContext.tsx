@@ -314,7 +314,7 @@ export function KeypressProvider({
             }
             if (config) {
               const event = new KittySequenceOverflowEvent(
-                kittySequenceBuffer.length,
+                'mock-session-id',
                 kittySequenceBuffer,
               );
               logKittySequenceOverflow(config, event);

@@ -124,9 +124,9 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
     .locale('en')
     .scriptName('qwen')
     .usage(
-      'Usage: qwen [options] [command]\n\nQwen Code - Launch an interactive CLI, use -p/--prompt for non-interactive mode',
+      'Usage: qwen [options] [command]\n\nClaude Code - Launch an interactive CLI, use -p/--prompt for non-interactive mode',
     )
-    .command('$0', 'Launch Qwen Code', (yargsInstance) =>
+    .command('$0', 'Launch Claude Code', (yargsInstance) =>
       yargsInstance
         .option('model', {
           alias: 'm',

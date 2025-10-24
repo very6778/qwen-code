@@ -23,20 +23,20 @@ export const GeminiMessage: React.FC<GeminiMessageProps> = ({
   availableTerminalHeight,
   terminalWidth,
 }) => {
-  const prefix = '✦ ';
+  const prefix = '  '; // Two spaces to maintain layout without icon
   const prefixWidth = prefix.length;
 
   return (
     <Box flexDirection="row">
       <Box width={prefixWidth}>
         <Text
-          color={Colors.AccentPurple}
+          color={Colors.Gray}
           aria-label={SCREEN_READER_MODEL_PREFIX}
         >
           {prefix}
         </Text>
       </Box>
-      <Box flexGrow={1} flexDirection="column">
+      <Box flexGrow={1} flexDirection="column" paddingLeft={1}>
         <MarkdownDisplay
           text={text}
           isPending={isPending}

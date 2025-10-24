@@ -1,4 +1,4 @@
-# Qwen Code
+# Claude Code
 
 <div align="center">
 

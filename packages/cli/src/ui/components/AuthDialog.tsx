@@ -8,6 +8,7 @@ import type React from 'react';
 import { useState } from 'react';
 import { AuthType } from '@qwen-code/qwen-code-core';
 import { Box, Text } from 'ink';
+import { execSync } from 'child_process';
 import {
   setOpenAIApiKey,
   setOpenAIBaseUrl,
@@ -50,6 +51,7 @@ export function AuthDialog({
   const items = [
     { label: 'Qwen OAuth', value: AuthType.QWEN_OAUTH },
     { label: 'OpenAI', value: AuthType.USE_OPENAI },
+    { label: 'ZAI OpenRouter (GLM-4.6)', value: AuthType.USE_ZAI_OPENROUTER },
   ];
 
   const initialAuthIndex = Math.max(
@@ -64,6 +66,10 @@ export function AuthDialog({
       );
       if (defaultAuthType) {
         return item.value === defaultAuthType;
+      }
+
+      if (process.env['ZAI_API_KEY']) {
+        return item.value === AuthType.USE_ZAI_OPENROUTER;
       }
 
       if (process.env['GEMINI_API_KEY']) {
@@ -109,13 +115,68 @@ export function AuthDialog({
     setErrorMessage('OpenAI API key is required to use OpenAI authentication.');
   };
 
+  
+  const handlePaste = () => {
+    try {
+      let clipboardText = '';
+
+      // Debug: Try to get clipboard content
+      try {
+        // Try macOS pbpaste first with timeout
+        clipboardText = execSync('pbpaste', {
+          encoding: 'utf8',
+          timeout: 1000,
+          stdio: ['ignore', 'pipe', 'ignore']
+        });
+        console.log('[DEBUG] pbpaste success:', clipboardText);
+      } catch (macError) {
+        console.log('[DEBUG] pbpaste failed:', (macError as Error).message);
+        // Try Linux xclip
+        try {
+          clipboardText = execSync('xclip -selection clipboard -o', {
+            encoding: 'utf8',
+            timeout: 1000
+          });
+        } catch (linuxError) {
+          // Try Windows clip
+          try {
+            clipboardText = execSync('powershell -command "Get-Clipboard"', {
+              encoding: 'utf8',
+              timeout: 1000
+            });
+          } catch (winError) {
+            console.log('[DEBUG] All clipboard methods failed');
+            throw new Error('Clipboard access not available');
+          }
+        }
+      }
+
+      // Clean up clipboard text
+      clipboardText = clipboardText.replace(/\r\n/g, '').replace(/\n/g, '').trim();
+    } catch (error) {
+      console.log('[DEBUG] Paste error:', error);
+    }
+  };
+
   useKeypress(
     (key) => {
       if (showOpenAIKeyPrompt) {
         return;
       }
 
-      if (key.name === 'escape') {
+      if (key.ctrl && key.name === 'v') {
+        // Ctrl+V for paste
+        handlePaste();
+      } else if (key.meta && key.name === 'v') {
+        // Cmd+V for macOS
+        handlePaste();
+      } else if (key.ctrl && key.sequence === 'v') {
+        // Alternate Ctrl+V detection
+        handlePaste();
+      } else if (key.meta && key.sequence === 'v') {
+        // Alternate Cmd+V detection
+        handlePaste();
+      } else if (key.name === 'escape') {
         // Prevent exit if there is an error message.
         // This means they user is not authenticated yet.
         if (errorMessage) {
@@ -143,6 +204,7 @@ export function AuthDialog({
     );
   }
 
+  
   return (
     <Box
       borderStyle="round"

@@ -33,10 +33,80 @@ import type {
   ModifyContext,
 } from './modifiable-tool.js';
 import { getSpecificMimeType } from '../utils/fileUtils.js';
-import { FileOperation } from '../telemetry/metrics.js';
-import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
-import { logFileOperation } from '../telemetry/loggers.js';
-import { FileOperationEvent } from '../telemetry/types.js';
+// Mock telemetry constants and functions
+const FileOperation = {
+  READ: 'read',
+  WRITE: 'write',
+  EDIT: 'edit',
+  DELETE: 'delete',
+  CREATE: 'create',
+  UPDATE: 'update'
+} as const;
+
+const getProgrammingLanguage = (filePath: string): string => {
+  const ext = filePath.split('.').pop()?.toLowerCase();
+  const languageMap: Record<string, string> = {
+    'js': 'javascript',
+    'ts': 'typescript',
+    'jsx': 'javascript',
+    'tsx': 'typescript',
+    'py': 'python',
+    'java': 'java',
+    'cpp': 'cpp',
+    'c': 'c',
+    'cs': 'csharp',
+    'go': 'go',
+    'rs': 'rust',
+    'rb': 'ruby',
+    'php': 'php',
+    'swift': 'swift',
+    'kt': 'kotlin',
+    'scala': 'scala',
+    'sh': 'bash',
+    'json': 'json',
+    'yaml': 'yaml',
+    'yml': 'yaml',
+    'xml': 'xml',
+    'html': 'html',
+    'css': 'css',
+    'md': 'markdown'
+  };
+  return languageMap[ext || ''] || 'unknown';
+};
+
+const logFileOperation = (config: any, event: any) => {
+  if (process.env['NODE_ENV'] === 'development') {
+    console.log(`[Mock] File operation:`, event);
+  }
+};
+
+class FileOperationEvent {
+  type: 'file-operation';
+  timestamp: Date;
+  sessionId: string;
+  operation: string;
+  filePath: string;
+  lines?: number;
+  mimetype?: string;
+  extension?: string;
+  diffStat?: string;
+  programming_language?: string;
+  toolName?: string;
+
+  constructor(toolName?: string, operation?: string, lines?: number, mimetype?: string, extension?: string, diffStat?: string, programming_language?: string) {
+    this.type = 'file-operation';
+    this.timestamp = new Date();
+    this.toolName = toolName;
+    this.operation = operation || '';
+    this.lines = lines;
+    this.mimetype = mimetype;
+    this.extension = extension;
+    this.diffStat = diffStat;
+    this.programming_language = programming_language;
+    this.sessionId = 'mock-session';
+    this.filePath = 'mock-path';
+  }
+}
 
 /**
  * Parameters for the WriteFile tool
@@ -273,7 +343,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       const lines = fileContent.split('\n').length;
       const mimetype = getSpecificMimeType(file_path);
       const extension = path.extname(file_path); // Get extension
-      const programming_language = getProgrammingLanguage({ file_path });
+      const programming_language = getProgrammingLanguage(file_path);
       if (isNewFile) {
         logFileOperation(
           this.config,
@@ -283,7 +353,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
             lines,
             mimetype,
             extension,
-            diffStat,
+            String(diffStat),
             programming_language,
           ),
         );
@@ -296,7 +366,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
             lines,
             mimetype,
             extension,
-            diffStat,
+            String(diffStat),
             programming_language,
           ),
         );

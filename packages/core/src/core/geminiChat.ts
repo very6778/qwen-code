@@ -27,12 +27,10 @@ import {
   logContentRetry,
   logContentRetryFailure,
   logInvalidChunk,
-} from '../telemetry/loggers.js';
-import {
   ContentRetryEvent,
   ContentRetryFailureEvent,
   InvalidChunkEvent,
-} from '../telemetry/types.js';
+} from '../telemetry-mocks.js';
 
 export enum StreamEventType {
   /** A regular content chunk from the API. */

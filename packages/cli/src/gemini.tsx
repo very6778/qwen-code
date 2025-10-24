@@ -136,6 +136,10 @@ export async function startInteractiveUI(
   // Detect and enable Kitty keyboard protocol once at startup
   await detectAndEnableKittyProtocol();
   setWindowTitle(basename(workspaceRoot), settings);
+
+  // Clear screen for fullscreen TUI experience (Claude Code style)
+  process.stdout.write('\x1b[2J\x1b[H');
+
   const instance = render(
     <React.StrictMode>
       <SettingsContext.Provider value={settings}>
@@ -162,6 +166,36 @@ export async function startInteractiveUI(
     });
 
   registerCleanup(() => instance.unmount());
+
+  // Set up exit handlers to restore terminal state (Claude Code style)
+  const restoreTerminal = () => {
+    // Clear screen and show cursor on exit
+    process.stdout.write('\x1b[2J\x1b[H\x1b[?25h');
+  };
+
+  // Handle various exit scenarios
+  process.on('exit', restoreTerminal);
+  process.on('SIGINT', () => {
+    restoreTerminal();
+    process.exit(0);
+  });
+  process.on('SIGTERM', () => {
+    restoreTerminal();
+    process.exit(0);
+  });
+
+  // Handle unexpected errors
+  process.on('uncaughtException', (error) => {
+    restoreTerminal();
+    console.error('Unexpected error:', error);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    restoreTerminal();
+    console.error('Unhandled rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+  });
 }
 
 export async function main() {

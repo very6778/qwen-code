@@ -21,14 +21,26 @@ import {
   StandardFileSystemService,
 } from '../services/fileSystemService.js';
 import { GitService } from '../services/gitService.js';
-import type { TelemetryTarget } from '../telemetry/index.js';
+import type { TelemetryTarget } from '../telemetry-mocks.js';
+
+// Import telemetry constants from mock system
 import {
-  DEFAULT_OTLP_ENDPOINT,
-  DEFAULT_TELEMETRY_TARGET,
-  initializeTelemetry,
-  StartSessionEvent,
-} from '../telemetry/index.js';
-import { logCliConfiguration } from '../telemetry/loggers.js';
+  DEFAULT_OTLP_ENDPOINT as MOCK_OTLP_ENDPOINT,
+  DEFAULT_TELEMETRY_TARGET as MOCK_TELEMETRY_TARGET,
+  logCliConfiguration as mockLogCliConfiguration,
+  StartSessionEvent
+} from '../telemetry-mocks.js';
+
+const DEFAULT_OTLP_ENDPOINT = MOCK_OTLP_ENDPOINT;
+const DEFAULT_TELEMETRY_TARGET = MOCK_TELEMETRY_TARGET;
+
+// Mock telemetry functions
+const initializeTelemetry = async () => ({
+  recordEvent: () => {},
+  shutdown: async () => {}
+});
+
+const logCliConfiguration = mockLogCliConfiguration;
 import { EditTool } from '../tools/edit.js';
 import { ExitPlanModeTool } from '../tools/exitPlanMode.js';
 import { GlobTool } from '../tools/glob.js';
@@ -440,7 +452,7 @@ export class Config {
     }
 
     if (this.telemetrySettings.enabled) {
-      initializeTelemetry(this);
+      initializeTelemetry();
     }
 
     logCliConfiguration(this, new StartSessionEvent(this));
@@ -733,7 +745,7 @@ export class Config {
   }
 
   getTelemetryTarget(): TelemetryTarget {
-    return this.telemetrySettings.target ?? DEFAULT_TELEMETRY_TARGET;
+    return this.telemetrySettings.target || DEFAULT_TELEMETRY_TARGET;
   }
 
   getTelemetryOutfile(): string | undefined {

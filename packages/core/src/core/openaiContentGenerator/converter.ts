@@ -662,6 +662,8 @@ export class OpenAIContentConverter {
       }
       response.candidates = [candidate];
     } else {
+      // Filter out empty chunks that cause double circle display
+      // Some providers (like ZAI GLM-4.6) send empty metadata chunks first
       response.candidates = [];
     }
 

@@ -33,6 +33,12 @@ interface FooterProps {
   nightly: boolean;
   vimMode?: string;
   isTrustedFolder?: boolean;
+  // Temporary hiding options for CLI space
+  hideGitInfo?: boolean;
+  hideSandboxInfo?: boolean;
+  hideModelInfo?: boolean;
+  hideProjectPath?: boolean;
+  hideModelName?: boolean;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -49,6 +55,11 @@ export const Footer: React.FC<FooterProps> = ({
   nightly,
   vimMode,
   isTrustedFolder,
+  hideGitInfo = false,
+  hideSandboxInfo = false,
+  hideModelInfo = false,
+  hideProjectPath = false,
+  hideModelName = false,
 }) => {
   const { columns: terminalWidth } = useTerminalSize();
 
@@ -70,20 +81,24 @@ export const Footer: React.FC<FooterProps> = ({
       <Box>
         {debugMode && <DebugProfiler />}
         {vimMode && <Text color={theme.text.secondary}>[{vimMode}] </Text>}
-        {nightly ? (
-          <Gradient colors={theme.ui.gradient}>
-            <Text>
-              {displayPath}
-              {branchName && <Text> ({branchName}*)</Text>}
-            </Text>
-          </Gradient>
-        ) : (
-          <Text color={theme.text.link}>
-            {displayPath}
-            {branchName && (
-              <Text color={theme.text.secondary}> ({branchName}*)</Text>
+        {!hideProjectPath && (
+          <>
+            {nightly ? (
+              <Gradient colors={theme.ui.gradient}>
+                <Text>
+                  {displayPath}
+                  {!hideGitInfo && branchName && <Text> ({branchName}*)</Text>}
+                </Text>
+              </Gradient>
+            ) : (
+              <Text color={theme.text.link}>
+                {displayPath}
+                {!hideGitInfo && branchName && (
+                  <Text color={theme.text.secondary}> ({branchName}*)</Text>
+                )}
+              </Text>
             )}
-          </Text>
+          </>
         )}
         {debugMode && (
           <Text color={theme.status.error}>
@@ -101,37 +116,54 @@ export const Footer: React.FC<FooterProps> = ({
         paddingX={isNarrow ? 0 : 1}
         paddingTop={isNarrow ? 1 : 0}
       >
-        {isTrustedFolder === false ? (
-          <Text color={theme.status.warning}>untrusted</Text>
-        ) : process.env['SANDBOX'] &&
-          process.env['SANDBOX'] !== 'sandbox-exec' ? (
-          <Text color="green">
-            {process.env['SANDBOX'].replace(/^gemini-(?:cli-)?/, '')}
-          </Text>
-        ) : process.env['SANDBOX'] === 'sandbox-exec' ? (
-          <Text color={theme.status.warning}>
-            macOS Seatbelt{' '}
-            <Text color={theme.text.secondary}>
-              ({process.env['SEATBELT_PROFILE']})
-            </Text>
-          </Text>
-        ) : (
-          <Text color={theme.status.error}>
-            no sandbox <Text color={theme.text.secondary}>(see /docs)</Text>
-          </Text>
+        {!hideSandboxInfo && (
+          <>
+            {isTrustedFolder === false ? (
+              <Text color={theme.status.warning}>untrusted</Text>
+            ) : process.env['SANDBOX'] &&
+              process.env['SANDBOX'] !== 'sandbox-exec' ? (
+              <Text color="green">
+                {process.env['SANDBOX'].replace(/^gemini-(?:cli-)?/, '')}
+              </Text>
+            ) : process.env['SANDBOX'] === 'sandbox-exec' ? (
+              <Text color={theme.status.warning}>
+                macOS Seatbelt{' '}
+                <Text color={theme.text.secondary}>
+                  ({process.env['SEATBELT_PROFILE']})
+                </Text>
+              </Text>
+            ) : (
+              <Text color={theme.status.error}>
+                no sandbox <Text color={theme.text.secondary}>(see /docs)</Text>
+              </Text>
+            )}
+          </>
         )}
       </Box>
 
       {/* Right Section: Gemini Label and Console Summary */}
       <Box alignItems="center" paddingTop={isNarrow ? 1 : 0}>
-        <Text color={theme.text.accent}>
-          {isNarrow ? '' : ' '}
-          {model}{' '}
-          <ContextUsageDisplay
-            promptTokenCount={promptTokenCount}
-            model={model}
-          />
-        </Text>
+        {!hideModelName ? (
+          <Text color={theme.text.accent}>
+            {isNarrow ? '' : ' '}
+            {model}{' '}
+            {!hideModelInfo && (
+              <ContextUsageDisplay
+                promptTokenCount={promptTokenCount}
+                model={model}
+              />
+            )}
+          </Text>
+        ) : (
+          !hideModelInfo && (
+            <Text color={theme.text.accent}>
+              <ContextUsageDisplay
+                promptTokenCount={promptTokenCount}
+                model={model}
+              />
+            </Text>
+          )
+        )}
         {corgiMode && (
           <Text>
             <Text color={theme.ui.symbol}>| </Text>

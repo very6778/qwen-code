@@ -62,9 +62,13 @@ export const createMockCommandContext = (
     session: {
       sessionShellAllowlist: new Set<string>(),
       stats: {
+        sessionId: 'mock-session-id',
         sessionStartTime: new Date(),
         lastPromptTokenCount: 0,
         metrics: {
+          totalTokens: 0,
+          totalTime: 0,
+          requestCount: 0,
           models: {},
           tools: {
             totalCalls: 0,
@@ -73,6 +77,13 @@ export const createMockCommandContext = (
             totalDurationMs: 0,
             totalDecisions: { accept: 0, reject: 0, modify: 0 },
             byName: {},
+          },
+          files: {
+            totalReads: 0,
+            totalWrites: 0,
+            totalEdits: 0,
+            totalLinesAdded: 0,
+            totalLinesRemoved: 0,
           },
         },
         promptCount: 0,

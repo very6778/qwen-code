@@ -19,6 +19,12 @@ export interface TodoItem {
   id: string;
   content: string;
   status: 'pending' | 'in_progress' | 'completed';
+  // Backward compatible expansions for hierarchical todos
+  expansionType?: 'ANALYSIS-DRIVEN' | 'RESEARCH-BASED' | 'MULTI-COMPONENT';
+  expansionHint?: string;      // Human-readable hint about what this task expands into
+  parentId?: string;           // Parent task ID for hierarchical relationships
+  depth?: number;              // Hierarchy depth (0-5, where 0 is root level)
+  hasSubtasks?: boolean;       // Flag for UI to indicate this task has subtasks
 }
 
 export interface TodoWriteParams {
@@ -242,6 +248,90 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
 
 const TODO_SUBDIR = 'todos';
 
+/**
+ * Maximum allowed depth for hierarchical todos to prevent infinite expansion
+ */
+const MAX_TODO_DEPTH = 5;
+
+/**
+ * Detects if a todo content suggests it should be expanded into subtasks
+ * based on specific patterns and keywords
+ */
+function detectExpansionType(content: string): 'ANALYSIS-DRIVEN' | 'RESEARCH-BASED' | 'MULTI-COMPONENT' | null {
+  const lowerContent = content.toLowerCase();
+
+  // ANALYSIS-DRIVEN: tasks that involve analysis, design, recommendation
+  if (lowerContent.includes('geliştir') ||
+      lowerContent.includes('öneriler') ||
+      lowerContent.includes('tasarla') ||
+      lowerContent.includes('analiz et') ||
+      lowerContent.includes('araştır') ||
+      lowerContent.includes('belirle') ||
+      lowerContent.includes('planla')) {
+    return 'ANALYSIS-DRIVEN';
+  }
+
+  // MULTI-COMPONENT: tasks that involve implementation or execution
+  if (lowerContent.includes('uygula') ||
+      lowerContent.includes('implement et') ||
+      lowerContent.includes('gerçekleştir') ||
+      lowerContent.includes('yap') ||
+      lowerContent.includes('oluştur') ||
+      lowerContent.includes('kur')) {
+    return 'MULTI-COMPONENT';
+  }
+
+  // RESEARCH-BASED: tasks that involve investigation or discovery
+  if (lowerContent.includes('incele') ||
+      lowerContent.includes('keşfet') ||
+      lowerContent.includes('öğren') ||
+      lowerContent.includes('araştır') ||
+      lowerContent.includes('bul')) {
+    return 'RESEARCH-BASED';
+  }
+
+  return null;
+}
+
+/**
+ * Generates a human-readable hint based on expansion type and content
+ */
+function generateExpansionHint(content: string, expansionType: string): string {
+  const lowerContent = content.toLowerCase();
+
+  switch (expansionType) {
+    case 'ANALYSIS-DRIVEN':
+      if (lowerContent.includes('ui') || lowerContent.includes('ux')) {
+        return 'Görsel hiyerarşi, etkileşim, accessibility olarak ayrılacak';
+      }
+      if (lowerContent.includes('api') || lowerContent.includes('backend')) {
+        return 'Endpoints, validation, database olarak ayrılacak';
+      }
+      return 'Alt bileşenlere ayrılacak';
+
+    case 'MULTI-COMPONENT':
+      if (lowerContent.includes('test')) {
+        return 'Unit, integration, e2e testleri olarak ayrılacak';
+      }
+      return 'Implementasyon adımlarına ayrılacak';
+
+    case 'RESEARCH-BASED':
+      return 'Araştırma konularına göre ayrılacak';
+
+    default:
+      return '';
+  }
+}
+
+// UUID generation utility (currently unused but kept for future expansion)
+// function generateUUID(): string {
+//   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+//     const r = Math.random() * 16 | 0;
+//     const v = c == 'x' ? r : (r & 0x3 | 0x8);
+//     return v.toString(16);
+//   });
+// }
+
 function getTodoFilePath(sessionId?: string): string {
   const homeDir =
     process.env['HOME'] || process.env['USERPROFILE'] || process.cwd();
@@ -253,14 +343,27 @@ function getTodoFilePath(sessionId?: string): string {
 }
 
 /**
- * Reads the current todos from the file system
+ * Reads the current todos from the file system with backward compatibility
  */
 async function readTodosFromFile(sessionId?: string): Promise<TodoItem[]> {
   try {
     const todoFilePath = getTodoFilePath(sessionId);
     const content = await fs.readFile(todoFilePath, 'utf-8');
     const data = JSON.parse(content);
-    return Array.isArray(data.todos) ? data.todos : [];
+
+    if (!Array.isArray(data.todos)) {
+      return [];
+    }
+
+    // Backward compatibility: ensure all todos have required new fields
+    return data.todos.map((todo: any) => ({
+      ...todo,
+      expansionType: todo.expansionType || undefined,
+      expansionHint: todo.expansionHint || undefined,
+      parentId: todo.parentId || undefined,
+      depth: todo.depth !== undefined ? todo.depth : 0,
+      hasSubtasks: todo.hasSubtasks || false
+    }));
   } catch (err) {
     const error = err as Error & { code?: string };
     if (!(error instanceof Error) || error.code !== 'ENOENT') {
@@ -288,6 +391,82 @@ async function writeTodosToFile(
   };
 
   await fs.writeFile(todoFilePath, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+/**
+ * Validates hierarchical todo relationships and prevents infinite expansion
+ */
+function validateTodoHierarchy(todos: TodoItem[]): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  const idMap = new Map(todos.map(todo => [todo.id, todo]));
+
+  // Check for circular references
+  for (const todo of todos) {
+    if (todo.parentId) {
+      let current: string | undefined = todo.parentId;
+      const visited = new Set<string>();
+
+      while (current && idMap.has(current)) {
+        if (visited.has(current)) {
+          errors.push(`Circular reference detected: ${todo.id} → ${current}`);
+          break;
+        }
+        visited.add(current);
+        const parent: TodoItem = idMap.get(current)!;
+        current = parent.parentId;
+      }
+    }
+  }
+
+  // Check for depth limits
+  for (const todo of todos) {
+    if (todo.depth !== undefined && todo.depth > MAX_TODO_DEPTH) {
+      errors.push(`Todo ${todo.id} exceeds maximum depth of ${MAX_TODO_DEPTH}`);
+    }
+  }
+
+  // Check for invalid parent references
+  for (const todo of todos) {
+    if (todo.parentId && !idMap.has(todo.parentId)) {
+      errors.push(`Todo ${todo.id} references non-existent parent ${todo.parentId}`);
+    }
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+
+/**
+ * Updates parent task status based on their subtasks
+ */
+function syncParentStatus(todos: TodoItem[]): TodoItem[] {
+  const updatedTodos = [...todos];
+  const idMap = new Map(updatedTodos.map(todo => [todo.id, todo]));
+
+  // Process in depth order (children first)
+  const sortedByDepth = updatedTodos.filter(t => t.depth !== undefined)
+    .sort((a, b) => (b.depth || 0) - (a.depth || 0));
+
+  for (const todo of sortedByDepth) {
+    if (todo.parentId) {
+      const parent = idMap.get(todo.parentId);
+      if (parent) {
+        const siblings = updatedTodos.filter(t => t.parentId === todo.parentId);
+        parent.hasSubtasks = true;
+
+        // Update parent status based on children
+        const allCompleted = siblings.every(s => s.status === 'completed');
+        const anyInProgress = siblings.some(s => s.status === 'in_progress');
+
+        if (allCompleted) {
+          parent.status = 'completed';
+        } else if (anyInProgress) {
+          parent.status = 'in_progress';
+        }
+      }
+    }
+  }
+
+  return updatedTodos;
 }
 
 class TodoWriteToolInvocation extends BaseToolInvocation<
@@ -328,9 +507,24 @@ class TodoWriteToolInvocation extends BaseToolInvocation<
         const data = JSON.parse(modified_content);
         finalTodos = Array.isArray(data.todos) ? data.todos : [];
       } else {
-        // Use the normal todo logic - simply replace with new todos
-        finalTodos = todos;
+        // Use the enhanced todo logic with hierarchy support
+        finalTodos = this.processTodosWithHierarchy(todos);
       }
+
+      // Validate hierarchy before writing
+      const hierarchyValidation = validateTodoHierarchy(finalTodos);
+      if (!hierarchyValidation.isValid) {
+        return {
+          llmContent: JSON.stringify({
+            success: false,
+            error: `Hierarchy validation failed: ${hierarchyValidation.errors.join(', ')}`,
+          }),
+          returnDisplay: `Hierarchy validation failed: ${hierarchyValidation.errors.join(', ')}`,
+        };
+      }
+
+      // Sync parent statuses based on children
+      finalTodos = syncParentStatus(finalTodos);
 
       await writeTodosToFile(finalTodos, sessionId);
 
@@ -361,6 +555,38 @@ class TodoWriteToolInvocation extends BaseToolInvocation<
         returnDisplay: `Error writing todos: ${errorMessage}`,
       };
     }
+  }
+
+  /**
+   * Process todos with hierarchy support, including expansion logic
+   */
+  private processTodosWithHierarchy(todos: TodoItem[]): TodoItem[] {
+    const processedTodos = [...todos];
+
+    // Auto-detect expansion types for any todos that don't have them
+    for (let i = 0; i < processedTodos.length; i++) {
+      const todo = processedTodos[i];
+
+      // Only apply auto-detection to root tasks without expansion type
+      if (!todo.expansionType && !todo.parentId) {
+        const detectedType = detectExpansionType(todo.content);
+        if (detectedType) {
+          processedTodos[i] = {
+            ...todo,
+            expansionType: detectedType,
+            expansionHint: generateExpansionHint(todo.content, detectedType),
+            depth: todo.depth !== undefined ? todo.depth : 0
+          };
+        }
+      }
+
+      // Ensure all todos have default depth
+      if (processedTodos[i].depth === undefined) {
+        processedTodos[i].depth = 0;
+      }
+    }
+
+    return processedTodos;
   }
 }
 
@@ -431,6 +657,15 @@ export class TodoWriteTool extends BaseDeclarativeTool<
       if (!['pending', 'in_progress', 'completed'].includes(todo.status)) {
         return 'Each todo must have a valid "status" (pending, in_progress, completed).';
       }
+
+      // Validate hierarchical fields
+      if (todo.expansionType && !['ANALYSIS-DRIVEN', 'RESEARCH-BASED', 'MULTI-COMPONENT'].includes(todo.expansionType)) {
+        return 'Each todo must have a valid "expansionType" (ANALYSIS-DRIVEN, RESEARCH-BASED, MULTI-COMPONENT) if specified.';
+      }
+
+      if (todo.depth !== undefined && (typeof todo.depth !== 'number' || todo.depth < 0 || todo.depth > MAX_TODO_DEPTH)) {
+        return `Each todo must have a valid "depth" between 0 and ${MAX_TODO_DEPTH} if specified.`;
+      }
     }
 
     // Check for duplicate IDs
@@ -438,6 +673,12 @@ export class TodoWriteTool extends BaseDeclarativeTool<
     const uniqueIds = new Set(ids);
     if (ids.length !== uniqueIds.size) {
       return 'Todo IDs must be unique within the array.';
+    }
+
+    // Validate hierarchical relationships
+    const hierarchyValidation = validateTodoHierarchy(params.todos);
+    if (!hierarchyValidation.isValid) {
+      return hierarchyValidation.errors.join('; ');
     }
 
     return null;
@@ -449,6 +690,22 @@ export class TodoWriteTool extends BaseDeclarativeTool<
     const todoFilePath = getTodoFilePath(sessionId);
     const operationType = fsSync.existsSync(todoFilePath) ? 'update' : 'create';
 
-    return new TodoWriteToolInvocation(this.config, params, operationType);
+    // Auto-detect expansion types for new todos that don't have them
+    const processedTodos = params.todos.map(todo => {
+      if (!todo.expansionType && !todo.parentId) { // Only apply to root tasks without expansion type
+        const detectedType = detectExpansionType(todo.content);
+        if (detectedType) {
+          return {
+            ...todo,
+            expansionType: detectedType,
+            expansionHint: generateExpansionHint(todo.content, detectedType),
+            depth: todo.depth !== undefined ? todo.depth : 0
+          };
+        }
+      }
+      return todo;
+    });
+
+    return new TodoWriteToolInvocation(this.config, { ...params, todos: processedTodos }, operationType);
   }
 }

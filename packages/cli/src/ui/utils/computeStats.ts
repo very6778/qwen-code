@@ -58,14 +58,14 @@ export const computeSessionStats = (
     totalPromptTokens > 0 ? (totalCachedTokens / totalPromptTokens) * 100 : 0;
 
   const totalDecisions =
-    tools.totalDecisions.accept +
-    tools.totalDecisions.reject +
-    tools.totalDecisions.modify;
+    tools.totalDecisions['accept'] +
+    tools.totalDecisions['reject'] +
+    tools.totalDecisions['modify'];
   const successRate =
     tools.totalCalls > 0 ? (tools.totalSuccess / tools.totalCalls) * 100 : 0;
   const agreementRate =
     totalDecisions > 0
-      ? (tools.totalDecisions.accept / totalDecisions) * 100
+      ? (tools.totalDecisions['accept'] / totalDecisions) * 100
       : 0;
 
   return {
