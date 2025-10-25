@@ -37,4 +37,17 @@ for (const file of sbFiles) {
   copyFileSync(join(root, file), join(bundleDir, basename(file)));
 }
 
+// Copy tiktoken WASM files from node_modules
+const tiktokenWasmFiles = [
+  'node_modules/tiktoken/tiktoken_bg.wasm',
+  'node_modules/tiktoken/lite/tiktoken_bg.wasm'
+];
+
+for (const file of tiktokenWasmFiles) {
+  if (existsSync(join(root, file))) {
+    copyFileSync(join(root, file), join(bundleDir, basename(file)));
+    console.log(`Copied ${basename(file)} to bundle/`);
+  }
+}
+
 console.log('Assets copied to bundle/');

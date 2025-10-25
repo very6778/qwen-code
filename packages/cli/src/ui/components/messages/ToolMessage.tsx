@@ -48,6 +48,8 @@ const useResultDisplayRenderer = (
   resultDisplay: unknown,
 ): DisplayRendererResult =>
   React.useMemo(() => {
+    console.log('[ToolMessage] Received resultDisplay:', JSON.stringify(resultDisplay, null, 2));
+
     if (!resultDisplay) {
       return { type: 'none' };
     }
@@ -59,6 +61,7 @@ const useResultDisplayRenderer = (
       'type' in resultDisplay &&
       resultDisplay.type === 'todo_list'
     ) {
+      console.log('[ToolMessage] Detected todo_list type, returning todo renderer');
       return {
         type: 'todo',
         data: resultDisplay as TodoResultDisplay,
@@ -103,6 +106,7 @@ const useResultDisplayRenderer = (
     }
 
     // Default to string
+    console.log('[ToolMessage] No matching type found, returning string');
     return {
       type: 'string',
       data: resultDisplay as string,
@@ -114,7 +118,10 @@ const useResultDisplayRenderer = (
  */
 const TodoResultRenderer: React.FC<{ data: TodoResultDisplay }> = ({
   data,
-}) => <TodoDisplay todos={data.todos} />;
+}) => {
+  console.log('[TodoResultRenderer] Rendering todos:', data.todos.length);
+  return <TodoDisplay todos={data.todos} />;
+};
 
 const PlanResultRenderer: React.FC<{
   data: PlanResultDisplay;

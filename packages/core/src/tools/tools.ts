@@ -485,12 +485,6 @@ export interface TodoResultDisplay {
     id: string;
     content: string;
     status: 'pending' | 'in_progress' | 'completed';
-    // Hierarchical fields
-    expansionType?: 'ANALYSIS-DRIVEN' | 'RESEARCH-BASED' | 'MULTI-COMPONENT';
-    expansionHint?: string;
-    parentId?: string;
-    depth?: number;
-    hasSubtasks?: boolean;
   }>;
 }
 

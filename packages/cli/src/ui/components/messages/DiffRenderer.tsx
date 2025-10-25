@@ -11,82 +11,10 @@ import crypto from 'node:crypto';
 import { colorizeCode, colorizeLine } from '../../utils/CodeColorizer.js';
 import { MaxSizedBox } from '../shared/MaxSizedBox.js';
 import { theme } from '../../semantic-colors.js';
-
-interface DiffLine {
-  type: 'add' | 'del' | 'context' | 'hunk' | 'other';
-  oldLine?: number;
-  newLine?: number;
-  content: string;
-}
-
-function parseDiffWithLineNumbers(diffContent: string): DiffLine[] {
-  const lines = diffContent.split('\n');
-  const result: DiffLine[] = [];
-  let currentOldLine = 0;
-  let currentNewLine = 0;
-  let inHunk = false;
-  const hunkHeaderRegex = /^@@ -(\d+),?\d* \+(\d+),?\d* @@/;
-
-  for (const line of lines) {
-    const hunkMatch = line.match(hunkHeaderRegex);
-    if (hunkMatch) {
-      currentOldLine = parseInt(hunkMatch[1], 10);
-      currentNewLine = parseInt(hunkMatch[2], 10);
-      inHunk = true;
-      result.push({ type: 'hunk', content: line });
-      // We need to adjust the starting point because the first line number applies to the *first* actual line change/context,
-      // but we increment *before* pushing that line. So decrement here.
-      currentOldLine--;
-      currentNewLine--;
-      continue;
-    }
-    if (!inHunk) {
-      // Skip standard Git header lines more robustly
-      if (
-        line.startsWith('--- ') ||
-        line.startsWith('+++ ') ||
-        line.startsWith('diff --git') ||
-        line.startsWith('index ') ||
-        line.startsWith('similarity index') ||
-        line.startsWith('rename from') ||
-        line.startsWith('rename to') ||
-        line.startsWith('new file mode') ||
-        line.startsWith('deleted file mode')
-      )
-        continue;
-      // If it's not a hunk or header, skip (or handle as 'other' if needed)
-      continue;
-    }
-    if (line.startsWith('+')) {
-      currentNewLine++; // Increment before pushing
-      result.push({
-        type: 'add',
-        newLine: currentNewLine,
-        content: line.substring(1),
-      });
-    } else if (line.startsWith('-')) {
-      currentOldLine++; // Increment before pushing
-      result.push({
-        type: 'del',
-        oldLine: currentOldLine,
-        content: line.substring(1),
-      });
-    } else if (line.startsWith(' ')) {
-      currentOldLine++; // Increment before pushing
-      currentNewLine++;
-      result.push({
-        type: 'context',
-        oldLine: currentOldLine,
-        newLine: currentNewLine,
-        content: line.substring(1),
-      });
-    } else if (line.startsWith('\\')) {
-      // Handle "\ No newline at end of file"
-      result.push({ type: 'other', content: line });
-    }
-  }
-  return result;
-}
+import {
+  parseDiffWithLineNumbers,
+  type ParsedDiffLine,
+} from '../../utils/diffParsing.js';
 
 interface DiffRendererProps {
   diffContent: string;
@@ -177,7 +105,7 @@ export const DiffRenderer: React.FC<DiffRendererProps> = ({
 };
 
 const renderDiffContent = (
-  parsedLines: DiffLine[],
+  parsedLines: ParsedDiffLine[],
   filename: string | undefined,
   tabWidth = DEFAULT_TAB_WIDTH,
   availableTerminalHeight: number | undefined,

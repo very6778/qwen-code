@@ -19,12 +19,6 @@ export interface TodoItem {
   id: string;
   content: string;
   status: 'pending' | 'in_progress' | 'completed';
-  // Backward compatible expansions for hierarchical todos
-  expansionType?: 'ANALYSIS-DRIVEN' | 'RESEARCH-BASED' | 'MULTI-COMPONENT';
-  expansionHint?: string;      // Human-readable hint about what this task expands into
-  parentId?: string;           // Parent task ID for hierarchical relationships
-  depth?: number;              // Hierarchy depth (0-5, where 0 is root level)
-  hasSubtasks?: boolean;       // Flag for UI to indicate this task has subtasks
 }
 
 export interface TodoWriteParams {
@@ -36,7 +30,7 @@ export interface TodoWriteParams {
 const todoWriteToolSchemaData: FunctionDeclaration = {
   name: 'todo_write',
   description:
-    'Creates and manages a structured task list for your current coding session. This helps track progress, organize complex tasks, and demonstrate thoroughness.',
+    'Creates and manages a task list for your current coding session. This helps track progress and organize complex tasks.',
   parametersJsonSchema: {
     type: 'object',
     properties: {
@@ -69,19 +63,16 @@ const todoWriteToolSchemaData: FunctionDeclaration = {
 };
 
 const todoWriteToolDescription = `
-Use this tool to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.
-It also helps the user understand the progress of the task and overall progress of their requests.
+Use this tool to create and manage a task list for your current coding session. This helps you track progress and organize complex tasks.
 
 ## When to Use This Tool
-Use this tool proactively in these scenarios:
+Use this tool in these scenarios:
 
 1. Complex multi-step tasks - When a task requires 3 or more distinct steps or actions
-2. Non-trivial and complex tasks - Tasks that require careful planning or multiple operations
+2. Non-trivial tasks - Tasks that require careful planning or multiple operations
 3. User explicitly requests todo list - When the user directly asks you to use the todo list
 4. User provides multiple tasks - When users provide a list of things to be done (numbered or comma-separated)
-5. After receiving new instructions - Immediately capture user requirements as todos
-6. When you start working on a task - Mark it as in_progress BEFORE beginning work. Ideally you should only have one todo as in_progress at a time
-7. After completing a task - Mark it as completed and add any new follow-up tasks discovered during implementation
+5. After receiving new instructions - Capture user requirements as todos
 
 ## When NOT to Use This Tool
 
@@ -91,7 +82,7 @@ Skip using this tool when:
 3. The task can be completed in less than 3 trivial steps
 4. The task is purely conversational or informational
 
-NOTE that you should not use this tool if there is only one trivial task to do. In this case you are better off just doing the task directly.
+NOTE: Do not use this tool if there is only one trivial task to do.
 
 ## Examples of When to Use the Todo List
 
@@ -105,13 +96,6 @@ Assistant: I'll help add a dark mode toggle to your application settings. Let me
 4. Update existing components to support theme switching
 5. Run tests and build process, addressing any failures or errors that occur
 *Begins working on the first task*
-
-<reasoning>
-The assistant used the todo list because:
-1. Adding dark mode is a multi-step feature requiring UI, state management, and styling changes
-2. The user explicitly requested tests and build be run afterward
-3. The assistant inferred that tests and build need to pass by adding "Ensure tests and build succeed" as the final task
-</reasoning>
 </example>
 
 <example>
@@ -120,47 +104,6 @@ Assistant: Let me first search through your codebase to find all occurrences of 
 *Uses grep or search tools to locate all instances of getCwd in the codebase*
 Assistant: I've found 15 instances of 'getCwd' across 8 different files. Let me create a todo list to track these changes.
 *Creates todo list with specific items for each file that needs updating*
-
-<reasoning>
-The assistant used the todo list because:
-1. First, the assistant searched to understand the scope of the task
-2. Upon finding multiple occurrences across different files, it determined this was a complex task with multiple steps
-3. The todo list helps ensure every instance is tracked and updated systematically
-4. This approach prevents missing any occurrences and maintains code consistency
-</reasoning>
-</example>
-
-
-<example>
-User: I need to implement these features for my e-commerce site: user registration, product catalog, shopping cart, and checkout flow.
-Assistant: I'll help implement these features. First, let's add all the features to the todo list.
-*Creates a todo list breaking down each feature into specific tasks based on the project architecture*
-Assistant: Let's start with user registration. This will involve creating database models, API endpoints, and frontend forms that integrate with your existing authentication system.
-
-<reasoning>
-The assistant used the todo list because:
-1. The user provided multiple complex features to implement in a comma separated list
-2. The todo list helps organize these large features into manageable tasks
-3. This approach allows for tracking progress across the entire implementation
-</reasoning>
-</example>
-
-<example>
-User: Can you help optimize my React application? It's rendering slowly and has performance issues.</user>
-Assistant: I'll help optimize your React application. First, let me examine your codebase to identify potential performance bottlenecks.
-*Reviews component structure, render patterns, state management, and data fetching*
-Assistant: After analyzing your codebase, I've identified several performance issues. Let me create a todo list to track our optimization efforts.
-*Creates todo list with items like: 1) Implement memoization for expensive calculations in ProductList, 2) Add virtualization for long lists in Dashboard, 3) Optimize image loading in Gallery component, 4) Fix state update loops in ShoppingCart, 5) Review bundle size and implement code splitting*
-Let's start by implementing memoization for the expensive calculations in your ProductList component.</assistant>
-
-<reasoning>
-The assistant used the todo list because:
-1. First, the assistant examined the codebase to identify specific performance issues
-2. Based on this analysis, it identified multiple optimization opportunities
-3. Performance optimization is a non-trivial task requiring multiple steps
-4. The todo list helps methodically track improvements across different components
-5. This systematic approach ensures all performance bottlenecks are addressed
-</reasoning>
 </example>
 
 ## Examples of When NOT to Use the Todo List
@@ -248,89 +191,6 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
 
 const TODO_SUBDIR = 'todos';
 
-/**
- * Maximum allowed depth for hierarchical todos to prevent infinite expansion
- */
-const MAX_TODO_DEPTH = 5;
-
-/**
- * Detects if a todo content suggests it should be expanded into subtasks
- * based on specific patterns and keywords
- */
-function detectExpansionType(content: string): 'ANALYSIS-DRIVEN' | 'RESEARCH-BASED' | 'MULTI-COMPONENT' | null {
-  const lowerContent = content.toLowerCase();
-
-  // ANALYSIS-DRIVEN: tasks that involve analysis, design, recommendation
-  if (lowerContent.includes('geliştir') ||
-      lowerContent.includes('öneriler') ||
-      lowerContent.includes('tasarla') ||
-      lowerContent.includes('analiz et') ||
-      lowerContent.includes('araştır') ||
-      lowerContent.includes('belirle') ||
-      lowerContent.includes('planla')) {
-    return 'ANALYSIS-DRIVEN';
-  }
-
-  // MULTI-COMPONENT: tasks that involve implementation or execution
-  if (lowerContent.includes('uygula') ||
-      lowerContent.includes('implement et') ||
-      lowerContent.includes('gerçekleştir') ||
-      lowerContent.includes('yap') ||
-      lowerContent.includes('oluştur') ||
-      lowerContent.includes('kur')) {
-    return 'MULTI-COMPONENT';
-  }
-
-  // RESEARCH-BASED: tasks that involve investigation or discovery
-  if (lowerContent.includes('incele') ||
-      lowerContent.includes('keşfet') ||
-      lowerContent.includes('öğren') ||
-      lowerContent.includes('araştır') ||
-      lowerContent.includes('bul')) {
-    return 'RESEARCH-BASED';
-  }
-
-  return null;
-}
-
-/**
- * Generates a human-readable hint based on expansion type and content
- */
-function generateExpansionHint(content: string, expansionType: string): string {
-  const lowerContent = content.toLowerCase();
-
-  switch (expansionType) {
-    case 'ANALYSIS-DRIVEN':
-      if (lowerContent.includes('ui') || lowerContent.includes('ux')) {
-        return 'Görsel hiyerarşi, etkileşim, accessibility olarak ayrılacak';
-      }
-      if (lowerContent.includes('api') || lowerContent.includes('backend')) {
-        return 'Endpoints, validation, database olarak ayrılacak';
-      }
-      return 'Alt bileşenlere ayrılacak';
-
-    case 'MULTI-COMPONENT':
-      if (lowerContent.includes('test')) {
-        return 'Unit, integration, e2e testleri olarak ayrılacak';
-      }
-      return 'Implementasyon adımlarına ayrılacak';
-
-    case 'RESEARCH-BASED':
-      return 'Araştırma konularına göre ayrılacak';
-
-    default:
-      return '';
-  }
-}
-
-// UUID generation utility (currently unused but kept for future expansion)
-// function generateUUID(): string {
-//   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-//     const r = Math.random() * 16 | 0;
-//     const v = c == 'x' ? r : (r & 0x3 | 0x8);
-//     return v.toString(16);
-//   });
-// }
 
 function getTodoFilePath(sessionId?: string): string {
   const homeDir =
@@ -343,7 +203,7 @@ function getTodoFilePath(sessionId?: string): string {
 }
 
 /**
- * Reads the current todos from the file system with backward compatibility
+ * Reads the current todos from the file system
  */
 async function readTodosFromFile(sessionId?: string): Promise<TodoItem[]> {
   try {
@@ -355,14 +215,11 @@ async function readTodosFromFile(sessionId?: string): Promise<TodoItem[]> {
       return [];
     }
 
-    // Backward compatibility: ensure all todos have required new fields
+    // Return only basic todo fields for backward compatibility
     return data.todos.map((todo: any) => ({
-      ...todo,
-      expansionType: todo.expansionType || undefined,
-      expansionHint: todo.expansionHint || undefined,
-      parentId: todo.parentId || undefined,
-      depth: todo.depth !== undefined ? todo.depth : 0,
-      hasSubtasks: todo.hasSubtasks || false
+      id: todo.id,
+      content: todo.content,
+      status: todo.status
     }));
   } catch (err) {
     const error = err as Error & { code?: string };
@@ -393,81 +250,6 @@ async function writeTodosToFile(
   await fs.writeFile(todoFilePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-/**
- * Validates hierarchical todo relationships and prevents infinite expansion
- */
-function validateTodoHierarchy(todos: TodoItem[]): { isValid: boolean; errors: string[] } {
-  const errors: string[] = [];
-  const idMap = new Map(todos.map(todo => [todo.id, todo]));
-
-  // Check for circular references
-  for (const todo of todos) {
-    if (todo.parentId) {
-      let current: string | undefined = todo.parentId;
-      const visited = new Set<string>();
-
-      while (current && idMap.has(current)) {
-        if (visited.has(current)) {
-          errors.push(`Circular reference detected: ${todo.id} → ${current}`);
-          break;
-        }
-        visited.add(current);
-        const parent: TodoItem = idMap.get(current)!;
-        current = parent.parentId;
-      }
-    }
-  }
-
-  // Check for depth limits
-  for (const todo of todos) {
-    if (todo.depth !== undefined && todo.depth > MAX_TODO_DEPTH) {
-      errors.push(`Todo ${todo.id} exceeds maximum depth of ${MAX_TODO_DEPTH}`);
-    }
-  }
-
-  // Check for invalid parent references
-  for (const todo of todos) {
-    if (todo.parentId && !idMap.has(todo.parentId)) {
-      errors.push(`Todo ${todo.id} references non-existent parent ${todo.parentId}`);
-    }
-  }
-
-  return { isValid: errors.length === 0, errors };
-}
-
-/**
- * Updates parent task status based on their subtasks
- */
-function syncParentStatus(todos: TodoItem[]): TodoItem[] {
-  const updatedTodos = [...todos];
-  const idMap = new Map(updatedTodos.map(todo => [todo.id, todo]));
-
-  // Process in depth order (children first)
-  const sortedByDepth = updatedTodos.filter(t => t.depth !== undefined)
-    .sort((a, b) => (b.depth || 0) - (a.depth || 0));
-
-  for (const todo of sortedByDepth) {
-    if (todo.parentId) {
-      const parent = idMap.get(todo.parentId);
-      if (parent) {
-        const siblings = updatedTodos.filter(t => t.parentId === todo.parentId);
-        parent.hasSubtasks = true;
-
-        // Update parent status based on children
-        const allCompleted = siblings.every(s => s.status === 'completed');
-        const anyInProgress = siblings.some(s => s.status === 'in_progress');
-
-        if (allCompleted) {
-          parent.status = 'completed';
-        } else if (anyInProgress) {
-          parent.status = 'in_progress';
-        }
-      }
-    }
-  }
-
-  return updatedTodos;
-}
 
 class TodoWriteToolInvocation extends BaseToolInvocation<
   TodoWriteParams,
@@ -507,28 +289,13 @@ class TodoWriteToolInvocation extends BaseToolInvocation<
         const data = JSON.parse(modified_content);
         finalTodos = Array.isArray(data.todos) ? data.todos : [];
       } else {
-        // Use the enhanced todo logic with hierarchy support
-        finalTodos = this.processTodosWithHierarchy(todos);
+        // Use todos as provided
+        finalTodos = todos;
       }
-
-      // Validate hierarchy before writing
-      const hierarchyValidation = validateTodoHierarchy(finalTodos);
-      if (!hierarchyValidation.isValid) {
-        return {
-          llmContent: JSON.stringify({
-            success: false,
-            error: `Hierarchy validation failed: ${hierarchyValidation.errors.join(', ')}`,
-          }),
-          returnDisplay: `Hierarchy validation failed: ${hierarchyValidation.errors.join(', ')}`,
-        };
-      }
-
-      // Sync parent statuses based on children
-      finalTodos = syncParentStatus(finalTodos);
 
       await writeTodosToFile(finalTodos, sessionId);
 
-      // Create structured display object for rich UI rendering
+      // Create structured display object for UI rendering
       const todoResultDisplay = {
         type: 'todo_list' as const,
         todos: finalTodos,
@@ -555,38 +322,6 @@ class TodoWriteToolInvocation extends BaseToolInvocation<
         returnDisplay: `Error writing todos: ${errorMessage}`,
       };
     }
-  }
-
-  /**
-   * Process todos with hierarchy support, including expansion logic
-   */
-  private processTodosWithHierarchy(todos: TodoItem[]): TodoItem[] {
-    const processedTodos = [...todos];
-
-    // Auto-detect expansion types for any todos that don't have them
-    for (let i = 0; i < processedTodos.length; i++) {
-      const todo = processedTodos[i];
-
-      // Only apply auto-detection to root tasks without expansion type
-      if (!todo.expansionType && !todo.parentId) {
-        const detectedType = detectExpansionType(todo.content);
-        if (detectedType) {
-          processedTodos[i] = {
-            ...todo,
-            expansionType: detectedType,
-            expansionHint: generateExpansionHint(todo.content, detectedType),
-            depth: todo.depth !== undefined ? todo.depth : 0
-          };
-        }
-      }
-
-      // Ensure all todos have default depth
-      if (processedTodos[i].depth === undefined) {
-        processedTodos[i].depth = 0;
-      }
-    }
-
-    return processedTodos;
   }
 }
 
@@ -657,15 +392,6 @@ export class TodoWriteTool extends BaseDeclarativeTool<
       if (!['pending', 'in_progress', 'completed'].includes(todo.status)) {
         return 'Each todo must have a valid "status" (pending, in_progress, completed).';
       }
-
-      // Validate hierarchical fields
-      if (todo.expansionType && !['ANALYSIS-DRIVEN', 'RESEARCH-BASED', 'MULTI-COMPONENT'].includes(todo.expansionType)) {
-        return 'Each todo must have a valid "expansionType" (ANALYSIS-DRIVEN, RESEARCH-BASED, MULTI-COMPONENT) if specified.';
-      }
-
-      if (todo.depth !== undefined && (typeof todo.depth !== 'number' || todo.depth < 0 || todo.depth > MAX_TODO_DEPTH)) {
-        return `Each todo must have a valid "depth" between 0 and ${MAX_TODO_DEPTH} if specified.`;
-      }
     }
 
     // Check for duplicate IDs
@@ -673,12 +399,6 @@ export class TodoWriteTool extends BaseDeclarativeTool<
     const uniqueIds = new Set(ids);
     if (ids.length !== uniqueIds.size) {
       return 'Todo IDs must be unique within the array.';
-    }
-
-    // Validate hierarchical relationships
-    const hierarchyValidation = validateTodoHierarchy(params.todos);
-    if (!hierarchyValidation.isValid) {
-      return hierarchyValidation.errors.join('; ');
     }
 
     return null;
@@ -690,22 +410,6 @@ export class TodoWriteTool extends BaseDeclarativeTool<
     const todoFilePath = getTodoFilePath(sessionId);
     const operationType = fsSync.existsSync(todoFilePath) ? 'update' : 'create';
 
-    // Auto-detect expansion types for new todos that don't have them
-    const processedTodos = params.todos.map(todo => {
-      if (!todo.expansionType && !todo.parentId) { // Only apply to root tasks without expansion type
-        const detectedType = detectExpansionType(todo.content);
-        if (detectedType) {
-          return {
-            ...todo,
-            expansionType: detectedType,
-            expansionHint: generateExpansionHint(todo.content, detectedType),
-            depth: todo.depth !== undefined ? todo.depth : 0
-          };
-        }
-      }
-      return todo;
-    });
-
-    return new TodoWriteToolInvocation(this.config, { ...params, todos: processedTodos }, operationType);
+    return new TodoWriteToolInvocation(this.config, params, operationType);
   }
 }

@@ -10,6 +10,7 @@ import type { ToolCallStatus } from '../../types.js';
 import { Colors } from '../../colors.js';
 import { CompactHeader } from './CompactHeader.js';
 import { MinimalTodoItem } from './MinimalTodoItem.js';
+import { MinimalDiffPreview } from './MinimalDiffPreview.js';
 import type { Config } from '@qwen-code/qwen-code-core';
 import { useKeypress } from '../../hooks/useKeypress.js';
 import type { Key } from '../../hooks/useKeypress.js';
@@ -27,28 +28,37 @@ export interface MinimalToolMessageProps {
   config: Config;
 }
 
+const isDiffDisplay = (
+  resultDisplay: unknown,
+): resultDisplay is { fileDiff: string } => {
+  return (
+    !!resultDisplay &&
+    typeof resultDisplay === 'object' &&
+    'fileDiff' in resultDisplay &&
+    typeof (resultDisplay as { fileDiff?: unknown }).fileDiff === 'string'
+  );
+};
+
 export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
   name,
   description,
   resultDisplay,
   status,
-  availableTerminalHeight,
-  terminalWidth,
+  availableTerminalHeight: _availableTerminalHeight,
+  terminalWidth: _terminalWidth,
   emphasis = 'medium',
-  renderOutputAsMarkdown = true,
+  renderOutputAsMarkdown: _renderOutputAsMarkdown = true,
   config,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const [showFullDiff, setShowFullDiff] = React.useState(false);
 
-  // Handle expand shortcut
-  useKeypress(
-    (key: Key) => {
-      if (key.ctrl && key.name === 'o') {
-        setIsExpanded(!isExpanded);
-      }
-    },
-    { isActive: true },
+  const diffDisplay = React.useMemo(
+    () =>
+      isDiffDisplay(resultDisplay) ? (resultDisplay as { fileDiff: string }) : null,
+    [resultDisplay],
   );
+  const hasDiffDisplay = diffDisplay !== null;
 
   // Parse tool name to get operation and target
   const parseToolDetails = () => {
@@ -71,40 +81,88 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
 
   const { toolName, target } = parseToolDetails();
 
-  // Check if resultDisplay contains todo list
-  const isTodoTool = () => {
+  const isTodoTool = React.useMemo(() => {
     return (
       (toolName === 'todoWrite' || toolName === 'TodoWrite') &&
       resultDisplay &&
       typeof resultDisplay === 'object' &&
       resultDisplay !== null &&
       'type' in resultDisplay &&
-      resultDisplay.type === 'todo_list'
+      (resultDisplay as { type?: string }).type === 'todo_list'
     );
-  };
+  }, [toolName, resultDisplay]);
 
-  // Extract todo items from resultDisplay
-  const getTodoItems = () => {
-    if (!isTodoTool()) return [];
+  const todoItems = React.useMemo(() => {
+    if (!isTodoTool) return [];
+    const todoResult = resultDisplay as { todos?: unknown[] } | undefined;
+    return Array.isArray(todoResult?.todos) ? todoResult.todos ?? [] : [];
+  }, [isTodoTool, resultDisplay]);
 
-    const todoResult = resultDisplay as any;
-    if (todoResult.todos && Array.isArray(todoResult.todos)) {
-      return todoResult.todos;
+  const summaryText =
+    typeof resultDisplay === 'string' ? resultDisplay.trim() : undefined;
+
+  const formattedSummary = React.useMemo(() => {
+    if (!summaryText) return null;
+
+    const rangeMatch = summaryText.match(
+      /^Read lines (\d+-\d+) of \d+ from .+$/,
+    );
+    if (rangeMatch) {
+      return (
+        <>
+          Read lines <Text bold>{rangeMatch[1]}</Text>
+        </>
+      );
     }
-    return [];
-  };
 
-  // Calculate content metrics
-  const getContentMetrics = () => {
-    if (isTodoTool()) {
-      const todoItems = getTodoItems();
+    const countMatch = summaryText.match(
+      /^Read (\d+) lines? from .+$/,
+    );
+    if (countMatch) {
+      return (
+        <>
+          Read <Text bold>{countMatch[1]}</Text>{' '}
+          {Number(countMatch[1]) === 1 ? 'line' : 'lines'}
+        </>
+      );
+    }
+
+    const truncatedAllMatch = summaryText.match(
+      /^Read all (\d+) lines from .+ \(some lines were shortened\)$/,
+    );
+    if (truncatedAllMatch) {
+      return (
+        <>
+          Read all <Text bold>{truncatedAllMatch[1]}</Text> lines (some
+          lines were shortened)
+        </>
+      );
+    }
+
+    const truncatedRangeMatch = summaryText.match(
+      /^Read lines (\d+-\d+) of \d+ from .+ \(some lines were shortened\)$/,
+    );
+    if (truncatedRangeMatch) {
+      return (
+        <>
+          Read lines <Text bold>{truncatedRangeMatch[1]}</Text> (some
+          lines were shortened)
+        </>
+      );
+    }
+
+    return <>{summaryText}</>;
+  }, [summaryText]);
+
+  const { totalLines, hiddenLines } = React.useMemo(() => {
+    if (isTodoTool) {
       return {
-        totalLines: todoItems.length > 0 ? 1 : 0, // Show "Updated X todos"
-        hiddenLines: 0
+        totalLines: todoItems.length > 0 ? 1 : 0,
+        hiddenLines: 0,
       };
     }
 
-    if (!resultDisplay) {
+    if (!resultDisplay || hasDiffDisplay) {
       return { totalLines: 0, hiddenLines: 0 };
     }
 
@@ -114,36 +172,29 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
         : JSON.stringify(resultDisplay, null, 2);
     const totalLines = content.split('\n').length;
     const hiddenLines = isExpanded ? 0 : Math.max(0, totalLines - 3);
-
     return { totalLines, hiddenLines };
-  };
+  }, [
+    isTodoTool,
+    todoItems.length,
+    resultDisplay,
+    hasDiffDisplay,
+    isExpanded,
+  ]);
 
-  const { totalLines, hiddenLines } = getContentMetrics();
-
-
-  // Get action verb for display
-  const getActionVerb = () => {
-    switch (toolName) {
-      case 'read-file':
-        return 'Read';
-      case 'write-file':
-        return 'Write';
-      case 'edit':
-        return 'Edit';
-      case 'search':
-      case 'grep':
-        return 'Found';
-      case 'shell':
-        return 'Shell';
-      case 'todoWrite':
-      case 'TodoWrite':
-        return 'Updated';
-      default:
-        return 'Processed';
-    }
-  };
-
-  const todoItems = getTodoItems();
+  useKeypress(
+    (key: Key) => {
+      if (key.ctrl && key.name === 'o') {
+        if (hasDiffDisplay) {
+          setShowFullDiff((prev) => !prev);
+        } else {
+          setIsExpanded((prev) => !prev);
+        }
+      }
+    },
+    {
+      isActive: hasDiffDisplay || hiddenLines > 0,
+    },
+  );
 
   return (
     <Box flexDirection="column" width="100%">
@@ -156,25 +207,38 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
       />
 
       {/* Todo Items or Regular Content */}
-      {isTodoTool() ? (
+      {isTodoTool ? (
         <Box flexDirection="column">
           {todoItems.map((todo: any) => (
             <MinimalTodoItem key={todo.id} todo={todo} />
           ))}
         </Box>
+      ) : hasDiffDisplay ? (
+        diffDisplay && (
+          <MinimalDiffPreview
+            diffContent={diffDisplay.fileDiff}
+            showFullDiff={showFullDiff}
+          />
+        )
       ) : (
         <Box marginLeft={2}>
           <Text color={Colors.Gray}>⎿ </Text>
-          <Text>{getActionVerb()}</Text>
-          <Text> </Text>
-          <Text bold>{totalLines}</Text>
-          <Text> lines</Text>
-
-          {hiddenLines > 0 && (
-            <Text color="#747474" dimColor>
-              (ctrl+o to expand)
-            </Text>
-          )}
+          <Text wrap="wrap">
+            {formattedSummary ? (
+              formattedSummary
+            ) : (
+              <>
+                Processed <Text bold>{totalLines}</Text>{' '}
+                {totalLines === 1 ? 'line' : 'lines'}
+                {hiddenLines > 0 && (
+                  <Text color="#747474" dimColor>
+                    {' '}
+                    (ctrl+o to expand)
+                  </Text>
+                )}
+              </>
+            )}
+          </Text>
         </Box>
       )}
     </Box>
