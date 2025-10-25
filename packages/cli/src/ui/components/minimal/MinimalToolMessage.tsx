@@ -105,12 +105,37 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
     if (!summaryText) return null;
 
     const rangeMatch = summaryText.match(
-      /^Read lines (\d+-\d+) of \d+ from .+$/,
+      /^Read lines (\d+)-(\d+) of \d+ from .+$/,
     );
     if (rangeMatch) {
+      const start = Number.parseInt(rangeMatch[1], 10);
+      const end = Number.parseInt(rangeMatch[2], 10);
+      const displayStart = start > 1 ? start - 1 : start;
+      const displayEnd = end;
       return (
         <>
-          Read lines <Text bold>{rangeMatch[1]}</Text>
+          Read lines{' '}
+          <Text bold>
+            {displayStart}-{displayEnd}
+          </Text>
+        </>
+      );
+    }
+
+    const simpleRangeMatch = summaryText.match(
+      /^Read lines (\d+)-(\d+)$/,
+    );
+    if (simpleRangeMatch) {
+      const start = Number.parseInt(simpleRangeMatch[1], 10);
+      const end = Number.parseInt(simpleRangeMatch[2], 10);
+      const displayStart = start > 1 ? start - 1 : start;
+      const displayEnd = end;
+      return (
+        <>
+          Read lines{' '}
+          <Text bold>
+            {displayStart}-{displayEnd}
+          </Text>
         </>
       );
     }
@@ -140,13 +165,20 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
     }
 
     const truncatedRangeMatch = summaryText.match(
-      /^Read lines (\d+-\d+) of \d+ from .+ \(some lines were shortened\)$/,
+      /^Read lines (\d+)-(\d+) of \d+ from .+ \(some lines were shortened\)$/,
     );
     if (truncatedRangeMatch) {
+      const start = Number.parseInt(truncatedRangeMatch[1], 10);
+      const end = Number.parseInt(truncatedRangeMatch[2], 10);
+      const displayStart = start > 1 ? start - 1 : start;
+      const displayEnd = end;
       return (
         <>
-          Read lines <Text bold>{truncatedRangeMatch[1]}</Text> (some
-          lines were shortened)
+          Read lines{' '}
+          <Text bold>
+            {displayStart}-{displayEnd}
+          </Text>{' '}
+          (some lines were shortened)
         </>
       );
     }
