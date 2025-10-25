@@ -35,8 +35,14 @@ export const ShellResultRenderer: FC<ShellResultRendererProps> = ({
     { isActive: isFocused },
   );
 
-  const stdoutLines = useMemo(() => splitIntoLines(data.stdout), [data.stdout]);
-  const stderrLines = useMemo(() => splitIntoLines(data.stderr), [data.stderr]);
+  const stdoutLines = useMemo(
+    () => normalizeShellLines(data.stdout),
+    [data.stdout],
+  );
+  const stderrLines = useMemo(
+    () => normalizeShellLines(data.stderr),
+    [data.stderr],
+  );
 
   const stdoutPreview = useMemo(
     () => stdoutLines.slice(-PREVIEW_LINE_COUNT),
@@ -76,14 +82,27 @@ export const ShellResultRenderer: FC<ShellResultRendererProps> = ({
   );
 };
 
-function splitIntoLines(text: string): string[] {
+function normalizeShellLines(text: string): string[] {
   if (!text) return [];
   const normalized = text.replace(/\r\n/g, '\n');
-  const trimmed = normalized.replace(/\n+$/u, '');
-  if (!trimmed) {
-    return [];
+  const trimmed = normalized.trim();
+  if (!trimmed) return [];
+
+  const lines = trimmed.split('\n');
+  const result: string[] = [];
+  let previousBlank = false;
+  for (const line of lines) {
+    const isBlank = line.trim().length === 0;
+    if (isBlank) {
+      if (!previousBlank) {
+        result.push('');
+      }
+    } else {
+      result.push(line);
+    }
+    previousBlank = isBlank;
   }
-  return trimmed.split('\n');
+  return result;
 }
 
 function renderSection({

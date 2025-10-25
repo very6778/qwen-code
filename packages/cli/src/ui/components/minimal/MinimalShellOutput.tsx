@@ -36,11 +36,11 @@ export const MinimalShellOutput: FC<MinimalShellOutputProps> = ({
   );
 
   const stdoutLines = useMemo(
-    () => splitIntoLines(display.stdout),
+    () => normalizeShellLines(display.stdout),
     [display.stdout],
   );
   const stderrLines = useMemo(
-    () => splitIntoLines(display.stderr),
+    () => normalizeShellLines(display.stderr),
     [display.stderr],
   );
 
@@ -80,14 +80,27 @@ export const MinimalShellOutput: FC<MinimalShellOutputProps> = ({
   );
 };
 
-function splitIntoLines(text: string): string[] {
+function normalizeShellLines(text: string): string[] {
   if (!text) return [];
   const normalized = text.replace(/\r\n/g, '\n');
-  const trimmed = normalized.replace(/\n+$/u, '');
-  if (!trimmed) {
-    return [];
+  const trimmed = normalized.trim();
+  if (!trimmed) return [];
+
+  const lines = trimmed.split('\n');
+  const result: string[] = [];
+  let prevBlank = false;
+  for (const line of lines) {
+    const isBlank = line.trim().length === 0;
+    if (isBlank) {
+      if (!prevBlank) {
+        result.push('');
+      }
+    } else {
+      result.push(line);
+    }
+    prevBlank = isBlank;
   }
-  return trimmed.split('\n');
+  return result;
 }
 
 function renderSection({

@@ -536,7 +536,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     20,
     Math.floor(terminalWidth * widthFraction),
   );
-  const inputWidth = Math.max(20, promptFrameWidth - 3);
+  const inputWidth = Math.max(20, promptFrameWidth);
   const suggestionsWidth = Math.max(20, Math.floor(terminalWidth * 0.8));
 
   // Utility callbacks

@@ -98,6 +98,20 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   const shellHistory = useShellHistory(config.getProjectRoot(), config.storage);
   const historyData = shellHistory.history;
 
+  const promptPrefixText = shellModeActive
+    ? reverseSearchActive
+      ? '(r:) '
+      : '! '
+    : '> ';
+  const prefixWidth = Math.min(
+    normalizedFrameWidth,
+    stringWidth(promptPrefixText),
+  );
+  const effectiveInputWidth = Math.max(
+    0,
+    Math.min(inputWidth, normalizedFrameWidth - prefixWidth),
+  );
+
   const completion = useCommandCompletion(
     buffer,
     dirs,
@@ -595,7 +609,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
     const textBeforeCursor = cpSlice(currentLogicalLine, 0, cursorCol);
     const usedWidth = stringWidth(textBeforeCursor);
-    const remainingWidth = Math.max(0, inputWidth - usedWidth);
+    const remainingWidth = Math.max(0, effectiveInputWidth - usedWidth);
 
     const ghostTextLinesRaw = ghostSuffix.split('\n');
     const firstLineRaw = ghostTextLinesRaw.shift() || '';
@@ -641,13 +655,13 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           const prospectiveLine = currentLine ? `${currentLine} ${word}` : word;
           const prospectiveWidth = stringWidth(prospectiveLine);
 
-          if (prospectiveWidth > inputWidth) {
+          if (prospectiveWidth > effectiveInputWidth) {
             if (currentLine) {
               additionalLines.push(currentLine);
             }
 
             let wordToProcess = word;
-            while (stringWidth(wordToProcess) > inputWidth) {
+            while (stringWidth(wordToProcess) > effectiveInputWidth) {
               let part = '';
               const wordCP = toCodePoints(wordToProcess);
               let partWidth = 0;
@@ -655,7 +669,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
               for (let i = 0; i < wordCP.length; i++) {
                 const char = wordCP[i];
                 const charWidth = stringWidth(char);
-                if (partWidth + charWidth > inputWidth) {
+                if (partWidth + charWidth > effectiveInputWidth) {
                   break;
                 }
                 part += char;
@@ -682,7 +696,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     buffer.text,
     buffer.lines,
     buffer.cursor,
-    inputWidth,
+    effectiveInputWidth,
   ]);
 
   const { inlineGhost, additionalLines } = getGhostTextLines();
@@ -722,7 +736,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
               .map((lineText, visualIdxInRenderedSet) => {
                 const cursorVisualRow =
                   cursorVisualRowAbsolute - scrollVisualRow;
-                let display = cpSlice(lineText, 0, inputWidth);
+                let display = cpSlice(lineText, 0, effectiveInputWidth);
 
                 const isOnCursorLine =
                   focus && visualIdxInRenderedSet === cursorVisualRow;
@@ -770,7 +784,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                   actualDisplayWidth + cursorWidth + ghostWidth;
                 const trailingPadding = Math.max(
                   0,
-                  inputWidth - totalContentWidth,
+                  effectiveInputWidth - totalContentWidth,
                 );
 
                 return (
@@ -790,7 +804,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                 additionalLines.map((ghostLine, index) => {
                   const padding = Math.max(
                     0,
-                    inputWidth - stringWidth(ghostLine),
+                    effectiveInputWidth - stringWidth(ghostLine),
                   );
                   return (
                     <Text
