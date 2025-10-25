@@ -111,6 +111,23 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     0,
     Math.min(inputWidth, normalizedFrameWidth - prefixWidth),
   );
+  const getPaddedPlaceholder = useCallback((): string => {
+    if (!placeholder) {
+      return '';
+    }
+    let displayText = placeholder;
+    if (effectiveInputWidth > 0) {
+      if (stringWidth(displayText) > effectiveInputWidth) {
+        displayText = cpSlice(displayText, 0, effectiveInputWidth);
+      }
+      const paddingLength = Math.max(
+        0,
+        effectiveInputWidth - stringWidth(displayText),
+      );
+      displayText = displayText + ' '.repeat(paddingLength);
+    }
+    return displayText;
+  }, [effectiveInputWidth, placeholder]);
 
   const completion = useCommandCompletion(
     buffer,
@@ -727,9 +744,9 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         <Box flexGrow={1} flexDirection="column">
           {buffer.text.length === 0 && placeholder ? (
             focus ? (
-              <Text color="#999797">{placeholder}</Text>
+              <Text color="#999797">{getPaddedPlaceholder()}</Text>
             ) : (
-              <Text color="#999797">{placeholder}</Text>
+              <Text color="#999797">{getPaddedPlaceholder()}</Text>
             )
           ) : (
             linesToRender
