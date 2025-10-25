@@ -5,7 +5,7 @@
  */
 
 import type React from 'react';
-import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { Box, Text } from 'ink';
 import { theme } from '../semantic-colors.js';
 import { SuggestionsDisplay } from './SuggestionsDisplay.js';
@@ -30,49 +30,6 @@ import {
 } from '../utils/clipboardUtils.js';
 import * as path from 'node:path';
 import { SCREEN_READER_USER_PREFIX } from '../textConstants.js';
-import { themeManager } from '../themes/theme-manager.js';
-
-const FALLBACK_DARK_PROMPT_BG = '#242436';
-const FALLBACK_LIGHT_PROMPT_BG = '#E5E5EA';
-const FALLBACK_ANSI_PROMPT_BG = '#333333';
-
-const adjustHexColor = (hex: string, amount: number): string | null => {
-  const match = /^#?([0-9a-fA-F]{6})$/.exec(hex);
-  if (!match) {
-    return null;
-  }
-
-  const numeric = parseInt(match[1], 16);
-  let r = (numeric >> 16) + amount;
-  let g = ((numeric >> 8) & 0xff) + amount;
-  let b = (numeric & 0xff) + amount;
-
-  r = Math.min(255, Math.max(0, r));
-  g = Math.min(255, Math.max(0, g));
-  b = Math.min(255, Math.max(0, b));
-
-  const adjusted = (1 << 24) + (r << 16) + (g << 8) + b;
-  return `#${adjusted.toString(16).slice(1)}`;
-};
-
-const computePromptBackgroundColor = (): string => {
-  const activeTheme = themeManager.getActiveTheme();
-  const baseColor = activeTheme.semanticColors.background.primary;
-  const adjustment = activeTheme.type === 'light' ? -20 : 20;
-  const adjusted = adjustHexColor(baseColor, adjustment);
-  if (adjusted) {
-    return adjusted;
-  }
-
-  switch (activeTheme.type) {
-    case 'light':
-      return FALLBACK_LIGHT_PROMPT_BG;
-    case 'ansi':
-      return FALLBACK_ANSI_PROMPT_BG;
-    default:
-      return FALLBACK_DARK_PROMPT_BG;
-  }
-};
 
 export interface InputPromptProps {
   buffer: TextBuffer;
@@ -109,10 +66,6 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   onEscapePromptChange,
   vimHandleInput,
 }) => {
-  const promptBackgroundColor = useMemo(
-    () => computePromptBackgroundColor(),
-    [theme.background.primary],
-  );
   const [justNavigatedHistory, setJustNavigatedHistory] = useState(false);
   const [escPressCount, setEscPressCount] = useState(0);
   const [showEscapePrompt, setShowEscapePrompt] = useState(false);
@@ -728,15 +681,10 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     <>
       <Box
         borderStyle="single"
-        borderColor={
-          shellModeActive ? theme.status.warning : theme.border.focused
-        }
+        borderColor={shellModeActive ? theme.status.warning : '#53626e'}
         paddingX={1}
-        backgroundColor={promptBackgroundColor}
       >
-        <Text
-          color={shellModeActive ? theme.status.warning : theme.text.accent}
-        >
+        <Text color={shellModeActive ? theme.status.warning : '#f5f5f5'}>
           {shellModeActive ? (
             reverseSearchActive ? (
               <Text
@@ -755,9 +703,9 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         <Box flexGrow={1} flexDirection="column">
           {buffer.text.length === 0 && placeholder ? (
             focus ? (
-              <Text color="#282828">{placeholder}</Text>
+              <Text color="#8c8b8b">{placeholder}</Text>
             ) : (
-              <Text color="#282828">{placeholder}</Text>
+              <Text color="#8c8b8b">{placeholder}</Text>
             )
           ) : (
             linesToRender
