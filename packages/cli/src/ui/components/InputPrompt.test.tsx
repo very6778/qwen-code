@@ -185,6 +185,7 @@ describe('InputPrompt', () => {
       shellModeActive: false,
       setShellModeActive: vi.fn(),
       inputWidth: 80,
+      frameWidth: 84,
       suggestionsWidth: 80,
       focus: true,
     };

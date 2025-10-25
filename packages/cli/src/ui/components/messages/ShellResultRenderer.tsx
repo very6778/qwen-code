@@ -78,7 +78,12 @@ export const ShellResultRenderer: FC<ShellResultRendererProps> = ({
 
 function splitIntoLines(text: string): string[] {
   if (!text) return [];
-  return text.replace(/\r\n/g, '\n').split('\n');
+  const normalized = text.replace(/\r\n/g, '\n');
+  const trimmed = normalized.replace(/\n+$/u, '');
+  if (!trimmed) {
+    return [];
+  }
+  return trimmed.split('\n');
 }
 
 function renderSection({

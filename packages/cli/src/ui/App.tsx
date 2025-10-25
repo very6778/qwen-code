@@ -531,11 +531,12 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const { stdin, setRawMode } = useStdin();
   const isInitialMount = useRef(true);
 
-  const widthFraction = 0.9;
-  const inputWidth = Math.max(
+  const widthFraction = 1;
+  const promptFrameWidth = Math.max(
     20,
-    Math.floor(terminalWidth * widthFraction) - 3,
+    Math.floor(terminalWidth * widthFraction),
   );
+  const inputWidth = Math.max(20, promptFrameWidth - 3);
   const suggestionsWidth = Math.max(20, Math.floor(terminalWidth * 0.8));
 
   // Utility callbacks
@@ -1104,7 +1105,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     );
   }
 
-  const mainAreaWidth = Math.floor(terminalWidth * 0.9);
+  const mainAreaWidth = Math.floor(terminalWidth * widthFraction);
   const debugConsoleMaxHeight = Math.floor(Math.max(terminalHeight * 0.2, 5));
   // Arbitrary threshold to ensure that items in the static area are large
   // enough but not too large to make the terminal hard to use.
@@ -1115,7 +1116,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
   return (
     <StreamingContext.Provider value={streamingState}>
-      <Box flexDirection="column" width="90%">
+      <Box flexDirection="column" width="100%">
         {/*
          * The Static component is an Ink intrinsic in which there can only be 1 per application.
          * Because of this restriction we're hacking it slightly by having a 'header' item here to
@@ -1446,6 +1447,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 <InputPrompt
                   buffer={buffer}
                   inputWidth={inputWidth}
+                  frameWidth={promptFrameWidth}
                   suggestionsWidth={suggestionsWidth}
                   onSubmit={handleFinalSubmit}
                   userMessages={userMessages}

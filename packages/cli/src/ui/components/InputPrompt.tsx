@@ -5,7 +5,7 @@
  */
 
 import type React from 'react';
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { Box, Text } from 'ink';
 import { theme } from '../semantic-colors.js';
 import { SuggestionsDisplay } from './SuggestionsDisplay.js';
@@ -42,6 +42,7 @@ export interface InputPromptProps {
   placeholder?: string;
   focus?: boolean;
   inputWidth: number;
+  frameWidth: number;
   suggestionsWidth: number;
   shellModeActive: boolean;
   setShellModeActive: (value: boolean) => void;
@@ -60,12 +61,21 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   placeholder = '  Type your message',
   focus = true,
   inputWidth,
+  frameWidth,
   suggestionsWidth,
   shellModeActive,
   setShellModeActive,
   onEscapePromptChange,
   vimHandleInput,
 }) => {
+  const normalizedFrameWidth = Math.max(0, Math.floor(frameWidth));
+  const horizontalLine = useMemo(() => {
+    if (normalizedFrameWidth <= 0) {
+      return '';
+    }
+    return '─'.repeat(normalizedFrameWidth);
+  }, [normalizedFrameWidth]);
+  const frameLineColor = shellModeActive ? theme.status.warning : '#53626e';
   const [justNavigatedHistory, setJustNavigatedHistory] = useState(false);
   const [escPressCount, setEscPressCount] = useState(0);
   const [showEscapePrompt, setShowEscapePrompt] = useState(false);
@@ -679,10 +689,10 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
   return (
     <>
+      {horizontalLine && <Text color={frameLineColor}>{horizontalLine}</Text>}
       <Box
-        borderStyle="single"
-        borderColor={shellModeActive ? theme.status.warning : '#53626e'}
-        paddingX={1}
+        width={normalizedFrameWidth > 0 ? normalizedFrameWidth : undefined}
+        flexDirection="row"
       >
         <Text color={shellModeActive ? theme.status.warning : '#f5f5f5'}>
           {shellModeActive ? (
@@ -703,9 +713,9 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         <Box flexGrow={1} flexDirection="column">
           {buffer.text.length === 0 && placeholder ? (
             focus ? (
-              <Text color="#8c8b8b">{placeholder}</Text>
+              <Text color="#999797">{placeholder}</Text>
             ) : (
-              <Text color="#8c8b8b">{placeholder}</Text>
+              <Text color="#999797">{placeholder}</Text>
             )
           ) : (
             linesToRender
@@ -796,6 +806,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           )}
         </Box>
       </Box>
+      {horizontalLine && <Text color={frameLineColor}>{horizontalLine}</Text>}
       {completion.showSuggestions && (
         <Box paddingRight={2}>
           <SuggestionsDisplay
