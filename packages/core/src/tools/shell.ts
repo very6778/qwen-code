@@ -17,6 +17,7 @@ import type {
   ToolResultDisplay,
   ToolCallConfirmationDetails,
   ToolExecuteConfirmationDetails,
+  ShellResultDisplay,
 } from './tools.js';
 import {
   BaseDeclarativeTool,
@@ -24,7 +25,6 @@ import {
   ToolConfirmationOutcome,
   Kind,
 } from './tools.js';
-import { getErrorMessage } from '../utils/errors.js';
 import { summarizeToolOutput } from '../utils/summarizer.js';
 import type { ShellOutputEvent } from '../services/shellExecutionService.js';
 import { ShellExecutionService } from '../services/shellExecutionService.js';
@@ -155,9 +155,37 @@ class ShellToolInvocation extends BaseToolInvocation<
         this.params.directory || '',
       );
 
-      let cumulativeOutput = '';
+      const startTime = Date.now();
+      let stdoutText = '';
+      let stderrText = '';
+      let binaryNotice: Record<'stdout' | 'stderr', string | null> = {
+        stdout: null,
+        stderr: null,
+      };
       let lastUpdateTime = Date.now();
       let isBinaryStream = false;
+
+      const createDisplay = (
+        overrides?: Partial<ShellResultDisplay>,
+      ): ShellResultDisplay => ({
+        type: 'shell_output',
+        command: this.params.command,
+        directory: this.params.directory,
+        stdout: binaryNotice.stdout ?? stdoutText,
+        stderr: binaryNotice.stderr ?? stderrText,
+        exitCode: null,
+        signal: null,
+        startedAt: startTime,
+        completedAt: undefined,
+        isStreaming: true,
+        ...overrides,
+      });
+
+      const sendUpdate = () => {
+        if (!updateOutput) return;
+        updateOutput(createDisplay());
+        lastUpdateTime = Date.now();
+      };
 
       const { result: resultPromise } = await ShellExecutionService.execute(
         commandToExecute,
@@ -167,41 +195,36 @@ class ShellToolInvocation extends BaseToolInvocation<
             return;
           }
 
-          let currentDisplayOutput = '';
-          let shouldUpdate = false;
-
           switch (event.type) {
             case 'data':
               if (isBinaryStream) break;
-              cumulativeOutput = event.chunk;
-              currentDisplayOutput = cumulativeOutput;
+              if (event.stream === 'stdout') {
+                stdoutText += event.chunk;
+              } else {
+                stderrText += event.chunk;
+              }
               if (Date.now() - lastUpdateTime > OUTPUT_UPDATE_INTERVAL_MS) {
-                shouldUpdate = true;
+                sendUpdate();
               }
               break;
             case 'binary_detected':
               isBinaryStream = true;
-              currentDisplayOutput =
+              binaryNotice[event.stream] =
                 '[Binary output detected. Halting stream...]';
-              shouldUpdate = true;
+              sendUpdate();
               break;
             case 'binary_progress':
               isBinaryStream = true;
-              currentDisplayOutput = `[Receiving binary output... ${formatMemoryUsage(
+              binaryNotice[event.stream] = `[Receiving binary output... ${formatMemoryUsage(
                 event.bytesReceived,
               )} received]`;
               if (Date.now() - lastUpdateTime > OUTPUT_UPDATE_INTERVAL_MS) {
-                shouldUpdate = true;
+                sendUpdate();
               }
               break;
             default: {
               throw new Error('An unhandled ShellOutputEvent was found.');
             }
-          }
-
-          if (shouldUpdate) {
-            updateOutput(currentDisplayOutput);
-            lastUpdateTime = Date.now();
           }
         },
         signal,
@@ -264,29 +287,6 @@ class ShellToolInvocation extends BaseToolInvocation<
         ].join('\n');
       }
 
-      let returnDisplayMessage = '';
-      if (this.config.getDebugMode()) {
-        returnDisplayMessage = llmContent;
-      } else {
-        if (result.output.trim()) {
-          returnDisplayMessage = result.output;
-        } else {
-          if (result.aborted) {
-            returnDisplayMessage = 'Command cancelled by user.';
-          } else if (result.signal) {
-            returnDisplayMessage = `Command terminated by signal: ${result.signal}`;
-          } else if (result.error) {
-            returnDisplayMessage = `Command failed: ${getErrorMessage(
-              result.error,
-            )}`;
-          } else if (result.exitCode !== null && result.exitCode !== 0) {
-            returnDisplayMessage = `Command exited with code: ${result.exitCode}`;
-          }
-          // If output is empty and command succeeded (code 0, no error/signal/abort),
-          // returnDisplayMessage will remain empty, which is fine.
-        }
-      }
-
       const summarizeConfig = this.config.getSummarizeToolOutputConfig();
       const executionError = result.error
         ? {
@@ -296,6 +296,19 @@ class ShellToolInvocation extends BaseToolInvocation<
             },
           }
         : {};
+
+      const completedDisplay: ShellResultDisplay = createDisplay({
+        stdout: binaryNotice.stdout ?? stdoutText,
+        stderr: binaryNotice.stderr ?? stderrText,
+        exitCode: result.exitCode,
+        signal: result.signal,
+        isStreaming: false,
+        completedAt: Date.now(),
+      });
+
+      if (updateOutput) {
+        updateOutput(completedDisplay);
+      }
       if (summarizeConfig && summarizeConfig[ShellTool.Name]) {
         const summary = await summarizeToolOutput(
           llmContent,
@@ -305,14 +318,14 @@ class ShellToolInvocation extends BaseToolInvocation<
         );
         return {
           llmContent: summary,
-          returnDisplay: returnDisplayMessage,
+          returnDisplay: completedDisplay,
           ...executionError,
         };
       }
 
       return {
         llmContent,
-        returnDisplay: returnDisplayMessage,
+        returnDisplay: completedDisplay,
         ...executionError,
       };
     } finally {

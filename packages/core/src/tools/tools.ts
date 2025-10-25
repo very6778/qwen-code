@@ -462,7 +462,21 @@ export type ToolResultDisplay =
   | FileDiff
   | TodoResultDisplay
   | PlanResultDisplay
-  | TaskResultDisplay;
+  | TaskResultDisplay
+  | ShellResultDisplay;
+
+export interface ShellResultDisplay {
+  type: 'shell_output';
+  command: string;
+  directory?: string;
+  stdout: string;
+  stderr: string;
+  exitCode: number | null;
+  signal: number | null;
+  startedAt?: number;
+  completedAt?: number;
+  isStreaming?: boolean;
+}
 
 export interface FileDiff {
   fileDiff: string;

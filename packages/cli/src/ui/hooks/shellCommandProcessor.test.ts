@@ -227,6 +227,7 @@ describe('useShellCommandProcessor', () => {
         mockShellOutputCallback({
           type: 'data',
           chunk: 'hello',
+          stream: 'stdout',
         });
       });
 
@@ -241,6 +242,7 @@ describe('useShellCommandProcessor', () => {
         mockShellOutputCallback({
           type: 'data',
           chunk: ' world',
+          stream: 'stdout',
         });
       });
 
@@ -264,14 +266,21 @@ describe('useShellCommandProcessor', () => {
 
       // Should immediately show the detection message
       act(() => {
-        mockShellOutputCallback({ type: 'binary_detected' });
+        mockShellOutputCallback({
+          type: 'binary_detected',
+          stream: 'stdout',
+        });
       });
       await act(async () => {
         await vi.advanceTimersByTimeAsync(OUTPUT_UPDATE_INTERVAL_MS + 1);
       });
       // Send another event to trigger the update
       act(() => {
-        mockShellOutputCallback({ type: 'binary_progress', bytesReceived: 0 });
+        mockShellOutputCallback({
+          type: 'binary_progress',
+          bytesReceived: 0,
+          stream: 'stdout',
+        });
       });
 
       expect(setPendingHistoryItemMock).toHaveBeenLastCalledWith(
@@ -292,6 +301,7 @@ describe('useShellCommandProcessor', () => {
         mockShellOutputCallback({
           type: 'binary_progress',
           bytesReceived: 2048,
+          stream: 'stdout',
         });
       });
 

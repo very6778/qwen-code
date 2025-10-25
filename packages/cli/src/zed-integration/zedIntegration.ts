@@ -887,6 +887,28 @@ function toToolCallContent(toolResult: ToolResult): acp.ToolCallContent | null {
         oldText: toolResult.returnDisplay.originalContent,
         newText: toolResult.returnDisplay.newContent,
       };
+    } else if (
+      'type' in toolResult.returnDisplay &&
+      toolResult.returnDisplay.type === 'shell_output'
+    ) {
+      const shellDisplay = toolResult.returnDisplay;
+      const stdoutText = shellDisplay.stdout.trim();
+      const stderrText = shellDisplay.stderr.trim();
+      const parts: string[] = [];
+      parts.push(`$ ${shellDisplay.command}`);
+      if (stdoutText) {
+        parts.push('\nstdout:\n' + stdoutText);
+      }
+      if (stderrText) {
+        parts.push('\nstderr:\n' + stderrText);
+      }
+      if (!stdoutText && !stderrText) {
+        parts.push('\n(no output)');
+      }
+      return {
+        type: 'content',
+        content: { type: 'text', text: parts.join('') },
+      };
     }
   }
   return null;

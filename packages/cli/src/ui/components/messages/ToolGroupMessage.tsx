@@ -107,6 +107,7 @@ export const ToolGroupMessage: React.FC<ToolGroupMessageProps> = ({
                 }
                 renderOutputAsMarkdown={tool.renderOutputAsMarkdown}
                 config={config}
+                isFocused={isFocused}
               />
             </Box>
             {tool.status === ToolCallStatus.Confirming &&

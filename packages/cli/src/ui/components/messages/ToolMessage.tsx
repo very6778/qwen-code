@@ -20,8 +20,10 @@ import type {
   TaskResultDisplay,
   PlanResultDisplay,
   Config,
+  ShellResultDisplay,
 } from '@qwen-code/qwen-code-core';
 import { PlanSummaryDisplay } from '../PlanSummaryDisplay.js';
+import { ShellResultRenderer } from './ShellResultRenderer.js';
 
 const STATIC_HEIGHT = 1;
 const RESERVED_LINE_COUNT = 5; // for tool name, status, padding etc.
@@ -39,7 +41,8 @@ type DisplayRendererResult =
   | { type: 'plan'; data: PlanResultDisplay }
   | { type: 'string'; data: string }
   | { type: 'diff'; data: { fileDiff: string; fileName: string } }
-  | { type: 'task'; data: TaskResultDisplay };
+  | { type: 'task'; data: TaskResultDisplay }
+  | { type: 'shell'; data: ShellResultDisplay };
 
 /**
  * Custom hook to determine the type of result display and return appropriate rendering info
@@ -102,6 +105,18 @@ const useResultDisplayRenderer = (
       return {
         type: 'diff',
         data: resultDisplay as { fileDiff: string; fileName: string },
+      };
+    }
+
+    if (
+      typeof resultDisplay === 'object' &&
+      resultDisplay !== null &&
+      'type' in resultDisplay &&
+      resultDisplay.type === 'shell_output'
+    ) {
+      return {
+        type: 'shell',
+        data: resultDisplay as ShellResultDisplay,
       };
     }
 
@@ -196,6 +211,7 @@ export interface ToolMessageProps extends IndividualToolCallDisplay {
   emphasis?: TextEmphasis;
   renderOutputAsMarkdown?: boolean;
   config: Config;
+  isFocused?: boolean;
 }
 
 export const ToolMessage: React.FC<ToolMessageProps> = ({
@@ -207,7 +223,8 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
   terminalWidth,
   emphasis = 'medium',
   renderOutputAsMarkdown = true,
-  config,
+  config: _config,
+  isFocused = true,
 }) => {
   const availableHeight = availableTerminalHeight
     ? Math.max(
@@ -253,7 +270,13 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
                 childWidth={childWidth}
               />
             )}
-                        {displayRenderer.type === 'string' && (
+            {displayRenderer.type === 'shell' && (
+              <ShellResultRenderer
+                data={displayRenderer.data}
+                isFocused={isFocused}
+              />
+            )}
+            {displayRenderer.type === 'string' && (
               <StringResultRenderer
                 data={displayRenderer.data}
                 renderAsMarkdown={renderOutputAsMarkdown}

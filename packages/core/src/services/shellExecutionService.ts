@@ -65,16 +65,22 @@ export type ShellOutputEvent =
       type: 'data';
       /** The decoded string chunk. */
       chunk: string;
+      /** Stream identifier where the chunk originated. */
+      stream: 'stdout' | 'stderr';
     }
   | {
       /** Signals that the output stream has been identified as binary. */
       type: 'binary_detected';
+      /** Stream identifier that triggered binary detection. */
+      stream: 'stdout' | 'stderr';
     }
   | {
       /** Provides progress updates for a binary stream. */
       type: 'binary_progress';
       /** The total number of bytes received so far. */
       bytesReceived: number;
+      /** Stream identifier for progress updates. */
+      stream: 'stdout' | 'stderr';
     };
 
 /**
@@ -186,7 +192,7 @@ export class ShellExecutionService {
 
             if (isBinary(sniffBuffer)) {
               isStreamingRawContent = false;
-              onOutputEvent({ type: 'binary_detected' });
+              onOutputEvent({ type: 'binary_detected', stream });
             }
           }
 
@@ -201,7 +207,7 @@ export class ShellExecutionService {
           }
 
           if (isStreamingRawContent) {
-            onOutputEvent({ type: 'data', chunk: strippedChunk });
+              onOutputEvent({ type: 'data', chunk: strippedChunk, stream });
           } else {
             const totalBytes = outputChunks.reduce(
               (sum, chunk) => sum + chunk.length,
@@ -210,6 +216,7 @@ export class ShellExecutionService {
             onOutputEvent({
               type: 'binary_progress',
               bytesReceived: totalBytes,
+              stream,
             });
           }
         };
@@ -378,7 +385,7 @@ export class ShellExecutionService {
 
                   if (isBinary(sniffBuffer)) {
                     isStreamingRawContent = false;
-                    onOutputEvent({ type: 'binary_detected' });
+                    onOutputEvent({ type: 'binary_detected', stream: 'stdout' });
                   }
                 }
 
@@ -387,7 +394,11 @@ export class ShellExecutionService {
                   headlessTerminal.write(decodedChunk, () => {
                     const newStrippedOutput = getFullText(headlessTerminal);
                     output = newStrippedOutput;
-                    onOutputEvent({ type: 'data', chunk: newStrippedOutput });
+                    onOutputEvent({
+                      type: 'data',
+                      chunk: newStrippedOutput,
+                      stream: 'stdout',
+                    });
                     resolve();
                   });
                 } else {
@@ -398,6 +409,7 @@ export class ShellExecutionService {
                   onOutputEvent({
                     type: 'binary_progress',
                     bytesReceived: totalBytes,
+                    stream: 'stdout',
                   });
                   resolve();
                 }

@@ -1836,8 +1836,15 @@ export function useTextBuffer({
       )
         backspace();
       else if (key.name === 'delete' || (key.ctrl && key.name === 'd')) del();
-      else if (input && !key.ctrl && !key.meta) {
-        insert(input, { paste: key.paste });
+      else if (input && !key.ctrl) {
+        const isPrintableMetaChar =
+          key.meta &&
+          input.length === 1 &&
+          input >= ' ' &&
+          input <= '~';
+        if (!key.meta || isPrintableMetaChar) {
+          insert(input, { paste: key.paste });
+        }
       }
     },
     [newline, move, deleteWordLeft, deleteWordRight, backspace, del, insert],

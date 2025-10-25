@@ -11,9 +11,10 @@ import { Colors } from '../../colors.js';
 import { CompactHeader } from './CompactHeader.js';
 import { MinimalTodoItem } from './MinimalTodoItem.js';
 import { MinimalDiffPreview } from './MinimalDiffPreview.js';
-import type { Config } from '@qwen-code/qwen-code-core';
+import type { Config, ShellResultDisplay } from '@qwen-code/qwen-code-core';
 import { useKeypress } from '../../hooks/useKeypress.js';
 import type { Key } from '../../hooks/useKeypress.js';
+import { MinimalShellOutput } from './MinimalShellOutput.js';
 
 export interface MinimalToolMessageProps {
   name: string;
@@ -39,6 +40,17 @@ const isDiffDisplay = (
   );
 };
 
+const isShellDisplay = (
+  resultDisplay: unknown,
+): resultDisplay is ShellResultDisplay => {
+  return (
+    !!resultDisplay &&
+    typeof resultDisplay === 'object' &&
+    'type' in resultDisplay &&
+    (resultDisplay as { type?: string }).type === 'shell_output'
+  );
+};
+
 export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
   name,
   description,
@@ -48,17 +60,24 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
   terminalWidth: _terminalWidth,
   emphasis = 'medium',
   renderOutputAsMarkdown: _renderOutputAsMarkdown = true,
-  config,
+  config: _config,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [showFullDiff, setShowFullDiff] = React.useState(false);
 
   const diffDisplay = React.useMemo(
     () =>
-      isDiffDisplay(resultDisplay) ? (resultDisplay as { fileDiff: string }) : null,
+      isDiffDisplay(resultDisplay)
+        ? (resultDisplay as { fileDiff: string })
+        : null,
     [resultDisplay],
   );
   const hasDiffDisplay = diffDisplay !== null;
+
+  const shellDisplay = React.useMemo(
+    () => (isShellDisplay(resultDisplay) ? resultDisplay : null),
+    [resultDisplay],
+  );
 
   // Parse tool name to get operation and target
   const parseToolDetails = () => {
@@ -186,7 +205,13 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
     return <>{summaryText}</>;
   }, [summaryText]);
 
+  const hasShellDisplay = shellDisplay !== null;
+
   const { totalLines, hiddenLines } = React.useMemo(() => {
+    if (hasShellDisplay) {
+      return { totalLines: 0, hiddenLines: 0 };
+    }
+
     if (isTodoTool) {
       return {
         totalLines: todoItems.length > 0 ? 1 : 0,
@@ -210,6 +235,7 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
     todoItems.length,
     resultDisplay,
     hasDiffDisplay,
+    hasShellDisplay,
     isExpanded,
   ]);
 
@@ -218,13 +244,13 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
       if (key.ctrl && key.name === 'o') {
         if (hasDiffDisplay) {
           setShowFullDiff((prev) => !prev);
-        } else {
+        } else if (!hasShellDisplay) {
           setIsExpanded((prev) => !prev);
         }
       }
     },
     {
-      isActive: hasDiffDisplay || hiddenLines > 0,
+      isActive: hasDiffDisplay || (!hasShellDisplay && hiddenLines > 0),
     },
   );
 
@@ -252,6 +278,8 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
             showFullDiff={showFullDiff}
           />
         )
+      ) : shellDisplay ? (
+        <MinimalShellOutput display={shellDisplay} />
       ) : (
         <Box marginLeft={2}>
           <Text color={Colors.Gray}>⎿ </Text>
