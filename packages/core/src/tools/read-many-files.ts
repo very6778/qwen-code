@@ -455,7 +455,7 @@ ${finalExclusionPatternsForDescription
               fileContentForLlm += `[WARNING: This file was truncated. To view the full content, use the 'read_file' tool on this specific file.]\n\n`;
             }
             fileContentForLlm += fileReadResult.llmContent;
-            contentParts.push(`${separator}\n\n${fileContentForLlm}\n\n`);
+            contentParts.push(`${separator}\n${fileContentForLlm}\n`);
           } else {
             // This is a Part for image/pdf, which we don't add the separator to.
             contentParts.push(fileReadResult.llmContent);

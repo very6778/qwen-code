@@ -138,7 +138,7 @@ export function ThemeDialog({
   const PREVIEW_PANE_WIDTH_PERCENTAGE = 0.55;
   // A safety margin to prevent text from touching the border.
   // This is a complete hack unrelated to the 0.9 used in App.tsx
-  const PREVIEW_PANE_WIDTH_SAFETY_MARGIN = 0.9;
+  const PREVIEW_PANE_WIDTH_SAFETY_MARGIN = 1.0;
   // Combined horizontal padding from the dialog and preview pane.
   const TOTAL_HORIZONTAL_PADDING = 4;
   const colorizeCodeWidth = Math.max(

@@ -51,6 +51,9 @@ export enum Command {
   EXIT = 'exit',
   SHOW_MORE_LINES = 'showMoreLines',
 
+  // Text input shortcuts
+  INSERT_AT_SYMBOL = 'insertAtSymbol',
+
   // Shell commands
   REVERSE_SEARCH = 'reverseSearch',
   SUBMIT_REVERSE_SEARCH = 'submitReverseSearch',
@@ -126,6 +129,10 @@ export const defaultKeyBindings: KeyBindingConfig = {
   // Completion navigation (arrow or Ctrl+P/N)
   [Command.COMPLETION_UP]: [{ key: 'up' }, { key: 'p', ctrl: true }],
   [Command.COMPLETION_DOWN]: [{ key: 'down' }, { key: 'n', ctrl: true }],
+
+  // Text input shortcuts
+  // Insert @ symbol with Option+Q
+  [Command.INSERT_AT_SYMBOL]: [{ key: 'q', command: true }],
 
   // Text input
   // Original: key.name === 'return' && !key.ctrl && !key.meta && !key.paste

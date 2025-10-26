@@ -54,10 +54,14 @@ export const MinimalToolGroup: React.FC<MinimalToolGroupProps> = ({
   return (
     <Box flexDirection="column" marginBottom={0}>
       {/* Tool messages with single line spacing */}
-      {toolCalls.map((tool) => {
+      {toolCalls.map((tool, index) => {
         const isConfirming = toolAwaitingApproval?.callId === tool.callId;
         return (
-          <Box key={tool.callId} flexDirection="column" marginBottom={1}>
+          <Box
+            key={tool.callId}
+            flexDirection="column"
+            marginBottom={index === toolCalls.length - 1 ? 0 : 1}
+          >
             <MinimalToolMessage
               name={tool.name}
               description={tool.description}

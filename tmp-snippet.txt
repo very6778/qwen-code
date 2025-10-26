@@ -1,0 +1,282 @@
+  Qwen Code Projesi Analizi
+
+  Qwen Code, Google Gemini CLI'den uyarlanmış, Qwen3-Coder modelleri için optimize edilmiş
+  güçlü bir AI komut satırı aracıdır.
+
+  🏗️ Proje Yapısı
+
+  Monorepo organizasyonu:
+   - packages/cli/ - Kullanıcı arayüzü (React Ink TUI)
+   - packages/core/ - AI iletişimi ve araç orkestrasyonu
+   - packages/test-utils/ - Paylaşılan test yardımcıları
+
+  🛠️ Teknoloji Yığını
+
+   - Dil: TypeScript (strict konfigürasyon, ES modules)
+   - Runtime: Node.js 20+
+   - Paket Yönetimi: npm workspaces
+   - UI: React Ink (terminal arayüzü)
+   - Build: esbuild (optimizasyon için)
+   - Test: Vitest (kapsamlı coverage)
+   - Linting: ESLint + Prettier
+
+  📦 Ana Bağımlılıklar
+
+  CLI paketi:
+   - React Ink (terminal UI)
+   - Google GenAI SDK
+   - MCP SDK
+   - Diff, fzf, glob gibi araçlar
+
+  Core paketi:
+   - OpenAI SDK (genel API uyumluluğu)
+   - Anthropic SDK
+   - OpenTelemetry (monitoring)
+   - Çeşitli AI provider SDK'ları
+
+  🚀 Build ve Geliştirme
+
+  Ana komutlar:
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+   1 npm run build          # Tüm paketleri build et
+   2 npm run start          # Geliştirme sunucusu
+   3 npm run test           # Testleri çalıştır
+   4 npm run lint           # ESLint kontrolü
+   5 npm run preflight      # CI pipeline locally
+
+  Makefile alternatifleri:
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+   1 make build             # Ana projeyi build et
+   2 make build-all         # Projeyi ve sandbox'ı build et
+   3 make test              # Test suite
+   4 make preflight         # Format, lint ve test
+
+  🔧 Özellikler
+
+   - Kod Anlama: Büyük kod tabanlarını analiz etme
+   - Workflow Otomasyonu: Geliştirme görevlerini otomatikleştirme
+   - Vision Model Desteği: Görüntü analizi
+   - IDE Entegrasyonu: VS Code, Zed desteği
+   - Güvenli Sandbox: Docker/Podman ile izole çalışma
+
+  📊 Yapılandırma
+
+  Çok katmanlı konfigürasyon:
+   1. Environment variables (.env)
+   2. Proje ayarları (.qwen/settings.json)
+   3. Kullanıcı ayarları (~/.qwen/settings.json)
+   4. CLI argümanları
+   5. Session ayarları
+
+  Kimlik doğrulama seçenekleri:
+   - Qwen OAuth (önerilen, 2.000 istek/gün ücretsiz)
+   - OpenAI-compatible API'ler
+   - Bölgesel seçenekler (ModelScope, OpenRouter)
+
+  Proje, modern TypeScript geliştirme pratikleri kullanıyor, kapsamlı test coverage'e sahip
+  ve CI/CD pipeline ile otomatikleştirilmiş bir yapıya sahip.
+
+╭────────────╮
+│  > /theme  │
+╰────────────╯
+

@@ -25,6 +25,7 @@ export const GeminiMessage: React.FC<GeminiMessageProps> = ({
 }) => {
   const prefix = '  '; // Two spaces to maintain layout without icon
   const prefixWidth = prefix.length;
+  const sanitizedText = normalizeLeadingEmptyLines(text);
 
   return (
     <Box flexDirection="row">
@@ -38,7 +39,7 @@ export const GeminiMessage: React.FC<GeminiMessageProps> = ({
       </Box>
       <Box flexGrow={1} flexDirection="column" paddingLeft={1}>
         <MarkdownDisplay
-          text={text}
+          text={sanitizedText}
           isPending={isPending}
           availableTerminalHeight={availableTerminalHeight}
           terminalWidth={terminalWidth}
@@ -47,3 +48,32 @@ export const GeminiMessage: React.FC<GeminiMessageProps> = ({
     </Box>
   );
 };
+
+const ZERO_WIDTH_CHAR_REGEX = /[\u200B\u200C\u200D\uFEFF]/g;
+
+function normalizeLeadingEmptyLines(value: string): string {
+  if (!value) {
+    return value;
+  }
+
+  const lines = value.split(/\r?\n/);
+  let startIndex = 0;
+
+  while (startIndex < lines.length) {
+    const logicalLine =
+      lines[startIndex].length > 0
+        ? lines[startIndex].replace(ZERO_WIDTH_CHAR_REGEX, '')
+        : lines[startIndex];
+
+    if (logicalLine.trim().length > 0) {
+      break;
+    }
+    startIndex++;
+  }
+
+  if (startIndex === 0) {
+    return value;
+  }
+
+  return lines.slice(startIndex).join('\n');
+}

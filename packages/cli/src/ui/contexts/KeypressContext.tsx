@@ -329,6 +329,22 @@ export function KeypressProvider({
       if (key.name === 'return' && key.sequence === `${ESC}\r`) {
         key.meta = true;
       }
+
+      // Debug all keys to find Option+Q
+      if (key.sequence && key.sequence.length > 0) {
+        const charCode = key.sequence.charCodeAt(0);
+        if (charCode === 64 || key.sequence === '@' || key.name === '@') { // ASCII 64 = @
+          console.log('[DEBUG CONTEXT] @ key found:', {
+            sequence: JSON.stringify(key.sequence),
+            name: key.name,
+            charCode: charCode,
+            ctrl: key.ctrl,
+            meta: key.meta,
+            shift: key.shift
+          });
+        }
+      }
+
       broadcast({ ...key, paste: isPaste });
     };
 

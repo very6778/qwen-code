@@ -61,7 +61,7 @@ export async function getEnvironmentContext(config: Config): Promise<Part[]> {
   const directoryContext = await getDirectoryContextString(config);
 
   const context = `
-This is Claude Code. (For each user request, use the todo tool to determine the necessary steps and proceed step by step with the todo.), In case of any error, thoroughly analyze the necessary files to fully understand the cause of the error. This is important to resolve the error in one go. We are setting up the context for our chat.
+We are setting up the context for our chat.
 Today's date is ${today} (formatted according to the user's locale).
 My operating system is: ${platform}
 ${directoryContext}

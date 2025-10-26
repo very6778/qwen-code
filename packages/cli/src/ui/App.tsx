@@ -1374,7 +1374,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
                       return (
                         // Ensure the Box takes full width so truncation calculates correctly
-                        <Box key={index} paddingLeft={2} width="100%">
+                        <Box key={index} paddingLeft={2} paddingRight={2} width="100%">
                           {/* Use wrap="truncate" to ensure it fits the terminal width and doesn't wrap */}
                           <Text dimColor wrap="truncate">
                             {preview}

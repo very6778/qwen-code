@@ -46,7 +46,7 @@ export class ZaiOpenRouterProvider extends DefaultOpenAICompatibleProvider {
     const enhancedRequest = {
       ...request,
       model: 'glm-4.6',
-      temperature: request.temperature || 0.6,
+      temperature: 0.3,
       top_p: request.top_p || 0.9,
       // Add cache control headers similar to DashScope to ensure proper streaming
       stream: true,

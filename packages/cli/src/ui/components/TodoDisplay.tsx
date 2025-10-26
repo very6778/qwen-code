@@ -31,8 +31,12 @@ export const TodoDisplay: React.FC<TodoDisplayProps> = ({ todos }) => {
 
   return (
     <Box flexDirection="column">
-      {todos.map((todo) => (
-        <TodoItemRow key={todo.id} todo={todo} />
+      {todos.map((todo, index) => (
+        <TodoItemRow
+          key={todo.id}
+          todo={todo}
+          isLast={index === todos.length - 1}
+        />
       ))}
     </Box>
   );
@@ -40,9 +44,10 @@ export const TodoDisplay: React.FC<TodoDisplayProps> = ({ todos }) => {
 
 interface TodoItemRowProps {
   todo: TodoItem;
+  isLast?: boolean;
 }
 
-const TodoItemRow: React.FC<TodoItemRowProps> = ({ todo }) => {
+const TodoItemRow: React.FC<TodoItemRowProps> = ({ todo, isLast = false }) => {
   const statusIcon = STATUS_ICONS[todo.status];
   const isCompleted = todo.status === 'completed';
   const isInProgress = todo.status === 'in_progress';
@@ -55,7 +60,11 @@ const TodoItemRow: React.FC<TodoItemRowProps> = ({ todo }) => {
       : Colors.Foreground;
 
   return (
-    <Box flexDirection="row" minHeight={1} marginBottom={1}>
+    <Box
+      flexDirection="row"
+      minHeight={1}
+      marginBottom={isLast ? 0 : 1}
+    >
       {/* Status Icon */}
       <Box width={3}>
         <Text color={itemColor}>{statusIcon}</Text>

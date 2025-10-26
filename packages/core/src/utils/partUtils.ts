@@ -141,7 +141,7 @@ export async function flatMapTextParts(
 export function appendToLastTextPart(
   prompt: PartUnion[],
   textToAppend: string,
-  separator = '\n\n',
+  separator = '\n',
 ): PartUnion[] {
   if (!textToAppend) {
     return prompt;

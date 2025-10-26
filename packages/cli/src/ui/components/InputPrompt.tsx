@@ -279,6 +279,17 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
   const handleInput = useCallback(
     (key: Key) => {
+      // Debug @ symbol shortcuts
+      if (key.sequence === '@' || (key.meta && key.name === 'q')) {
+        console.log('[DEBUG] @ shortcut detected:', {
+          sequence: JSON.stringify(key.sequence),
+          name: key.name,
+          ctrl: key.ctrl,
+          meta: key.meta,
+          shift: key.shift,
+          charCode: key.sequence.charCodeAt(0)
+        });
+      }
       /// We want to handle paste even when not focused to support drag and drop.
       if (!focus && !key.paste) {
         return;
@@ -467,6 +478,13 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           inputHistory.navigateDown();
           return;
         }
+        // Handle @ symbol insertion
+        if (keyMatchers[Command.INSERT_AT_SYMBOL](key)) {
+          buffer.insert('@');
+          completion.promptCompletion.clear();
+          return;
+        }
+
         // Handle arrow-up/down for history on single-line or at edges
         if (
           keyMatchers[Command.NAVIGATION_UP](key) &&
@@ -567,8 +585,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         completion.promptCompletion.text &&
         key.sequence &&
         key.sequence.length === 1 &&
-        !key.ctrl &&
-        !key.meta
+        !key.ctrl
       ) {
         completion.promptCompletion.clear();
       }

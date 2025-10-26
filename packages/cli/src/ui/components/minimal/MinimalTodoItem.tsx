@@ -29,7 +29,7 @@ export const MinimalTodoItem: React.FC<MinimalTodoItemProps> = ({ todo }) => {
   const isCompleted = todo.status === 'completed';
   const isInProgress = todo.status === 'in_progress';
 
-  // For completed items: green checkmark + strikethrough content (muted)
+  // For completed items: white checkmark + strikethrough content (muted)
   // For in-progress items: orange circle + normal content
   const contentColor = isCompleted ? '#747474' : undefined;
   const iconColor = isCompleted ? '#369e61' : isInProgress ? '#b99037' : undefined;

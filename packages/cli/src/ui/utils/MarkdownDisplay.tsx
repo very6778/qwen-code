@@ -25,6 +25,7 @@ const EMPTY_LINE_HEIGHT = 1;
 const CODE_BLOCK_PREFIX_PADDING = 1;
 const LIST_ITEM_PREFIX_PADDING = 1;
 const LIST_ITEM_TEXT_FLEX_GROW = 1;
+const ZERO_WIDTH_CHAR_REGEX = /[\u200B\u200C\u200D\uFEFF]/g;
 
 const MarkdownDisplayInternal: React.FC<MarkdownDisplayProps> = ({
   text,
@@ -62,6 +63,8 @@ const MarkdownDisplayInternal: React.FC<MarkdownDisplayProps> = ({
 
   lines.forEach((line, index) => {
     const key = `line-${index}`;
+    const logicalLine =
+      line.length > 0 ? line.replace(ZERO_WIDTH_CHAR_REGEX, '') : line;
 
     if (inCodeBlock) {
       const fenceMatch = line.match(codeFenceRegex);
@@ -94,9 +97,9 @@ const MarkdownDisplayInternal: React.FC<MarkdownDisplayProps> = ({
     const headerMatch = line.match(headerRegex);
     const ulMatch = line.match(ulItemRegex);
     const olMatch = line.match(olItemRegex);
-    const hrMatch = line.match(hrRegex);
-    const tableRowMatch = line.match(tableRowRegex);
-    const tableSeparatorMatch = line.match(tableSeparatorRegex);
+      const hrMatch = line.match(hrRegex);
+      const tableRowMatch = line.match(tableRowRegex);
+      const tableSeparatorMatch = line.match(tableSeparatorRegex);
 
     if (codeFenceMatch) {
       inCodeBlock = true;
@@ -151,7 +154,7 @@ const MarkdownDisplayInternal: React.FC<MarkdownDisplayProps> = ({
       tableHeaders = [];
 
       // Process current line as normal
-      if (line.trim().length > 0) {
+      if (logicalLine.trim().length > 0) {
         addContentBlock(
           <Box key={key}>
             <Text wrap="wrap">
@@ -235,7 +238,7 @@ const MarkdownDisplayInternal: React.FC<MarkdownDisplayProps> = ({
         />,
       );
     } else {
-      if (line.trim().length === 0 && !inCodeBlock) {
+      if (logicalLine.trim().length === 0 && !inCodeBlock) {
         if (!lastLineEmpty) {
           contentBlocks.push(
             <Box key={`spacer-${index}`} height={EMPTY_LINE_HEIGHT} />,
