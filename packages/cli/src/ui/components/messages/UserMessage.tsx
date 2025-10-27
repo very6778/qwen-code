@@ -12,36 +12,34 @@ import { isSlashCommand as checkIsSlashCommand } from '../../utils/commandUtils.
 
 interface UserMessageProps {
   text: string;
+  terminalWidth?: number;
 }
 
-export const UserMessage: React.FC<UserMessageProps> = ({ text }) => {
+export const UserMessage: React.FC<UserMessageProps> = ({ text, terminalWidth = 80 }) => {
   const prefix = '> ';
-  const prefixWidth = prefix.length;
   const isSlashCommand = checkIsSlashCommand(text);
 
   const textColor = isSlashCommand ? Colors.AccentPurple : Colors.Gray;
-  const borderColor = isSlashCommand ? Colors.AccentPurple : Colors.Gray;
+  const frameLineColor = isSlashCommand ? Colors.AccentPurple : '#53626e';
+
+  const horizontalLine = '─'.repeat(Math.max(0, terminalWidth));
 
   return (
-    <Box
-      borderStyle="round"
-      borderColor={borderColor}
-      flexDirection="row"
-      paddingX={2}
-      paddingY={0}
-      marginY={1}
-      alignSelf="flex-start"
-    >
-      <Box width={prefixWidth}>
+    <Box flexDirection="column">
+      <Text color={frameLineColor}>{horizontalLine}</Text>
+      <Box
+        flexDirection="row"
+      >
         <Text color={textColor} aria-label={SCREEN_READER_USER_PREFIX}>
           {prefix}
         </Text>
+        <Box flexGrow={1}>
+          <Text wrap="wrap" color={textColor}>
+            {text}
+          </Text>
+        </Box>
       </Box>
-      <Box flexGrow={1}>
-        <Text wrap="wrap" color={textColor}>
-          {text}
-        </Text>
-      </Box>
+      <Text color={frameLineColor}>{horizontalLine}</Text>
     </Box>
   );
 };

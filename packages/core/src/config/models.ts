@@ -13,4 +13,4 @@ export const DEFAULT_GEMINI_FLASH_LITE_MODEL = 'gemini-2.5-flash-lite';
 
 export const DEFAULT_GEMINI_EMBEDDING_MODEL = 'gemini-embedding-001';
 
-export const DEFAULT_ZAI_MODEL = 'glm-4.6';
+export const DEFAULT_ZAI_MODEL = 'minimax/minimax-m2:free';

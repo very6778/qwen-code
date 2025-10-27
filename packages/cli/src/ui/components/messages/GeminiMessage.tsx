@@ -37,7 +37,7 @@ export const GeminiMessage: React.FC<GeminiMessageProps> = ({
           {prefix}
         </Text>
       </Box>
-      <Box flexGrow={1} flexDirection="column" paddingLeft={1}>
+      <Box flexGrow={1} flexDirection="column" paddingLeft={1} paddingRight={4}>
         <MarkdownDisplay
           text={sanitizedText}
           isPending={isPending}

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen Code - AI-Powered Development Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Design Tokens - Colors
+                        'primary-50': '#eff6ff',
+                        'primary-100': '#dbeafe',
+                        'primary-200': '#bfdbfe',
+                        'primary-300': '#93c5fd',
+                        'primary-400': '#60a5fa',
+                        'primary-500': '#3b82f6',
+                        'primary-600': '#2563eb',
+                        'primary-700': '#1d4ed8',
+                        'primary-800': '#1e40af',
+                        'primary-900': '#1e3a8a',
+                        
+                        'neutral-50': '#fafafa',
+                        'neutral-100': '#f5f5f5',
+                        'neutral-200': '#e5e5e5',
+                        'neutral-300': '#d4d4d4',
+                        'neutral-400': '#a3a3a3',
+                        'neutral-500': '#737373',
+                        'neutral-600': '#525252',
+                        'neutral-700': '#404040',
+                        'neutral-800': '#262626',
+                        'neutral-900': '#171717',
+                        
+                        'success': '#10b981',
+                        'warning': '#f59e0b',
+                        'error': '#ef4444',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    fontSize: {
+                        // Design Tokens - Typography
+                        'xs': ['0.75rem', { lineHeight: '1rem' }],
+                        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
+                        'base': ['1rem', { lineHeight: '1.5rem' }],
+                        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
+                        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
+                        '2xl': ['1.5rem', { lineHeight: '2rem' }],
+                        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+                        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+                        '5xl': ['3rem', { lineHeight: '1' }],
+                        '6xl': ['3.75rem', { lineHeight: '1' }],
+                    },
+                    spacing: {
+                        // Design Tokens - Spacing
+                        '18': '4.5rem',
+                        '88': '22rem',
+                        '128': '32rem',
+                    },
+                    borderRadius: {
+                        'xl': '0.75rem',
+                        '2xl': '1rem',
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'bounce-subtle': 'bounceSubtle 2s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        bounceSubtle: {
+                            '0%, 20%, 50%, 80%, 100%': { transform: 'translateY(0)' },
+                            '40%': { transform: 'translateY(-10px)' },
+                            '60%': { transform: 'translateY(-5px)' },
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        /* Custom utility classes */
+        .text-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+        }
+        
+        .focus-ring {
+            @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+        }
+        
+        /* Enhanced glassmorphism with gradient */
+        .glass-effect {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.25) 0%, 
+                rgba(255, 255, 255, 0.1) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 8px 32px 0 rgba(31, 38, 135, 0.15),
+                0 2px 8px 0 rgba(31, 38, 135, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+            padding: 1.25rem 0;
+            position: relative;
+        }
+        
+        .glass-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.6) 50%, 
+                transparent 100%);
+        }
+        
+        .glass-effect-scrolled {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(255, 255, 255, 0.85) 100%);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 
+                0 20px 40px 0 rgba(31, 38, 135, 0.2),
+                0 8px 16px 0 rgba(31, 38, 135, 0.15),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+            padding: 0.75rem 0;
+        }
+        
+        /* Premium compact header styles */
+        .header-compact {
+            max-width: 60%;
+            margin: 0 auto;
+            left: 50%;
+            transform: translateX(-50%) translateY(1rem);
+            border-radius: 2rem;
+            padding: 0.5rem 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.98) 0%, 
+                rgba(255, 255, 255, 0.92) 100%) !important;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 
+                0 25px 50px 0 rgba(31, 38, 135, 0.25),
+                0 12px 24px 0 rgba(31, 38, 135, 0.2),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 0 rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+        
+        .header-compact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(59, 130, 246, 0.3) 50%, 
+                transparent 100%);
+        }
+        
+        .header-compact .container {
+            max-width: 100%;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .header-compact .logo-text {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e40af !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-compact .logo-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .header-compact .nav-link {
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            color: #1e40af !important;
+            border-radius: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .header-compact .nav-link:hover {
+            color: #3b82f6 !important;
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .header-compact .header-button {
+            padding: 0.375rem 0.875rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border-radius: 0.625rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .header-compact .header-button:first-child {
+            color: #1e40af !important;
+            border: 1px solid rgba(30, 64, 175, 0.2);
+            background: rgba(30, 64, 175, 0.05);
+        }
+        
+        .header-compact .header-button:first-child:hover {
+            background: rgba(30, 64, 175, 0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+        }
+        
+        .header-compact .header-button:last-child {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .header-compact .header-button:last-child:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .header-compact .menu-button {
+            padding: 0.375rem;
+            color: #1e40af !important;
+            border-radius: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .header-compact .menu-button:hover {
+            background: rgba(30, 64, 175, 0.1);
+            transform: scale(1.05);
+        }
+        
+        /* Enhanced smooth transition for compact mode */
+        .header-compact {
+            animation: centerHeader 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes centerHeader {
+            0% {
+                max-width: 100%;
+                border-radius: 0;
+                padding: 1.25rem 0;
+                transform: translateX(-50%) translateY(0);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateX(-50%) translateY(-0.5rem);
+            }
+            100% {
+                max-width: 60%;
+                border-radius: 2rem;
+                padding: 0.5rem 0;
+                transform: translateX(-50%) translateY(1rem);
+                opacity: 1;
+            }
+        }
+        
+        /* Enhanced logo animation */
+        .logo-icon {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .logo-icon:hover {
+            transform: rotate(360deg) scale(1.1);
+        }
+        
+        /* Enhanced nav link hover effects */
+        .nav-link {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(-50%);
+        }
+        
+        .nav-link:hover::after {
+            width: 80%;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="font-sans text-neutral-800 antialiased">
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary-600 text-white px-4 py-2 rounded focus-ring">
+        Ana içeriğe geç
+    </a>
+
+    <!-- Header -->
+    <header id="header" class="glass-effect fixed top-0 w-full z-50 transition-all duration-300" role="banner">
+        <nav class="container mx-auto px-6 py-4" role="navigation" aria-label="Ana navigasyon">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-8">
+                    <div class="flex items-center space-x-2">
+                        <div class="logo-icon w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center transition-all duration-300">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                        </div>
+                        <span class="logo-text text-xl font-bold text-neutral-900 transition-all duration-300">Qwen Code</span>
+                    </div>
+                    <ul class="hidden md:flex items-center space-x-6">
+                        <li><a href="#features" class="nav-link text-neutral-600 hover:text-primary-600 transition-colors focus-ring rounded px-2 py-1">Özellikler</a></li>
+                        <li><a href="#pricing" class="nav-link text-neutral-600 hover:text-primary-600 transition-colors focus-ring rounded px-2 py-1">Fiyatlandırma</a></li>
+                        <li><a href="#faq" class="nav-link text-neutral-600 hover:text-primary-600 transition-colors focus-ring rounded px-2 py-1">SSS</a></li>
+                    </ul>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="header-button text-neutral-600 hover:text-primary-600 transition-colors focus-ring rounded px-4 py-2">
+                        Giriş Yap
+                    </button>
+                    <button class="header-button bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors focus-ring">
+                        Başla
+                    </button>
+                    <button class="menu-button md:hidden text-neutral-600 hover:text-primary-600 focus-ring rounded p-2" aria-label="Menüyü aç">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" role="main">
+        <!-- Hero Section -->
+        <section class="pt-32 pb-20 px-6 bg-gradient-to-br from-primary-50 to-white" aria-labelledby="hero-title">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center space-y-8 animate-fade-in">
+                    <h1 id="hero-title" class="text-5xl md:text-6xl font-bold text-neutral-900 leading-tight">
+                        AI-Powered
+                        <span class="text-gradient"> Development</span>
+                        <br />
+                        Workflow Tool
+                    </h1>
+                    <p class="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+                        Qwen Code, geliştirme iş akışlarınızı optimize etmek için tasarlanmış akıllı komut satırı aracı. Kod analizi, otomatik görevler ve yapay zeka destekli asistanlık ile verimliliğinizi artırın.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <button class="bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-all transform hover:scale-105 focus-ring shadow-lg">
+                            Ücretsiz Başla
+                        </button>
+                        <button class="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold border-2 border-primary-600 hover:bg-primary-50 transition-all focus-ring">
+                            Demo İzle
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-center space-x-8 text-sm text-neutral-500">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Kurulum gerektirmez</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>TypeScript destekli</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Open Source</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 px-6 bg-white" aria-labelledby="features-title">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 id="features-title" class="text-4xl font-bold text-neutral-900 mb-4">
+                        Geliştirme Deneyiminizi Zirveye Taşıyın
+                    </h2>
+                    <p class="text-xl text-neutral-600 max-w-3xl mx-auto">
+                        Modern geliştirme ihtiyaçlarınız için tasarlanmış kapsamlı özellik seti
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Feature Card Variant 1 - Icon Left -->
+                    <article class="bg-white p-8 rounded-2xl border border-neutral-200 card-hover shadow-card" role="article">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-neutral-900 mb-2">Akıllı Kod Analizi</h3>
+                                <p class="text-neutral-600 leading-relaxed">
+                                    Yapay zeka destekli kod analizi ile potansiyel hataları tespit edin ve kod kalitenizi artırın. TypeScript, JavaScript ve daha birçok dil desteği.
+                                </p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Feature Card Variant 2 - Icon Top, Bold Title -->
+                    <article class="bg-white p-8 rounded-2xl border border-neutral-200 card-hover shadow-card text-center" role="article">
+                        <div class="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-black text-neutral-900 mb-4">Otomatik Görev Yönetimi</h3>
+                        <p class="text-neutral-600 leading-relaxed">
+                            Tekrarlayan görevleri otomatikleştirin ve geliştirme sürecinizi hızlandırın. Build, test ve deployment iş akışlarınızı optimize edin.
+                        </p>
+                    </article>
+
+                    <!-- Feature Card Variant 3 - Icon Right, Different Button Style -->
+                    <article class="bg-white p-8 rounded-2xl border border-neutral-200 card-hover shadow-card" role="article">
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-semibold text-neutral-900 mb-2">Terminal Entegrasyonu</h3>
+                                <p class="text-neutral-600 leading-relaxed mb-4">
+                                    Mevcut terminal ortamınızla sorunsuz entegrasyon. Komut satırı üzerinden doğrudan erişim ve kullanım kolaylığı.
+                                </p>
+                                <button class="text-primary-600 font-medium hover:text-primary-700 transition-colors flex items-center space-x-1 focus-ring rounded px-2 py-1">
+                                    <span>Daha fazla</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Additional Feature Cards -->
+                    <article class="bg-white p-8 rounded-2xl border border-neutral-200 card-hover shadow-card" role="article">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-neutral-900 mb-2">Esnek Yapılandırma</h3>
+                                <p class="text-neutral-600 leading-relaxed">
+                                    Projenize özel yapılandırma seçenekleri. JSON, YAML ve JavaScript tabanlı konfigürasyon desteği.
+                                </p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="bg-white p-8 rounded-2xl border border-neutral-200 card-hover shadow-card text-center" role="article">
+                        <div class="w-16 h-16 bg-gradient-to-br from-success to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-black text-neutral-900 mb-4">Güvenli ve Hızlı</h3>
+                        <p class="text-neutral-600 leading-relaxed">
+                            End-to-end şifreleme ve yerel işlem yeteneği ile verileriniz güvende. Hızlı performans için optimize edilmiş altyapı.
+                        </p>
+                    </article>
+
+                    <article class="bg-white p-8 rounded-2xl border border-neutral-200 card-hover shadow-card" role="article">
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-semibold text-neutral-900 mb-2">Çoklu Platform Desteği</h3>
+                                <p class="text-neutral-600 leading-relaxed mb-4">
+                                    Windows, macOS ve Linux platformlarında sorunsuz çalışma. Tüm major işletim sistemleri ile uyumlu.
+                                </p>
+                                <button class="inline-flex items-center space-x-2 bg-neutral-100 text-neutral-700 px-4 py-2 rounded-lg hover:bg-neutral-200 transition-colors focus-ring">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                    </svg>
+                                    <span>İndir</span>
+                                </button>
+                            </div>
+                            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing" class="py-20 px-6 bg-neutral-50" aria-labelledby="pricing-title">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <h2 id="pricing-title" class="text-4xl font-bold text-neutral-900 mb-4">
+                        İhtiyaçlarınıza Uygun Fiyatlandırma
+                    </h2>
+                    <p class="text-xl text-neutral-600 max-w-3xl mx-auto">
+                        Her ölçekteki proje için esnek fiyatlandırma seçenekleri
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <!-- Free Plan -->
+                    <article class="bg-white rounded-2xl border border-neutral-200 p-8 card-hover shadow-card" role="article">
+                        <div class="text-center mb-8">
+                            <h3 class="text-2xl font-bold text-neutral-900 mb-2">Free</h3>
+                            <div class="text-4xl font-bold text-neutral-900 mb-4">
+                                $0
+                                <span class="text-lg font-normal text-neutral-600">/ay</span>
+                            </div>
+                            <p class="text-neutral-600">Küçük projeler ve deneme için</p>
+                        </div>
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-neutral-700">Temel kod analizi</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-neutral-700">100 işlem/ay</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-neutral-700">Community destek</span>
+                            </li>
+                        </ul>
+                        <button class="w-full bg-neutral-100 text-neutral-700 py-3 rounded-lg font-semibold hover:bg-neutral-200 transition-colors focus-ring">
+                            Başla
+                        </button>
+                    </article>
+
+                    <!-- Pro Plan -->
+                    <article class="bg-primary-600 rounded-2xl border-2 border-primary-600 p-8 text-white transform scale-105 shadow-xl" role="article">
+                        <div class="bg-yellow-400 text-primary-900 text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
+                            En Popüler
+                        </div>
+                        <div class="text-center mb-8">
+                            <h3 class="text-2xl font-bold mb-2">Pro</h3>
+                            <div class="text-4xl font-bold mb-4">
+                                $29
+                                <span class="text-lg font-normal opacity-90">/ay</span>
+                            </div>
+                            <p class="opacity-90">Profesyonel geliştiriciler için</p>
+                        </div>
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-white flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Gelişmiş kod analizi</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-white flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Sınırsız işlem</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-white flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Öncelikli destek</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-white flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Team collaboration</span>
+                            </li>
+                        </ul>
+                        <button class="w-full bg-white text-primary-600 py-3 rounded-lg font-semibold hover:bg-neutral-50 transition-colors focus-ring">
+                            Pro Plan'ı Seç
+                        </button>
+                    </article>
+
+                    <!-- Enterprise Plan -->
+                    <article class="bg-white rounded-2xl border border-neutral-200 p-8 card-hover shadow-card" role="article">
+                        <div class="text-center mb-8">
+                            <h3 class="text-2xl font-bold text-neutral-900 mb-2">Enterprise</h3>
+                            <div class="text-4xl font-bold text-neutral-900 mb-4">
+                                Özel
+                                <span class="text-lg font-normal text-neutral-600">/ay</span>
+                            </div>
+                            <p class="text-neutral-600">Büyük kurumlar için</p>
+                        </div>
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-neutral-700">Özel özellikler</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-neutral-700">SLA garantisi</span>
+                            </li>
+                            <li class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span class="text-neutral-700">Dedicated support</span>
+                            </li>
+                        </ul>
+                        <button class="w-full bg-neutral-900 text-white py-3 rounded-lg font-semibold hover:bg-neutral-800 transition-colors focus-ring">
+                            İletişime Geç
+                        </button>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="py-20 px-6 bg-white" aria-labelledby="faq-title">
+            <div class="container mx-auto max-w-4xl">
+                <div class="text-center mb-16">
+                    <h2 id="faq-title" class="text-4xl font-bold text-neutral-900 mb-4">
+                        Sıkça Sorulan Sorular
+                    </h2>
+                    <p class="text-xl text-neutral-600">
+                        Merak ettiğiniz her şey
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- FAQ Item 1 -->
+                    <div class="border border-neutral-200 rounded-xl overflow-hidden" role="region" aria-labelledby="faq1-question">
+                        <button 
+                            class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-neutral-50 transition-colors focus-ring"
+                            onclick="toggleFAQ('faq1')"
+                            aria-expanded="false"
+                            aria-controls="faq1-answer"
+                            id="faq1-question"
+                        >
+                            <span class="text-lg font-semibold text-neutral-900">Qwen Code nasıl çalışır?</span>
+                            <svg class="w-5 h-5 text-neutral-500 transform transition-transform" id="faq1-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="hidden px-6 pb-4" id="faq1-answer">
+                            <p class="text-neutral-600 leading-relaxed">
+                                Qwen Code, komut satırı üzerinden çalışan bir AI asistanıdır. Projenizin dosyalarını analiz eder, kod önerileri sunar ve geliştirme sürecinizi otomatikleştirir. Node.js tabanlıdır ve TypeScript projeleriyle tam entegre çalışır.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 2 -->
+                    <div class="border border-neutral-200 rounded-xl overflow-hidden" role="region" aria-labelledby="faq2-question">
+                        <button 
+                            class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-neutral-50 transition-colors focus-ring"
+                            onclick="toggleFAQ('faq2')"
+                            aria-expanded="false"
+                            aria-controls="faq2-answer"
+                            id="faq2-question"
+                        >
+                            <span class="text-lg font-semibold text-neutral-900">Hangi programlama dillerini destekliyor?</span>
+                            <svg class="w-5 h-5 text-neutral-500 transform transition-transform" id="faq2-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="hidden px-6 pb-4" id="faq2-answer">
+                            <p class="text-neutral-600 leading-relaxed">
+                                Qwen Code, TypeScript, JavaScript, Python, Java, C++, Go, Rust ve daha birçok modern programlama dilini destekler. Özellikle web geliştirme ve backend projeleri için optimize edilmiştir.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 3 -->
+                    <div class="border border-neutral-200 rounded-xl overflow-hidden" role="region" aria-labelledby="faq3-question">
+                        <button 
+                            class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-neutral-50 transition-colors focus-ring"
+                            onclick="toggleFAQ('faq3')"
+                            aria-expanded="false"
+                            aria-controls="faq3-answer"
+                            id="faq3-question"
+                        >
+                            <span class="text-lg font-semibold text-neutral-900">Verilerim güvende mi?</span>
+                            <svg class="w-5 h-5 text-neutral-500 transform transition-transform" id="faq3-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="hidden px-6 pb-4" id="faq3-answer">
+                            <p class="text-neutral-600 leading-relaxed">
+                                Evet, Qwen Code verilerinizi yerel olarak işler ve hiçbir kod verinizi sunucularımıza göndermez. Tüm analizler kendi makinenizde gerçekleşir ve end-to-end şifreleme ile korunur.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 4 -->
+                    <div class="border border-neutral-200 rounded-xl overflow-hidden" role="region" aria-labelledby="faq4-question">
+                        <button 
+                            class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-neutral-50 transition-colors focus-ring"
+                            onclick="toggleFAQ('faq4')"
+                            aria-expanded="false"
+                            aria-controls="faq4-answer"
+                            id="faq4-question"
+                        >
+                            <span class="text-lg font-semibold text-neutral-900">Kurulum gerektiriyor mu?</span>
+                            <svg class="w-5 h-5 text-neutral-500 transform transition-transform" id="faq4-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="hidden px-6 pb-4" id="faq4-answer">
+                            <p class="text-neutral-600 leading-relaxed">
+                                Qwen Code'u npm üzerinden tek komutla kurabilirsiniz: <code class="bg-neutral-100 px-2 py-1 rounded">npm install -g qwen-code</code>. Node.js 20+ sürümü gerektirir. Kurulumdan sonra hemen kullanmaya başlayabilirsiniz.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 5 -->
+                    <div class="border border-neutral-200 rounded-xl overflow-hidden" role="region" aria-labelledby="faq5-question">
+                        <button 
+                            class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-neutral-50 transition-colors focus-ring"
+                            onclick="toggleFAQ('faq5')"
+                            aria-expanded="false"
+                            aria-controls="faq5-answer"
+                            id="faq5-question"
+                        >
+                            <span class="text-lg font-semibold text-neutral-900">Mevcut IDE'm ile entegre olabilir mi?</span>
+                            <svg class="w-5 h-5 text-neutral-500 transform transition-transform" id="faq5-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="hidden px-6 pb-4" id="faq5-answer">
+                            <p class="text-neutral-600 leading-relaxed">
+                                Evet, Qwen Code VS Code, IntelliJ, WebStorm ve diğer major IDE'ler ile entegre olabilir. Terminal üzerinden çalıştığı için herhangi bir IDE'de sorunsuz kullanabilirsiniz.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-neutral-900 text-neutral-300 py-16 px-6" role="contentinfo">
+        <div class="container mx-auto max-w-6xl">
+            <div class="grid md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-white">Qwen Code</span>
+                    </div>
+                    <p class="text-sm leading-relaxed">
+                        AI-powered development tool for modern workflows
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Ürün</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#features" class="hover:text-white transition-colors">Özellikler</a></li>
+                        <li><a href="#pricing" class="hover:text-white transition-colors">Fiyatlandırma</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Dokümantasyon</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Changelog</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Şirket</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Hakkımızda</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Kariyer</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">İletişim</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Yasal</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Gizlilik Politikası</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Kullanım Şartları</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Cookie Politikası</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Lisans</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-neutral-800 pt-8 flex flex-col md:flex-row items-center justify-between">
+                <p class="text-sm mb-4 md:mb-0">
+                    © 2025 Qwen Code. Tüm hakları saklıdır.
+                </p>
+                <div class="flex items-center space-x-6">
+                    <a href="#" class="hover:text-white transition-colors" aria-label="GitHub">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="hover:text-white transition-colors" aria-label="Twitter">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="hover:text-white transition-colors" aria-label="Discord">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // FAQ Toggle Function
+        function toggleFAQ(id) {
+            const answer = document.getElementById(id + '-answer');
+            const icon = document.getElementById(id + '-icon');
+            const button = document.getElementById(id + '-question');
+            
+            if (answer.classList.contains('hidden')) {
+                answer.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+                button.setAttribute('aria-expanded', 'true');
+            } else {
+                answer.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Enhanced header scroll effect with smooth transitions
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+        const header = document.getElementById('header');
+
+        function updateHeader() {
+            const currentScrollY = window.scrollY;
+            
+            if (currentScrollY > 60) {
+                // Add ultra-compact centered effect when scrolled
+                if (!header.classList.contains('header-compact')) {
+                    header.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    header.classList.add('glass-effect-scrolled', 'header-compact');
+                    header.classList.remove('glass-effect');
+                }
+            } else {
+                // Remove compact effect when at top
+                if (header.classList.contains('header-compact')) {
+                    header.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    header.classList.remove('glass-effect-scrolled', 'header-compact');
+                    header.classList.add('glass-effect');
+                }
+            }
+            
+            lastScrollY = currentScrollY;
+            ticking = false;
+        }
+
+        function requestTick() {
+            if (!ticking) {
+                requestAnimationFrame(updateHeader);
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('scroll', requestTick);
+
+        // Add subtle parallax effect to header elements
+        const headerElements = document.querySelectorAll('.logo-icon, .logo-text, .nav-link, .header-button');
+        
+        headerElements.forEach((element, index) => {
+            element.style.transition = `transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) ${index * 0.05}s`;
+        });
+
+        // Enhanced hover effects for header buttons
+        document.querySelectorAll('.header-button').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-slide-up');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards and pricing cards
+        document.querySelectorAll('article').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

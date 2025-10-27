@@ -21,6 +21,10 @@ vi.mock('../models/availableModels.js', () => ({
     { id: 'qwen3-coder-plus', label: 'qwen3-coder-plus' },
     { id: 'qwen-vl-max-latest', label: 'qwen-vl-max', isVision: true },
   ],
+  AVAILABLE_MODELS_ZAI: [
+    { id: 'glm-4.6', label: 'GLM-4.6' },
+    { id: 'minimax/minimax-m2:free', label: 'MiniMax M2 (Free)' },
+  ],
   getOpenAIAvailableModelFromEnv: vi.fn(),
 }));
 
@@ -141,6 +145,21 @@ describe('modelCommand', () => {
       messageType: 'error',
       content:
         'No models available for the current authentication type (openai).',
+    });
+  });
+
+  it('should return dialog action for USE_ZAI_OPENROUTER auth type', async () => {
+    const mockConfig = createMockConfig({
+      model: 'glm-4.6',
+      authType: AuthType.USE_ZAI_OPENROUTER,
+    });
+    mockContext.services.config = mockConfig as Config;
+
+    const result = await modelCommand.action!(mockContext, '');
+
+    expect(result).toEqual({
+      type: 'dialog',
+      dialog: 'model',
     });
   });
 

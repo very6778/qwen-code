@@ -134,9 +134,12 @@ export type HistoryItemQuitConfirmation = HistoryItemBase & {
   duration: string;
 };
 
+export type ToolGroupDisplayMode = 'default' | 'batched';
+
 export type HistoryItemToolGroup = HistoryItemBase & {
   type: 'tool_group';
   tools: IndividualToolCallDisplay[];
+  displayMode?: ToolGroupDisplayMode;
 };
 
 export type HistoryItemUserShell = HistoryItemBase & {

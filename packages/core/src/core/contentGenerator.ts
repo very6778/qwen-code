@@ -15,7 +15,11 @@ import type {
 import { GoogleGenAI } from '@google/genai';
 import { createCodeAssistContentGenerator } from '../code_assist/codeAssist.js';
 import type { Config } from '../config/config.js';
-import { DEFAULT_GEMINI_MODEL, DEFAULT_QWEN_MODEL } from '../config/models.js';
+import {
+  DEFAULT_GEMINI_MODEL,
+  DEFAULT_QWEN_MODEL,
+  DEFAULT_ZAI_MODEL,
+} from '../config/models.js';
 
 import type { UserTierId } from '../code_assist/types.js';
 import { InstallationManager } from '../utils/installationManager.js';
@@ -84,6 +88,22 @@ export function createContentGeneratorConfig(
   config: Config,
   authType: AuthType | undefined,
 ): ContentGeneratorConfig {
+  // If no authType provided, check environment variables for default
+  if (!authType) {
+    if (process.env['ZAI_API_KEY']) {
+      authType = AuthType.USE_ZAI_OPENROUTER;
+    } else if (process.env['OPENAI_API_KEY']) {
+      authType = AuthType.USE_OPENAI;
+    } else if (process.env['GEMINI_API_KEY']) {
+      authType = AuthType.USE_GEMINI;
+    } else if (process.env['QWEN_DEFAULT_AUTH_TYPE']) {
+      // Parse default auth type from environment
+      const defaultAuthType = process.env['QWEN_DEFAULT_AUTH_TYPE'];
+      if (Object.values(AuthType).includes(defaultAuthType as AuthType)) {
+        authType = defaultAuthType as AuthType;
+      }
+    }
+  }
   const geminiApiKey = process.env['GEMINI_API_KEY'] || undefined;
   const googleApiKey = process.env['GOOGLE_API_KEY'] || undefined;
   const googleCloudProject = process.env['GOOGLE_CLOUD_PROJECT'] || undefined;
@@ -97,6 +117,8 @@ export function createContentGeneratorConfig(
   // zai openrouter auth
   const zaiApiKey = process.env['ZAI_API_KEY'] || '4b7ce72f0aa04073821d45375764abb9.DUpXqpRe1Z6B7SmQ';
   const zaiBaseUrl = process.env['ZAI_BASE_URL'] || 'https://api.z.ai/api/coding/paas/v4';
+
+  // minimax auth will be handled directly in the provider
 
   // Use runtime model from config if available; otherwise, fall back to parameter or default
   const effectiveModel = config.getModel() || DEFAULT_GEMINI_MODEL;
@@ -158,12 +180,16 @@ export function createContentGeneratorConfig(
   }
 
   if (authType === AuthType.USE_ZAI_OPENROUTER && zaiApiKey) {
+    const zaiModel =
+      process.env['ZAI_MODEL']?.trim() || DEFAULT_ZAI_MODEL;
     contentGeneratorConfig.apiKey = zaiApiKey;
     contentGeneratorConfig.baseUrl = zaiBaseUrl;
-    contentGeneratorConfig.model = 'glm-4.6'; // Fixed model for ZAI OpenRouter
+    contentGeneratorConfig.model = zaiModel;
 
     return contentGeneratorConfig;
   }
+
+  // MiniMax config will be handled by ZAI provider dynamically based on model selection
 
   
   return contentGeneratorConfig;

@@ -18,6 +18,11 @@ export const AVAILABLE_MODELS_QWEN: AvailableModel[] = [
   { id: MAINLINE_VLM, label: MAINLINE_VLM, isVision: true },
 ];
 
+export const AVAILABLE_MODELS_ZAI: AvailableModel[] = [
+  { id: 'minimax/minimax-m2:free', label: 'MiniMax M2 (Free)' },
+  { id: 'glm-4.6', label: 'GLM-4.6' },
+];
+
 /**
  * Get available Qwen models filtered by vision model preview setting
  */
@@ -53,4 +58,3 @@ export function isVisionModel(modelId: string): boolean {
     (model) => model.id === modelId && model.isVision,
   );
 }
-

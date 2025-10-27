@@ -188,4 +188,28 @@ describe('createContentGeneratorConfig', () => {
     expect(config.apiKey).toBeUndefined();
     expect(config.vertexai).toBeUndefined();
   });
+
+  it('should default to MiniMax model for ZAI OpenRouter when configured', async () => {
+    vi.stubEnv('ZAI_API_KEY', 'env-zai-key');
+    const config = await createContentGeneratorConfig(
+      mockConfig,
+      AuthType.USE_ZAI_OPENROUTER,
+    );
+
+    expect(config.apiKey).toBe('env-zai-key');
+    expect(config.baseUrl).toBeDefined();
+    expect(config.model).toBe('minimax/minimax-m2:free');
+  });
+
+  it('should allow overriding the ZAI model via ZAI_MODEL env var', async () => {
+    vi.stubEnv('ZAI_API_KEY', 'env-zai-key');
+    vi.stubEnv('ZAI_MODEL', 'glm-4.6');
+
+    const config = await createContentGeneratorConfig(
+      mockConfig,
+      AuthType.USE_ZAI_OPENROUTER,
+    );
+
+    expect(config.model).toBe('glm-4.6');
+  });
 });

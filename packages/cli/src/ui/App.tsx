@@ -57,6 +57,7 @@ import {
 import {
   getOpenAIAvailableModelFromEnv,
   getFilteredQwenModels,
+  AVAILABLE_MODELS_ZAI,
   type AvailableModel,
 } from './models/availableModels.js';
 import { processVisionSwitchOutcome } from './hooks/useVisionAutoSwitch.js';
@@ -164,7 +165,8 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const [updateInfo, setUpdateInfo] = useState<UpdateObject | null>(null);
   const { stdout } = useStdout();
   const nightly = version.includes('nightly');
-  const { history, addItem, clearItems, loadHistory } = useHistory();
+  const { history, addItem, updateItem, clearItems, loadHistory } =
+    useHistory();
 
   useEffect(() => {
     const cleanup = setUpdateHandler(addItem, setUpdateInfo);
@@ -637,7 +639,9 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         const openAIModel = getOpenAIAvailableModelFromEnv();
         return openAIModel ? [openAIModel] : [];
       }
-            default:
+      case AuthType.USE_ZAI_OPENROUTER:
+        return AVAILABLE_MODELS_ZAI;
+      default:
         return [];
     }
   }, [config, settings.merged.experimental?.visionModelPreview]);
@@ -703,6 +707,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     config.getGeminiClient(),
     history,
     addItem,
+    updateItem,
     config,
     setDebugMessage,
     handleSlashCommand,
@@ -712,6 +717,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     performMemoryRefresh,
     modelSwitchedFromQuotaError,
     setModelSwitchedFromQuotaError,
+    refreshStatic,
     refreshStatic,
     () => cancelHandlerRef.current(),
     settings.merged.experimental?.visionModelPreview ?? true,
@@ -1354,45 +1360,17 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                     : thought
                 }
                 currentLoadingPhrase={
+                  streamingState === StreamingState.WaitingForConfirmation ||
                   config.getAccessibility()?.disableLoadingPhrases ||
                   config.getScreenReader()
                     ? undefined
                     : currentLoadingPhrase
                 }
                 elapsedTime={elapsedTime}
+                queuedMessages={messageQueue}
+                maxQueuedMessages={MAX_DISPLAYED_QUEUED_MESSAGES}
+                width={mainAreaWidth}
               />
-
-              {/* Display queued messages below loading indicator */}
-              {messageQueue.length > 0 && (
-                <Box flexDirection="column" marginTop={1}>
-                  {messageQueue
-                    .slice(0, MAX_DISPLAYED_QUEUED_MESSAGES)
-                    .map((message, index) => {
-                      // Ensure multi-line messages are collapsed for the preview.
-                      // Replace all whitespace (including newlines) with a single space.
-                      const preview = message.replace(/\s+/g, ' ');
-
-                      return (
-                        // Ensure the Box takes full width so truncation calculates correctly
-                        <Box key={index} paddingLeft={2} paddingRight={2} width="100%">
-                          {/* Use wrap="truncate" to ensure it fits the terminal width and doesn't wrap */}
-                          <Text dimColor wrap="truncate">
-                            {preview}
-                          </Text>
-                        </Box>
-                      );
-                    })}
-                  {messageQueue.length > MAX_DISPLAYED_QUEUED_MESSAGES && (
-                    <Box paddingLeft={2}>
-                      <Text dimColor>
-                        ... (+
-                        {messageQueue.length - MAX_DISPLAYED_QUEUED_MESSAGES}
-                        more)
-                      </Text>
-                    </Box>
-                  )}
-                </Box>
-              )}
 
               <Box
                 marginTop={1}

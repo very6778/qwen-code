@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurumsal Çözümler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #222F3A;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: #222F3A;
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #C3824B;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #C3824B;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #222F3A 0%, #62787A 100%);
+            color: white;
+            padding: 120px 0 80px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .btn-primary {
+            background: #C3824B;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: #a0683a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(195,130,75,0.3);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: #AB96D9;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: #AB96D9;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .feature-card h3 {
+            color: #222F3A;
+            margin-bottom: 1rem;
+        }
+
+        /* Services Section */
+        .services {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .service-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #C3824B;
+            transition: transform 0.3s;
+        }
+
+        .service-item:hover {
+            transform: translateX(5px);
+        }
+
+        .service-item h4 {
+            color: #C3824B;
+            margin-bottom: 0.5rem;
+        }
+
+        /* About Section */
+        .about {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            margin-top: 3rem;
+        }
+
+        .about-text h2 {
+            color: #222F3A;
+            margin-bottom: 1rem;
+        }
+
+        .about-image {
+            background: linear-gradient(135deg, #AB96D9 0%, #62787A 100%);
+            height: 400px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 80px 0;
+            background: #222F3A;
+            color: white;
+        }
+
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .contact-info h3 {
+            color: #C3824B;
+            margin-bottom: 1rem;
+        }
+
+        .contact-form {
+            background: rgba(255,255,255,0.1);
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.9);
+            color: #222F3A;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        /* Footer */
+        footer {
+            background: #1a252f;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #222F3A;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #62787A;
+            margin-bottom: 3rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .about-content,
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid,
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <div class="logo">TechCorp</div>
+            <ul class="nav-links">
+                <li><a href="#home">Ana Sayfa</a></li>
+                <li><a href="#features">Özellikler</a></li>
+                <li><a href="#services">Hizmetler</a></li>
+                <li><a href="#about">Hakkımızda</a></li>
+                <li><a href="#contact">İletişim</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h1>Geleceğin Teknoloji Çözümleri</h1>
+            <p>Dijital dönüşüm yolculuğunuzda güvenilir iş ortağınız</p>
+            <a href="#contact" class="btn-primary">İletişime Geçin</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Neden Bizi Seçmelisiniz?</h2>
+            <p class="section-subtitle">İşletmenizi geleceğe taşıyan yenilikçi çözümler</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Hızlı Çözümler</h3>
+                    <p>Modern teknolojilerle geliştirilen hızlı ve ölçeklenebilir çözümler sunuyoruz.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Güvenilirlik</h3>
+                    <p>En yüksek güvenlik standartlarıyla verilerinizi koruyoruz.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💡</div>
+                    <h3>Yenilikçi Yaklaşım</h3>
+                    <p>Sektördeki en son trendleri takip ederek yenilikçi çözümler üretiyoruz.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <h2 class="section-title">Hizmetlerimiz</h2>
+            <p class="section-subtitle">İşletmenizin ihtiyaçlarına özel kapsamlı hizmetler</p>
+            
+            <div class="services-grid">
+                <div class="service-item">
+                    <h4>Web Geliştirme</h4>
+                    <p>Modern ve responsive web uygulamaları geliştiriyoruz.</p>
+                </div>
+                <div class="service-item">
+                    <h4>Mobil Çözümler</h4>
+                    <p>iOS ve Android platformları için native ve cross-platform uygulamalar.</p>
+                </div>
+                <div class="service-item">
+                    <h4>Bulut Hizmetleri</h4>
+                    <p>Ölçeklenebilir bulut altyapı çözümleri ve migrasyon hizmetleri.</p>
+                </div>
+                <div class="service-item">
+                    <h4>Danışmanlık</h4>
+                    <p>Dijital dönüşüm stratejileri ve teknoloji danışmanlığı.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <h2 class="section-title">Hakkımızda</h2>
+            <p class="section-subtitle">10 yıllık tecrübe ve binlerce başarılı proje</p>
+            
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Teknoloji ve İnovasyon</h2>
+                    <p>TechCorp olarak 2014'ten beri işletmelerin dijital dönüşüm yolculuklarında onlara destek oluyoruz. Deneyimli ekibimizle en son teknolojileri kullanarak işletmenizin verimliliğini artıracak çözümler geliştiriyoruz.</p>
+                    <p>Müşteri memnuniyetini ön planda tutarak, her projeye özel yaklaşım sergiliyor ve uzun vadeli iş ortaklıkları kuruyoruz.</p>
+                </div>
+                <div class="about-image">
+                    <div>Teknoloji ve İnovasyon Merkezi</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2 class="section-title" style="color: white;">İletişim</h2>
+            <p class="section-subtitle" style="color: rgba(255,255,255,0.9);">Projeniz hakkında görüşmek için bizimle iletişime geçin</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>İletişim Bilgileri</h3>
+                    <p><strong>Adres:</strong> Teknoloji Geliştirme Merkezi, İstanbul</p>
+                    <p><strong>Telefon:</strong> +90 212 555 0123</p>
+                    <p><strong>E-posta:</strong> info@techcorp.com.tr</p>
+                    <p><strong>Çalışma Saatleri:</strong> Pazartesi - Cuma 09:00 - 18:00</p>
+                </div>
+                
+                <div class="contact-form">
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Adınız Soyadınız</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-posta Adresiniz</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Mesajınız</label>
+                            <textarea id="message" name="message" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Gönder</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 TechCorp. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Form submission handler
+        document.querySelector('.contact-form form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Mesajınız başarıyla gönderildi! En kısa sürede size dönüş yapacağız.');
+            this.reset();
+        });
+
+        // Add scroll effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(34, 47, 58, 0.95)';
+            } else {
+                header.style.background = '#222F3A';
+            }
+        });
+    </script>
+</body>
+</html>

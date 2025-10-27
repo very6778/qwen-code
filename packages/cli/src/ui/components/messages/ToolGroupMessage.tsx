@@ -6,14 +6,21 @@
 
 import type React from 'react';
 import { useMemo } from 'react';
-import { Box } from 'ink';
-import type { IndividualToolCallDisplay } from '../../types.js';
+import { Box, Text } from 'ink';
+import type {
+  IndividualToolCallDisplay,
+  ToolGroupDisplayMode,
+} from '../../types.js';
 import { ToolCallStatus } from '../../types.js';
 import { ToolMessage } from './ToolMessage.js';
 import { ToolConfirmationMessage } from './ToolConfirmationMessage.js';
 import { Colors } from '../../colors.js';
 import type { Config } from '@qwen-code/qwen-code-core';
 import { SHELL_COMMAND_NAME } from '../../constants.js';
+import {
+  getFriendlyToolName,
+  getBatchedToolTarget,
+} from '../../utils/toolDisplayNames.js';
 
 interface ToolGroupMessageProps {
   groupId: number;
@@ -22,6 +29,7 @@ interface ToolGroupMessageProps {
   terminalWidth: number;
   config: Config;
   isFocused?: boolean;
+  displayMode?: ToolGroupDisplayMode;
 }
 
 // Main component renders the border and maps the tools using ToolMessage
@@ -31,7 +39,25 @@ export const ToolGroupMessage: React.FC<ToolGroupMessageProps> = ({
   terminalWidth,
   config,
   isFocused = true,
+  displayMode,
 }) => {
+  if (displayMode === 'batched') {
+    return (
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        width="100%"
+        marginLeft={1}
+        borderColor={Colors.Gray}
+        gap={1}
+        paddingX={1}
+        paddingY={1}
+      >
+        <BatchedToolGroupContent toolCalls={toolCalls} />
+      </Box>
+    );
+  }
+
   const hasPending = !toolCalls.every(
     (t) => t.status === ToolCallStatus.Success,
   );
@@ -126,6 +152,33 @@ export const ToolGroupMessage: React.FC<ToolGroupMessageProps> = ({
           </Box>
         );
       })}
+    </Box>
+  );
+};
+
+const BatchedToolGroupContent: React.FC<{
+  toolCalls: IndividualToolCallDisplay[];
+}> = ({ toolCalls }) => {
+  if (toolCalls.length === 0) {
+    return null;
+  }
+
+  const friendlyName = getFriendlyToolName(toolCalls[0]?.name);
+  const targets = toolCalls.map((tool) =>
+    getBatchedToolTarget(tool.description),
+  );
+
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Box flexDirection="row" alignItems="center">
+        <Text color={Colors.AccentGreen}>⏺</Text>
+        <Text> </Text>
+        <Text bold>{friendlyName}</Text>
+      </Box>
+      <Box flexDirection="row" paddingLeft={1}>
+        <Text color={Colors.Gray}>⎿ </Text>
+        <Text wrap="wrap">{targets.join(', ')}</Text>
+      </Box>
     </Box>
   );
 };

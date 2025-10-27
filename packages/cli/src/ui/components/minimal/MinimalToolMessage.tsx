@@ -12,8 +12,6 @@ import { CompactHeader } from './CompactHeader.js';
 import { MinimalTodoItem } from './MinimalTodoItem.js';
 import { MinimalDiffPreview } from './MinimalDiffPreview.js';
 import type { Config, ShellResultDisplay } from '@qwen-code/qwen-code-core';
-import { useKeypress } from '../../hooks/useKeypress.js';
-import type { Key } from '../../hooks/useKeypress.js';
 import { MinimalShellOutput } from './MinimalShellOutput.js';
 
 export interface MinimalToolMessageProps {
@@ -62,8 +60,7 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
   renderOutputAsMarkdown: _renderOutputAsMarkdown = true,
   config: _config,
 }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  const [showFullDiff, setShowFullDiff] = React.useState(false);
+  const [showFullDiff] = React.useState(true); // Always show full diff
 
   const diffDisplay = React.useMemo(
     () =>
@@ -92,6 +89,23 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
       );
       if (pathMatch) {
         target = pathMatch[0];
+      }
+    }
+
+    if (typeof target === 'string') {
+      const trimmedTarget = target.trim();
+      const arrowIndex = trimmedTarget.indexOf(' => ');
+      const colonIndex = trimmedTarget.indexOf(':');
+
+      // If the description follows "path: snippet => snippet" format, keep only the path.
+      if (
+        arrowIndex !== -1 &&
+        colonIndex !== -1 &&
+        colonIndex < arrowIndex
+      ) {
+        target = trimmedTarget.slice(0, colonIndex).trim() || trimmedTarget;
+      } else {
+        target = trimmedTarget;
       }
     }
 
@@ -205,57 +219,10 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
     return <>{summaryText}</>;
   }, [summaryText]);
 
-  const hasShellDisplay = shellDisplay !== null;
-
-  const { totalLines, hiddenLines } = React.useMemo(() => {
-    if (hasShellDisplay) {
-      return { totalLines: 0, hiddenLines: 0 };
-    }
-
-    if (isTodoTool) {
-      return {
-        totalLines: todoItems.length > 0 ? 1 : 0,
-        hiddenLines: 0,
-      };
-    }
-
-    if (!resultDisplay || hasDiffDisplay) {
-      return { totalLines: 0, hiddenLines: 0 };
-    }
-
-    const content =
-      typeof resultDisplay === 'string'
-        ? resultDisplay
-        : JSON.stringify(resultDisplay, null, 2);
-    const totalLines = content.split('\n').length;
-    const hiddenLines = isExpanded ? 0 : Math.max(0, totalLines - 3);
-    return { totalLines, hiddenLines };
-  }, [
-    isTodoTool,
-    todoItems.length,
-    resultDisplay,
-    hasDiffDisplay,
-    hasShellDisplay,
-    isExpanded,
-  ]);
-
-  useKeypress(
-    (key: Key) => {
-      if (key.ctrl && key.name === 'o') {
-        if (hasDiffDisplay) {
-          setShowFullDiff((prev) => !prev);
-        } else if (!hasShellDisplay) {
-          setIsExpanded((prev) => !prev);
-        }
-      }
-    },
-    {
-      isActive: hasDiffDisplay || (!hasShellDisplay && hiddenLines > 0),
-    },
-  );
+  // Always show full content - no hidden lines
 
   return (
-    <Box flexDirection="column" width="100%">
+    <Box flexDirection="column" width="100%" marginBottom={1}>
       {/* Compact Header */}
       <CompactHeader
         status={status}
@@ -287,16 +254,12 @@ export const MinimalToolMessage: React.FC<MinimalToolMessageProps> = ({
             {formattedSummary ? (
               formattedSummary
             ) : (
-              <>
-                Processed <Text bold>{totalLines}</Text>{' '}
-                {totalLines === 1 ? 'line' : 'lines'}
-                {hiddenLines > 0 && (
-                  <Text color="#747474" dimColor>
-                    {' '}
-                    (ctrl+o to expand)
-                  </Text>
-                )}
-              </>
+              // Show full content directly instead of summary
+              <Text>
+                {typeof resultDisplay === 'string'
+                  ? resultDisplay
+                  : JSON.stringify(resultDisplay, null, 2)}
+              </Text>
             )}
           </Text>
         </Box>
