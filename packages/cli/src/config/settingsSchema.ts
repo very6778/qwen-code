@@ -171,8 +171,8 @@ export const SETTINGS_SCHEMA = {
         category: 'UI',
         requiresRestart: false,
         default: 'minimal' as 'default' | 'minimal',
-        description: 'Layout style for tool messages.',
-        showInDialog: false,
+        description: 'Layout style for tool output display',
+        showInDialog: true,
       },
       hideWindowTitle: {
         type: 'boolean',

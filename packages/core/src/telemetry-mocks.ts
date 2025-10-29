@@ -388,7 +388,40 @@ export const logInvalidChunk = (config: any, event: any) => {
   }
 };
 
-export const logApiError = (config: any, event: any) => {
+const MAIN_LOG_FILE_NAME = 'main-log.md';
+
+function resolveMainLogPath(): string {
+  const envPath = process.env['QWEN_MAIN_LOG_PATH'];
+  if (envPath && envPath.trim().length > 0) {
+    return path.resolve(envPath);
+  }
+  return path.resolve(process.cwd(), MAIN_LOG_FILE_NAME);
+}
+
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch (error) {
+    return `"Failed to serialize payload: ${
+      error instanceof Error ? error.message : String(error)
+    }"`;
+  }
+}
+
+export function appendToMainLog(kind: string, event: unknown) {
+  const timestamp = new Date().toISOString();
+  const line = `[${timestamp}] [${kind}] ${safeStringify(event)}\n`;
+  try {
+    fs.appendFileSync(resolveMainLogPath(), line);
+  } catch (error) {
+    if (process.env['NODE_ENV'] === 'development') {
+      console.error('[Mock] Failed to write to main log file:', error);
+    }
+  }
+}
+
+export const logApiError = (_config: any, event: any) => {
+  appendToMainLog('api-error', event);
   if (process.env['NODE_ENV'] === 'development') {
     console.log(`[Mock] API error:`, config, event);
   }

@@ -201,6 +201,16 @@ export async function startInteractiveUI(
 export async function main() {
   setupUnhandledRejectionHandler();
   const workspaceRoot = process.cwd();
+  const mainLogPath = join(workspaceRoot, 'main-log.md');
+  process.env['QWEN_MAIN_LOG_PATH'] = mainLogPath;
+  try {
+    fs.writeFileSync(mainLogPath, '');
+  } catch (error) {
+    console.error(
+      `Failed to initialize main log file at ${mainLogPath}:`,
+      error,
+    );
+  }
   const settings = loadSettings(workspaceRoot);
 
   await cleanupCheckpoints();

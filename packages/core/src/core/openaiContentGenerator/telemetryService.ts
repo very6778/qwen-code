@@ -4,12 +4,38 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Config } from '../../config/config.js';
-import { logApiError, logApiResponse } from '../../telemetry/loggers.js';
-import { ApiErrorEvent, ApiResponseEvent } from '../../telemetry/types.js';
-import { openaiLogger } from '../../utils/openaiLogger.js';
-import type { GenerateContentResponse } from '@google/genai';
 import type OpenAI from 'openai';
+import type { GenerateContentResponse } from '@google/genai';
+import type { Config } from '../../config/config.js';
+import {
+  logApiError,
+  logApiResponse,
+  ApiErrorEvent,
+  ApiResponseEvent,
+} from '../../telemetry-mocks.js';
+import { openaiLogger } from '../../utils/openaiLogger.js';
+
+// Mock telemetry service for backward compatibility during transition
+
+export interface TelemetryService {
+  logSuccess(
+    context: RequestContext,
+    response: GenerateContentResponse,
+    openaiRequest?: OpenAI.Chat.ChatCompletionCreateParams,
+    openaiResponse?: OpenAI.Chat.ChatCompletion,
+  ): Promise<void>;
+  logError(
+    context: RequestContext,
+    error: unknown,
+    openaiRequest?: OpenAI.Chat.ChatCompletionCreateParams,
+  ): Promise<void>;
+  logStreamingSuccess(
+    context: RequestContext,
+    responses: GenerateContentResponse[],
+    openaiRequest?: OpenAI.Chat.ChatCompletionCreateParams,
+    openaiChunks?: OpenAI.Chat.ChatCompletionChunk[],
+  ): Promise<void>;
+}
 
 export interface RequestContext {
   userPromptId: string;

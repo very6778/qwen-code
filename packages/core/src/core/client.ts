@@ -22,6 +22,7 @@ import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { LoopDetectionService } from '../services/loopDetectionService.js';
 // Import telemetry functions from mock system
 import {
+  appendToMainLog,
   logChatCompression,
   logNextSpeakerCheck,
   makeChatCompressionEvent,
@@ -326,11 +327,25 @@ export class GeminiClient {
       this.lastPromptId = prompt_id;
     }
     this.sessionTurnCount++;
+    const logCommunication = (
+      kind: 'llm-request' | 'llm-event' | 'llm-turn-finished',
+      payload: unknown,
+    ) => {
+      appendToMainLog(kind, {
+        prompt_id,
+        turn: this.sessionTurnCount,
+        payload,
+      });
+    };
     if (
       this.config.getMaxSessionTurns() > 0 &&
       this.sessionTurnCount > this.config.getMaxSessionTurns()
     ) {
-      yield { type: GeminiEventType.MaxSessionTurns };
+      const event: ServerGeminiStreamEvent = {
+        type: GeminiEventType.MaxSessionTurns,
+      };
+      logCommunication('llm-event', event);
+      yield event;
       return new Turn(this.getChat(), prompt_id);
     }
     // Ensure turns never exceeds MAX_TURNS to prevent infinite loops
@@ -345,7 +360,12 @@ export class GeminiClient {
     const compressed = await this.tryCompressChat(prompt_id);
 
     if (compressed.compressionStatus === CompressionStatus.COMPRESSED) {
-      yield { type: GeminiEventType.ChatCompressed, value: compressed };
+      const event: ServerGeminiStreamEvent = {
+        type: GeminiEventType.ChatCompressed,
+        value: compressed,
+      };
+      logCommunication('llm-event', event);
+      yield event;
     }
 
     // Check session token limit after compression using accurate token counting
@@ -381,7 +401,7 @@ export class GeminiClient {
         totalRequestTokens !== undefined &&
         totalRequestTokens > sessionTokenLimit
       ) {
-        yield {
+        const event: ServerGeminiStreamEvent = {
           type: GeminiEventType.SessionTokenLimitExceeded,
           value: {
             currentTokens: totalRequestTokens,
@@ -391,6 +411,8 @@ export class GeminiClient {
               'Please start a new session or increase the sessionTokenLimit in your settings.json.',
           },
         };
+        logCommunication('llm-event', event);
+        yield event;
         return new Turn(this.getChat(), prompt_id);
       }
     }
@@ -405,7 +427,11 @@ export class GeminiClient {
     if (!this.config.getSkipLoopDetection()) {
       const loopDetected = await this.loopDetector.turnStarted(signal);
       if (loopDetected) {
-        yield { type: GeminiEventType.LoopDetected };
+        const event: ServerGeminiStreamEvent = {
+          type: GeminiEventType.LoopDetected,
+        };
+        logCommunication('llm-event', event);
+        yield event;
         return turn;
       }
     }
@@ -424,16 +450,32 @@ export class GeminiClient {
       requestToSent = [...systemReminders, ...requestToSent];
     }
 
+    logCommunication('llm-request', {
+      originalRequest: request,
+      requestToSend: requestToSent,
+      boundedTurns,
+      initialModel,
+    });
+
     const resultStream = turn.run(requestToSent, signal);
     for await (const event of resultStream) {
+      logCommunication('llm-event', event);
       if (!this.config.getSkipLoopDetection()) {
         if (this.loopDetector.addAndCheck(event)) {
-          yield { type: GeminiEventType.LoopDetected };
+          const loopEvent: ServerGeminiStreamEvent = {
+            type: GeminiEventType.LoopDetected,
+          };
+          logCommunication('llm-event', loopEvent);
+          yield loopEvent;
           return turn;
         }
       }
       yield event;
       if (event.type === GeminiEventType.Error) {
+        logCommunication('llm-turn-finished', {
+          reason: 'error',
+          event,
+        });
         return turn;
       }
     }
@@ -443,10 +485,18 @@ export class GeminiClient {
       if (currentModel !== initialModel) {
         // Model was switched (likely due to quota error fallback)
         // Don't continue with recursive call to prevent unwanted Flash execution
+        logCommunication('llm-turn-finished', {
+          reason: 'model-switched',
+          finishReason: turn.finishReason,
+        });
         return turn;
       }
 
       if (this.config.getSkipNextSpeakerCheck()) {
+        logCommunication('llm-turn-finished', {
+          reason: 'skip-next-speaker-check',
+          finishReason: turn.finishReason,
+        });
         return turn;
       }
 
@@ -467,6 +517,10 @@ export class GeminiClient {
         const nextRequest = [{ text: 'Please continue.' }];
         // This recursive call's events will be yielded out, but the final
         // turn object will be from the top-level call.
+        logCommunication('llm-event', {
+          type: 'next-speaker-request',
+          value: nextSpeakerCheck,
+        });
         yield* this.sendMessageStream(
           nextRequest,
           signal,
@@ -476,6 +530,11 @@ export class GeminiClient {
         );
       }
     }
+    logCommunication('llm-turn-finished', {
+      reason: signal?.aborted ? 'aborted' : 'completed',
+      finishReason: turn.finishReason,
+      pendingToolCalls: turn.pendingToolCalls,
+    });
     return turn;
   }
 
