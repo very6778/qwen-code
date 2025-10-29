@@ -61,6 +61,7 @@ export const ModelSwitchDialog: React.FC<ModelSwitchDialogProps> = ({
       borderColor={Colors.AccentYellow}
       padding={1}
       width="100%"
+      marginLeft={1}
     >
       <Box flexDirection="column" marginBottom={1}>
         <Text bold>Vision Model Switch Required</Text>

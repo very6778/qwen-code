@@ -18,6 +18,7 @@ import { copyCommand } from '../ui/commands/copyCommand.js';
 import { corgiCommand } from '../ui/commands/corgiCommand.js';
 import { docsCommand } from '../ui/commands/docsCommand.js';
 import { directoryCommand } from '../ui/commands/directoryCommand.js';
+import { editorCommand } from '../ui/commands/editorCommand.js';
 import { extensionsCommand } from '../ui/commands/extensionsCommand.js';
 import { helpCommand } from '../ui/commands/helpCommand.js';
 import { initCommand } from '../ui/commands/initCommand.js';
@@ -53,7 +54,7 @@ export class BuiltinCommandLoader implements ICommandLoader {
   async loadCommands(_signal: AbortSignal): Promise<SlashCommand[]> {
     const allDefinitions: Array<SlashCommand | null> = [
       aboutCommand,
-      approvalModeCommand,
+            approvalModeCommand,
       authCommand,
       bugCommand,
       chatCommand,
@@ -63,9 +64,10 @@ export class BuiltinCommandLoader implements ICommandLoader {
       corgiCommand,
       docsCommand,
       directoryCommand,
+      editorCommand,
       extensionsCommand,
       helpCommand,
-      initCommand,
+            initCommand,
       mcpCommand,
       memoryCommand,
       modelCommand,

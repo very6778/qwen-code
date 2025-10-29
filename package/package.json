@@ -1,6 +1,6 @@
 {
   "name": "@qwen-code/qwen-code",
-  "version": "0.0.26",
+  "version": "0.0.14",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -24,7 +24,7 @@
     "generate": "node scripts/generate-git-commit-info.js",
     "build": "node scripts/build.js",
     "build-and-start": "npm run build && npm run start",
-    "build:all": "npm run build && npm run build:sandbox",
+        "build:all": "npm run build && npm run build:sandbox",
     "build:packages": "npm run build --workspaces",
     "build:sandbox": "node scripts/build_sandbox.js --skip-npm-install-build",
     "bundle": "npm run generate && node esbuild.config.js && node scripts/copy_bundle_assets.js",

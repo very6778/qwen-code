@@ -328,6 +328,12 @@ function mergeSettings(
       ...(safeWorkspaceWithoutFolderTrust.privacy || {}),
       ...(system.privacy || {}),
     },
+    telemetry: {
+      ...(systemDefaults.telemetry || {}),
+      ...(user.telemetry || {}),
+      ...(safeWorkspaceWithoutFolderTrust.telemetry || {}),
+      ...(system.telemetry || {}),
+    },
     security: {
       ...(systemDefaults.security || {}),
       ...(user.security || {}),

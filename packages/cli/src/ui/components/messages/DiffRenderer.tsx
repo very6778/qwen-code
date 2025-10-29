@@ -227,56 +227,47 @@ const renderDiffContent = (
         const displayContent = line.content.substring(baseIndentation);
 
         acc.push(
-          <Box key={lineKey} flexDirection="row" width={terminalWidth}>
-            <Box
-              width={gutterWidth + 1}
-              flexShrink={0}
-              flexGrow={0}
-              paddingRight={0}
+          <Box key={lineKey} flexDirection="row">
+            <Text
+              color={theme.text.secondary}
+              backgroundColor={
+                line.type === 'add'
+                  ? theme.background.diff.added
+                  : line.type === 'del'
+                    ? theme.background.diff.removed
+                    : undefined
+              }
             >
+              {gutterNumStr.padStart(gutterWidth)}{' '}
+            </Text>
+            {line.type === 'context' ? (
+              <>
+                <Text>{prefixSymbol} </Text>
+                <Text wrap="wrap">
+                  {colorizeLine(displayContent, language)}
+                </Text>
+              </>
+            ) : (
               <Text
-                color={theme.text.secondary}
                 backgroundColor={
                   line.type === 'add'
                     ? theme.background.diff.added
-                    : line.type === 'del'
-                      ? theme.background.diff.removed
-                      : undefined
+                    : theme.background.diff.removed
                 }
+                wrap="wrap"
               >
-                {gutterNumStr.padStart(gutterWidth)}{' '}
-              </Text>
-            </Box>
-            <Box flexGrow={1}>
-              {line.type === 'context' ? (
-                <Box flexDirection="row">
-                  <Text>{prefixSymbol} </Text>
-                  <Text wrap="wrap">
-                    {colorizeLine(displayContent, language)}
-                  </Text>
-                </Box>
-              ) : (
                 <Text
-                  backgroundColor={
+                  color={
                     line.type === 'add'
-                      ? theme.background.diff.added
-                      : theme.background.diff.removed
+                      ? theme.status.success
+                      : theme.status.error
                   }
-                  wrap="wrap"
                 >
-                  <Text
-                    color={
-                      line.type === 'add'
-                        ? theme.status.success
-                        : theme.status.error
-                    }
-                  >
-                    {prefixSymbol}
-                  </Text>{' '}
-                  {colorizeLine(displayContent, language)}
-                </Text>
-              )}
-            </Box>
+                  {prefixSymbol}
+                </Text>{' '}
+                {colorizeLine(displayContent, language)}
+              </Text>
+            )}
           </Box>,
         );
         return acc;

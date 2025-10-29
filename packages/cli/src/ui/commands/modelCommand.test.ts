@@ -21,10 +21,6 @@ vi.mock('../models/availableModels.js', () => ({
     { id: 'qwen3-coder-plus', label: 'qwen3-coder-plus' },
     { id: 'qwen-vl-max-latest', label: 'qwen-vl-max', isVision: true },
   ],
-  AVAILABLE_MODELS_ZAI: [
-    { id: 'glm-4.6', label: 'GLM-4.6' },
-    { id: 'minimax/minimax-m2:free', label: 'MiniMax M2 (Free)' },
-  ],
   getOpenAIAvailableModelFromEnv: vi.fn(),
 }));
 
@@ -39,8 +35,8 @@ function createMockConfig(
 
 describe('modelCommand', () => {
   let mockContext: CommandContext;
-  const mockGetOpenAIAvailableModels = vi.mocked(
-    availableModelsModule.getOpenAIAvailableModels,
+  const mockGetOpenAIAvailableModelFromEnv = vi.mocked(
+    availableModelsModule.getOpenAIAvailableModelFromEnv,
   );
 
   beforeEach(() => {
@@ -109,10 +105,11 @@ describe('modelCommand', () => {
     });
   });
 
-  it('should return dialog action for USE_OPENAI auth type when GLM-4.6 is available', async () => {
-    mockGetOpenAIAvailableModels.mockReturnValue([
-      { id: 'glm-4.6', label: 'GLM-4.6 (Z.ai)' },
-    ]);
+  it('should return dialog action for USE_OPENAI auth type when model is available', async () => {
+    mockGetOpenAIAvailableModelFromEnv.mockReturnValue({
+      id: 'gpt-4',
+      label: 'gpt-4',
+    });
 
     const mockConfig = createMockConfig({
       model: 'test-model',
@@ -129,7 +126,7 @@ describe('modelCommand', () => {
   });
 
   it('should return error for USE_OPENAI auth type when no model is available', async () => {
-    mockGetOpenAIAvailableModels.mockReturnValue([]);
+    mockGetOpenAIAvailableModelFromEnv.mockReturnValue(null);
 
     const mockConfig = createMockConfig({
       model: 'test-model',
@@ -144,21 +141,6 @@ describe('modelCommand', () => {
       messageType: 'error',
       content:
         'No models available for the current authentication type (openai).',
-    });
-  });
-
-  it('should return dialog action for USE_ZAI_OPENROUTER auth type', async () => {
-    const mockConfig = createMockConfig({
-      model: 'glm-4.6',
-      authType: AuthType.USE_ZAI_OPENROUTER,
-    });
-    mockContext.services.config = mockConfig as Config;
-
-    const result = await modelCommand.action!(mockContext, '');
-
-    expect(result).toEqual({
-      type: 'dialog',
-      dialog: 'model',
     });
   });
 

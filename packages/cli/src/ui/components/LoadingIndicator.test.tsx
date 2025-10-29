@@ -5,136 +5,292 @@
  */
 
 import React from 'react';
-import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { render } from 'ink-testing-library';
+import { Text } from 'ink';
 import { LoadingIndicator } from './LoadingIndicator.js';
 import { StreamingContext } from '../contexts/StreamingContext.js';
 import { StreamingState } from '../types.js';
+import { vi } from 'vitest';
+import * as useTerminalSize from '../hooks/useTerminalSize.js';
 
-interface CapturedStatusBarCall {
-  streamingState: StreamingState;
-  primaryText?: string;
-  elapsedTime: number;
-  queuedMessages: string[];
-  maxQueuedMessages: number;
-  width?: number;
-}
-
-const capturedCalls: CapturedStatusBarCall[] = [];
-
-vi.mock('./StatusBar.js', () => ({
-  StatusBar: (props: CapturedStatusBarCall) => {
-    capturedCalls.push(props);
+// Mock GeminiRespondingSpinner
+vi.mock('./GeminiRespondingSpinner.js', () => ({
+  GeminiRespondingSpinner: ({
+    nonRespondingDisplay,
+  }: {
+    nonRespondingDisplay?: string;
+  }) => {
+    const streamingState = React.useContext(StreamingContext)!;
+    if (streamingState === StreamingState.Responding) {
+      return <Text>MockRespondingSpinner</Text>;
+    } else if (nonRespondingDisplay) {
+      return <Text>{nonRespondingDisplay}</Text>;
+    }
     return null;
   },
 }));
 
+vi.mock('../hooks/useTerminalSize.js', () => ({
+  useTerminalSize: vi.fn(),
+}));
+
+const useTerminalSizeMock = vi.mocked(useTerminalSize.useTerminalSize);
+
 const renderWithContext = (
-  element: React.ReactElement,
+  ui: React.ReactElement,
   streamingStateValue: StreamingState,
-) =>
-  render(
-    <StreamingContext.Provider value={streamingStateValue}>
-      {element}
+  width = 120,
+) => {
+  useTerminalSizeMock.mockReturnValue({ columns: width, rows: 24 });
+  const contextValue: StreamingState = streamingStateValue;
+  return render(
+    <StreamingContext.Provider value={contextValue}>
+      {ui}
     </StreamingContext.Provider>,
   );
+};
 
 describe('<LoadingIndicator />', () => {
   const defaultProps = {
     currentLoadingPhrase: 'Loading...',
     elapsedTime: 5,
-    width: 120,
   };
 
-  beforeEach(() => {
-    capturedCalls.length = 0;
-  });
-
-  afterEach(() => {
-    capturedCalls.length = 0;
-  });
-
-  it('does not render StatusBar when idle and queue is empty', () => {
-    renderWithContext(
+  it('should not render when streamingState is Idle', () => {
+    const { lastFrame } = renderWithContext(
       <LoadingIndicator {...defaultProps} />,
       StreamingState.Idle,
     );
-    expect(capturedCalls).toHaveLength(0);
+    expect(lastFrame()).toBe('');
   });
 
-  it('passes loading phrase and timer when responding', () => {
-    renderWithContext(
+  it('should render spinner, phrase, and time when streamingState is Responding', () => {
+    const { lastFrame } = renderWithContext(
       <LoadingIndicator {...defaultProps} />,
       StreamingState.Responding,
     );
-    expect(capturedCalls).toHaveLength(1);
-    const call = capturedCalls[0];
-    expect(call.primaryText).toBe('Loading...');
-    expect(call.elapsedTime).toBe(5);
-    expect(call.streamingState).toBe(StreamingState.Responding);
+    const output = lastFrame();
+    expect(output).toContain('MockRespondingSpinner');
+    expect(output).toContain('Loading...');
+    expect(output).toContain('(esc to cancel, 5s)');
   });
 
-  it('prefers thought subject over fallback text', () => {
-    renderWithContext(
-      <LoadingIndicator
-        currentLoadingPhrase="Fallback"
-        thought={{ subject: 'Thinking...', description: 'Hidden detail' }}
-        elapsedTime={3}
-        width={100}
-      />,
-      StreamingState.Responding,
-    );
-    expect(capturedCalls).toHaveLength(1);
-    expect(capturedCalls[0].primaryText).toBe('Thinking...');
-  });
-
-  it('forwards waiting state without cancel timer', () => {
-    renderWithContext(
-      <LoadingIndicator
-        currentLoadingPhrase="Confirm action"
-        elapsedTime={10}
-        width={90}
-      />,
+  it('should render spinner (static), phrase but no time/cancel when streamingState is WaitingForConfirmation', () => {
+    const props = {
+      currentLoadingPhrase: 'Confirm action',
+      elapsedTime: 10,
+    };
+    const { lastFrame } = renderWithContext(
+      <LoadingIndicator {...props} />,
       StreamingState.WaitingForConfirmation,
     );
-    expect(capturedCalls).toHaveLength(1);
-    const call = capturedCalls[0];
-    expect(call.streamingState).toBe(StreamingState.WaitingForConfirmation);
-    expect(call.primaryText).toBe('Confirm action');
+    const output = lastFrame();
+    expect(output).toContain('⠏'); // Static char for WaitingForConfirmation
+    expect(output).toContain('Confirm action');
+    expect(output).not.toContain('(esc to cancel)');
+    expect(output).not.toContain(', 10s');
   });
 
-  it('passes queued messages and respects limit', () => {
-    const queuedMessages = [
-      'First queued request',
-      'Second queued request',
-      'Third queued request',
-    ];
-
-    renderWithContext(
-      <LoadingIndicator
-        {...defaultProps}
-        queuedMessages={queuedMessages}
-        maxQueuedMessages={2}
-      />,
+  it('should display the currentLoadingPhrase correctly', () => {
+    const props = {
+      currentLoadingPhrase: 'Processing data...',
+      elapsedTime: 3,
+    };
+    const { lastFrame } = renderWithContext(
+      <LoadingIndicator {...props} />,
       StreamingState.Responding,
     );
-
-    expect(capturedCalls).toHaveLength(1);
-    const call = capturedCalls[0];
-    expect(call.queuedMessages).toEqual(queuedMessages);
-    expect(call.maxQueuedMessages).toBe(2);
+    expect(lastFrame()).toContain('Processing data...');
   });
 
-  it('renders status bar even when idle if queue has items', () => {
-    renderWithContext(
-      <LoadingIndicator
-        {...defaultProps}
-        queuedMessages={['Pending input']}
-        maxQueuedMessages={3}
-      />,
+  it('should display the elapsedTime correctly when Responding', () => {
+    const props = {
+      currentLoadingPhrase: 'Working...',
+      elapsedTime: 60,
+    };
+    const { lastFrame } = renderWithContext(
+      <LoadingIndicator {...props} />,
+      StreamingState.Responding,
+    );
+    expect(lastFrame()).toContain('(esc to cancel, 1m)');
+  });
+
+  it('should display the elapsedTime correctly in human-readable format', () => {
+    const props = {
+      currentLoadingPhrase: 'Working...',
+      elapsedTime: 125,
+    };
+    const { lastFrame } = renderWithContext(
+      <LoadingIndicator {...props} />,
+      StreamingState.Responding,
+    );
+    expect(lastFrame()).toContain('(esc to cancel, 2m 5s)');
+  });
+
+  it('should render rightContent when provided', () => {
+    const rightContent = <Text>Extra Info</Text>;
+    const { lastFrame } = renderWithContext(
+      <LoadingIndicator {...defaultProps} rightContent={rightContent} />,
+      StreamingState.Responding,
+    );
+    expect(lastFrame()).toContain('Extra Info');
+  });
+
+  it('should transition correctly between states using rerender', () => {
+    const { lastFrame, rerender } = renderWithContext(
+      <LoadingIndicator {...defaultProps} />,
       StreamingState.Idle,
     );
-    expect(capturedCalls).toHaveLength(1);
-    expect(capturedCalls[0].streamingState).toBe(StreamingState.Idle);
+    expect(lastFrame()).toBe(''); // Initial: Idle
+
+    // Transition to Responding
+    rerender(
+      <StreamingContext.Provider value={StreamingState.Responding}>
+        <LoadingIndicator
+          currentLoadingPhrase="Now Responding"
+          elapsedTime={2}
+        />
+      </StreamingContext.Provider>,
+    );
+    let output = lastFrame();
+    expect(output).toContain('MockRespondingSpinner');
+    expect(output).toContain('Now Responding');
+    expect(output).toContain('(esc to cancel, 2s)');
+
+    // Transition to WaitingForConfirmation
+    rerender(
+      <StreamingContext.Provider value={StreamingState.WaitingForConfirmation}>
+        <LoadingIndicator
+          currentLoadingPhrase="Please Confirm"
+          elapsedTime={15}
+        />
+      </StreamingContext.Provider>,
+    );
+    output = lastFrame();
+    expect(output).toContain('⠏');
+    expect(output).toContain('Please Confirm');
+    expect(output).not.toContain('(esc to cancel)');
+    expect(output).not.toContain(', 15s');
+
+    // Transition back to Idle
+    rerender(
+      <StreamingContext.Provider value={StreamingState.Idle}>
+        <LoadingIndicator {...defaultProps} />
+      </StreamingContext.Provider>,
+    );
+    expect(lastFrame()).toBe('');
+  });
+
+  it('should display fallback phrase if thought is empty', () => {
+    const props = {
+      thought: null,
+      currentLoadingPhrase: 'Loading...',
+      elapsedTime: 5,
+    };
+    const { lastFrame } = renderWithContext(
+      <LoadingIndicator {...props} />,
+      StreamingState.Responding,
+    );
+    const output = lastFrame();
+    expect(output).toContain('Loading...');
+  });
+
+  it('should display the subject of a thought', () => {
+    const props = {
+      thought: {
+        subject: 'Thinking about something...',
+        description: 'and other stuff.',
+      },
+      elapsedTime: 5,
+    };
+    const { lastFrame } = renderWithContext(
+      <LoadingIndicator {...props} />,
+      StreamingState.Responding,
+    );
+    const output = lastFrame();
+    expect(output).toBeDefined();
+    if (output) {
+      expect(output).toContain('Thinking about something...');
+      expect(output).not.toContain('and other stuff.');
+    }
+  });
+
+  it('should prioritize thought.subject over currentLoadingPhrase', () => {
+    const props = {
+      thought: {
+        subject: 'This should be displayed',
+        description: 'A description',
+      },
+      currentLoadingPhrase: 'This should not be displayed',
+      elapsedTime: 5,
+    };
+    const { lastFrame } = renderWithContext(
+      <LoadingIndicator {...props} />,
+      StreamingState.Responding,
+    );
+    const output = lastFrame();
+    expect(output).toContain('This should be displayed');
+    expect(output).not.toContain('This should not be displayed');
+  });
+
+  describe('responsive layout', () => {
+    it('should render on a single line on a wide terminal', () => {
+      const { lastFrame } = renderWithContext(
+        <LoadingIndicator
+          {...defaultProps}
+          rightContent={<Text>Right</Text>}
+        />,
+        StreamingState.Responding,
+        120,
+      );
+      const output = lastFrame();
+      // Check for single line output
+      expect(output?.includes('\n')).toBe(false);
+      expect(output).toContain('Loading...');
+      expect(output).toContain('(esc to cancel, 5s)');
+      expect(output).toContain('Right');
+    });
+
+    it('should render on multiple lines on a narrow terminal', () => {
+      const { lastFrame } = renderWithContext(
+        <LoadingIndicator
+          {...defaultProps}
+          rightContent={<Text>Right</Text>}
+        />,
+        StreamingState.Responding,
+        79,
+      );
+      const output = lastFrame();
+      const lines = output?.split('\n');
+      // Expecting 3 lines:
+      // 1. Spinner + Primary Text
+      // 2. Cancel + Timer
+      // 3. Right Content
+      expect(lines).toHaveLength(3);
+      if (lines) {
+        expect(lines[0]).toContain('Loading...');
+        expect(lines[0]).not.toContain('(esc to cancel, 5s)');
+        expect(lines[1]).toContain('(esc to cancel, 5s)');
+        expect(lines[2]).toContain('Right');
+      }
+    });
+
+    it('should use wide layout at 80 columns', () => {
+      const { lastFrame } = renderWithContext(
+        <LoadingIndicator {...defaultProps} />,
+        StreamingState.Responding,
+        80,
+      );
+      expect(lastFrame()?.includes('\n')).toBe(false);
+    });
+
+    it('should use narrow layout at 79 columns', () => {
+      const { lastFrame } = renderWithContext(
+        <LoadingIndicator {...defaultProps} />,
+        StreamingState.Responding,
+        79,
+      );
+      expect(lastFrame()?.includes('\n')).toBe(true);
+    });
   });
 });

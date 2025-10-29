@@ -16,12 +16,6 @@ export const MAINLINE_CODER = 'coder-model';
 export const AVAILABLE_MODELS_QWEN: AvailableModel[] = [
   { id: MAINLINE_CODER, label: MAINLINE_CODER },
   { id: MAINLINE_VLM, label: MAINLINE_VLM, isVision: true },
-  { id: 'glm-4.6', label: 'GLM-4.6 (Z.ai)' },
-];
-
-export const AVAILABLE_MODELS_ZAI: AvailableModel[] = [
-  { id: 'minimax/minimax-m2:free', label: 'MiniMax M2 (Free)' },
-  { id: 'glm-4.6', label: 'GLM-4.6' },
 ];
 
 /**
@@ -34,17 +28,6 @@ export function getFilteredQwenModels(
     return AVAILABLE_MODELS_QWEN;
   }
   return AVAILABLE_MODELS_QWEN.filter((model) => !model.isVision);
-}
-
-export const AVAILABLE_MODELS_OPENAI: AvailableModel[] = [
-  { id: 'glm-4.6', label: 'GLM-4.6 (Z.ai)' },
-];
-
-/**
- * Get available OpenAI models - currently only GLM-4.6 is supported
- */
-export function getOpenAIAvailableModels(): AvailableModel[] {
-  return AVAILABLE_MODELS_OPENAI;
 }
 
 /**
@@ -70,3 +53,4 @@ export function isVisionModel(modelId: string): boolean {
     (model) => model.id === modelId && model.isVision,
   );
 }
+

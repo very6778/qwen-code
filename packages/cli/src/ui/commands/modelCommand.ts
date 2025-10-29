@@ -14,7 +14,6 @@ import type {
 import { CommandKind } from './types.js';
 import {
   AVAILABLE_MODELS_QWEN,
-  AVAILABLE_MODELS_ZAI,
   getOpenAIAvailableModelFromEnv,
   type AvailableModel,
 } from '../models/availableModels.js';
@@ -24,11 +23,9 @@ function getAvailableModelsForAuthType(authType: AuthType): AvailableModel[] {
     case AuthType.QWEN_OAUTH:
       return AVAILABLE_MODELS_QWEN;
     case AuthType.USE_OPENAI: {
-      // Return the full list of available OpenAI models (currently GLM-4.6)
-      return getOpenAIAvailableModels();
+      const openAIModel = getOpenAIAvailableModelFromEnv();
+      return openAIModel ? [openAIModel] : [];
     }
-    case AuthType.USE_ZAI_OPENROUTER:
-      return AVAILABLE_MODELS_ZAI;
         default:
       // For other auth types, return empty array for now
       // This can be expanded later according to the design doc
@@ -64,7 +61,6 @@ export const modelCommand: SlashCommand = {
     }
 
     const authType = contentGeneratorConfig.authType;
-
     if (!authType) {
       return {
         type: 'message',
