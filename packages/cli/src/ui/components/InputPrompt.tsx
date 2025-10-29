@@ -70,7 +70,6 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 }) => {
   const normalizedFrameWidth = Math.max(0, Math.floor(frameWidth));
   const promptBackgroundColor = '#353535';
-  const NO_BREAK_SPACE = '\u00A0';
   const promptTextColor = '#d4d4d4';
   const placeholderColor = '#7f7f7f';
   const [justNavigatedHistory, setJustNavigatedHistory] = useState(false);
@@ -751,7 +750,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     prefixWidth + effectiveInputWidth,
   );
   const blankLine = totalWidth
-    ? chalk.bgHex(promptBackgroundColor)(NO_BREAK_SPACE.repeat(totalWidth))
+    ? chalk.bgHex(promptBackgroundColor)(' '.repeat(totalWidth))
     : '';
 
   return (
@@ -768,7 +767,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
             <Text>
               {chalk.bgHex(promptBackgroundColor)(
                 chalk.hex(placeholderColor)(
-                  `${getPlaceholderText()}${NO_BREAK_SPACE.repeat(
+                  `${getPlaceholderText()}${' '.repeat(
                     Math.max(
                       0,
                       effectiveInputWidth -
@@ -844,7 +843,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                   );
                 }
                 if (trailingPadding > 0) {
-                  lineContent += NO_BREAK_SPACE.repeat(trailingPadding);
+                  lineContent += ' '.repeat(trailingPadding);
                 }
 
                 lineContent = chalk.hex(promptTextColor)(lineContent);
@@ -864,7 +863,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                   );
                   let ghostContent =
                     chalk.hex(theme.text.secondary)(ghostLine) +
-                    NO_BREAK_SPACE.repeat(padding);
+                    ' '.repeat(padding);
                   ghostContent = chalk.bgHex(promptBackgroundColor)(
                     ghostContent,
                   );
