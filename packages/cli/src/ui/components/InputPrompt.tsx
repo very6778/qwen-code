@@ -745,21 +745,14 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       ? SCREEN_READER_USER_PREFIX
       : undefined;
 
-  const totalWidth = Math.max(
-    normalizedFrameWidth,
-    prefixWidth + effectiveInputWidth,
-  );
-  const blankLine = totalWidth
-    ? chalk.bgHex(promptBackgroundColor)(' '.repeat(totalWidth))
-    : '';
 
   return (
     <>
       <Box
         width={normalizedFrameWidth > 0 ? normalizedFrameWidth : undefined}
         flexDirection="column"
+        backgroundColor={promptBackgroundColor}
       >
-        {blankLine && <Text>{blankLine}</Text>}
         <Box flexDirection="row">
           <Text aria-label={prefixAriaLabel}>{prefixDisplay}</Text>
           <Box flexGrow={1} flexDirection="column">
@@ -877,7 +870,6 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           )}
           </Box>
         </Box>
-        {blankLine && <Text>{blankLine}</Text>}
       </Box>
       {completion.showSuggestions && (
         <Box paddingRight={1}>
