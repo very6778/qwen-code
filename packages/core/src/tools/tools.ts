@@ -440,7 +440,7 @@ export interface TaskResultDisplay {
   status: 'running' | 'completed' | 'failed' | 'cancelled';
   terminateReason?: string;
   result?: string;
-
+  
   // If the subagent is awaiting approval for a tool call,
   // this contains the confirmation details for inline UI rendering.
   pendingConfirmation?: ToolCallConfirmationDetails;

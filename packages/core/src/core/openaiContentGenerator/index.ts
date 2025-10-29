@@ -88,16 +88,6 @@ export function determineProvider(
     );
   }
 
-  // Check for Anthropic provider (glm-4.6 with Z.ai Anthropic endpoint) - priority over GLM
-  if (config.model === 'glm-4.6' && config.baseUrl?.includes('anthropic')) {
-    return new AnthropicCompatibleProvider(contentGeneratorConfig, cliConfig);
-  }
-
-  // Check for GLM provider (glm-4.6 with Z.ai OpenAI endpoint)
-  if (config.model === 'glm-4.6' || config.baseUrl?.includes('api.z.ai')) {
-    return new GLMOpenAICompatibleProvider(contentGeneratorConfig, cliConfig);
-  }
-
   // Default provider for standard OpenAI-compatible APIs
   return new DefaultOpenAICompatibleProvider(contentGeneratorConfig, cliConfig);
 }

@@ -32,16 +32,14 @@ import {
   ApprovalMode,
   parseAndFormatApiError,
   logApiCancel,
+  ApiCancelEvent,
 } from '@qwen-code/qwen-code-core';
-import { ApiCancelEvent } from '@qwen-code/qwen-code-core';
 import { type Part, type PartListUnion, FinishReason } from '@google/genai';
 import type {
   HistoryItem,
   HistoryItemWithoutId,
   HistoryItemToolGroup,
-  IndividualToolCallDisplay,
   SlashCommandProcessorResult,
-  ToolGroupDisplayMode,
 } from '../types.js';
 import { StreamingState, MessageType, ToolCallStatus } from '../types.js';
 import { isAtCommand, isSlashCommand } from '../utils/commandUtils.js';
@@ -66,14 +64,6 @@ import {
 import { useSessionStats } from '../contexts/SessionContext.js';
 import { useKeypress } from './useKeypress.js';
 
-const BATCHABLE_TOOL_NAMES = new Set([
-  'Read',
-  'ReadFile',
-  'ReadManyFiles',
-  'List',
-  'ReadFolder',
-]);
-
 enum StreamProcessingStatus {
   Completed,
   UserCancelled,
@@ -88,7 +78,6 @@ export const useGeminiStream = (
   geminiClient: GeminiClient,
   history: HistoryItem[],
   addItem: UseHistoryManagerReturn['addItem'],
-  updateHistoryItem: UseHistoryManagerReturn['updateItem'],
   config: Config,
   onDebugMessage: (message: string) => void,
   handleSlashCommand: (
@@ -100,7 +89,6 @@ export const useGeminiStream = (
   performMemoryRefresh: () => Promise<void>,
   modelSwitchedFromQuotaError: boolean,
   setModelSwitchedFromQuotaError: React.Dispatch<React.SetStateAction<boolean>>,
-  refreshHistoryDisplay: () => void,
   onEditorClose: () => void,
   onCancelSubmit: () => void,
   visionModelPreviewEnabled: boolean,
@@ -129,42 +117,18 @@ export const useGeminiStream = (
     return new GitService(config.getProjectRoot(), storage);
   }, [config, storage]);
 
-  const appendCancelIndicatorToLastUser = useCallback(() => {
-    const lastUser = [...history]
-      .reverse()
-      .find((item) => item.type === 'user' && typeof item.text === 'string');
-    if (!lastUser || typeof lastUser.text !== 'string') {
-      return;
-    }
-    const indicator = 'ℹ Request cancelled.';
-    if (lastUser.text.includes(indicator)) {
-      return;
-    }
-    const needsSeparator = /\s$/.test(lastUser.text) ? '' : '  ';
-    updateHistoryItem(lastUser.id, {
-      text: `${lastUser.text}${needsSeparator}${indicator}`,
-    });
-  }, [history, updateHistoryItem]);
-
   const [toolCalls, scheduleToolCalls, markToolsAsSubmitted] =
     useReactToolScheduler(
       async (completedToolCallsFromScheduler) => {
         // This onComplete is called when ALL scheduled tools for a given batch are done.
         if (completedToolCallsFromScheduler.length > 0) {
-          const completedToolGroup = mapTrackedToolCallsToDisplay(
-            completedToolCallsFromScheduler as TrackedToolCall[],
+          // Add the final state of these tools to the history for display.
+          addItem(
+            mapTrackedToolCallsToDisplay(
+              completedToolCallsFromScheduler as TrackedToolCall[],
+            ),
+            Date.now(),
           );
-          const merged = tryBatchCompletedToolGroup(
-            history,
-            updateHistoryItem,
-            completedToolGroup,
-          );
-          if (!merged) {
-            // Always add as normal group (no batching) to maintain individual tool display
-            addItem(completedToolGroup, Date.now());
-          } else {
-            refreshHistoryDisplay();
-          }
 
           // Handle tool response submission immediately when tools complete
           await handleCompletedTools(
@@ -272,7 +236,13 @@ export const useGeminiStream = (
     if (pendingHistoryItemRef.current) {
       addItem(pendingHistoryItemRef.current, Date.now());
     }
-    appendCancelIndicatorToLastUser();
+    addItem(
+      {
+        type: MessageType.INFO,
+        text: 'Request cancelled.',
+      },
+      Date.now(),
+    );
     setPendingHistoryItem(null);
     onCancelSubmit();
     setIsResponding(false);
@@ -284,7 +254,6 @@ export const useGeminiStream = (
     pendingHistoryItemRef,
     config,
     getPromptCount,
-    appendCancelIndicatorToLastUser,
   ]);
 
   useKeypress(
@@ -436,12 +405,6 @@ export const useGeminiStream = (
         // Prevents additional output after a user initiated cancel.
         return '';
       }
-      if (
-        currentGeminiMessageBuffer.length === 0 &&
-        /^\s*$/.test(eventValue)
-      ) {
-        return currentGeminiMessageBuffer;
-      }
       let newGeminiMessageBuffer = currentGeminiMessageBuffer + eventValue;
       if (
         pendingHistoryItemRef.current?.type !== 'gemini' &&
@@ -581,7 +544,7 @@ export const useGeminiStream = (
         addItem(
           {
             type: 'info',
-            text: `----  ${message}`,
+            text: `⚠️  ${message}`,
           },
           userMessageTimestamp,
         );
@@ -626,8 +589,8 @@ export const useGeminiStream = (
         {
           type: 'error',
           text:
-            `---- Session token limit exceeded: ${value.currentTokens.toLocaleString()} tokens > ${value.limit.toLocaleString()} limit.\n\n` +
-            `---- Solutions:\n` +
+            `🚫 Session token limit exceeded: ${value.currentTokens.toLocaleString()} tokens > ${value.limit.toLocaleString()} limit.\n\n` +
+            `💡 Solutions:\n` +
             `   • Start a new session: Use /clear command\n` +
             `   • Increase limit: Add "sessionTokenLimit": (e.g., 128000) to your settings.json\n` +
             `   • Compress history: Use /compress command to compress history`,
@@ -821,26 +784,7 @@ export const useGeminiStream = (
         }
 
         if (pendingHistoryItemRef.current) {
-          let pendingItem = pendingHistoryItemRef.current;
-          if (
-            (pendingItem.type === 'gemini' ||
-              pendingItem.type === 'gemini_content') &&
-            typeof pendingItem.text === 'string'
-          ) {
-            const trimmed = pendingItem.text.replace(/\s+$/u, '');
-            pendingItem = {
-              ...pendingItem,
-              text: trimmed,
-            };
-          }
-          if (
-            pendingItem.type !== 'gemini' &&
-            pendingItem.type !== 'gemini_content'
-          ) {
-            addItem(pendingItem, userMessageTimestamp);
-          } else if (pendingItem.text.trim().length > 0) {
-            addItem(pendingItem, userMessageTimestamp);
-          }
+          addItem(pendingHistoryItemRef.current, userMessageTimestamp);
           setPendingHistoryItem(null);
         }
         if (loopDetectedRef.current) {
@@ -1159,79 +1103,3 @@ export const useGeminiStream = (
     cancelOngoingRequest,
   };
 };
-
-function shouldBatchTool(tool: IndividualToolCallDisplay): boolean {
-  return (
-    tool.status === ToolCallStatus.Success &&
-    BATCHABLE_TOOL_NAMES.has(tool.name)
-  );
-}
-
-function tryBatchCompletedToolGroup(
-  history: HistoryItem[],
-  updateHistoryItem: UseHistoryManagerReturn['updateItem'],
-  newGroup: HistoryItemToolGroup,
-): boolean {
-  if (newGroup.tools.length !== 1) {
-    return false;
-  }
-
-  const newTool = newGroup.tools[0];
-  if (!shouldBatchTool(newTool)) {
-    return false;
-  }
-
-  const targetGroup = findMostRecentBatchableGroup(history, newTool.name);
-  if (!targetGroup) {
-    return false;
-  }
-
-  updateHistoryItem(
-    targetGroup.id,
-    () =>
-      ({
-        tools: [...targetGroup.tools, newTool],
-        displayMode: 'batched' as ToolGroupDisplayMode,
-      }) as Partial<HistoryItemToolGroup>,
-  );
-
-  return true;
-}
-
-function findMostRecentBatchableGroup(
-  history: HistoryItem[],
-  toolName: string,
-): (HistoryItemToolGroup & HistoryItem) | null {
-  for (let i = history.length - 1; i >= 0; i--) {
-    const item = history[i];
-    if (!item) continue;
-
-    switch (item.type) {
-      case 'tool_group': {
-        const group = item as HistoryItemToolGroup & HistoryItem;
-        const toolsMatch =
-          group.tools.length > 0 &&
-          group.tools.every(
-            (tool) => tool.name === toolName && shouldBatchTool(tool),
-          );
-        return toolsMatch ? group : null;
-      }
-      case 'info':
-      case 'gemini':
-      case 'gemini_content':
-      case 'compression':
-      case 'summary':
-      case 'stats':
-      case 'model_stats':
-      case 'tool_stats':
-      case 'about':
-      case 'help':
-      case 'quit':
-      case 'quit_confirmation':
-        continue;
-      default:
-        return null;
-    }
-  }
-  return null;
-}

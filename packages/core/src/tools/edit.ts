@@ -297,7 +297,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       'Proposed',
       DEFAULT_DIFF_OPTIONS,
     );
-
+    
     const confirmationDetails: ToolEditConfirmationDetails = {
       type: 'edit',
       title: `Confirm Edit: ${shortenPath(makeRelative(this.params.file_path, this.config.getTargetDir()))}`,
@@ -310,7 +310,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
         if (outcome === ToolConfirmationOutcome.ProceedAlways) {
           this.config.setApprovalMode(ApprovalMode.AUTO_EDIT);
         }
-      },
+        },
     };
     return confirmationDetails;
   }

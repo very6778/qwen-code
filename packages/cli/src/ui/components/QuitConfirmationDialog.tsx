@@ -62,6 +62,7 @@ export const QuitConfirmationDialog: React.FC<QuitConfirmationDialogProps> = ({
       borderColor={Colors.AccentYellow}
       padding={1}
       width="100%"
+      marginLeft={1}
     >
       <Box flexDirection="column" marginBottom={1}>
         <Text>What would you like to do before exiting?</Text>

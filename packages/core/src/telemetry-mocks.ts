@@ -5,8 +5,6 @@
  */
 
 // Complete mock telemetry system to replace all telemetry imports
-import fs from 'node:fs';
-import path from 'node:path';
 
 // Mock types
 export interface TelemetryTarget {
@@ -290,9 +288,6 @@ export class ApiResponseEvent {
   authType?: string;
   usageMetadata?: any;
   responseText?: string;
-  requestText?: string;
-  providerRequestText?: string;
-  providerResponseText?: string;
 
   constructor(
     responseId?: string,
@@ -303,12 +298,7 @@ export class ApiResponseEvent {
     usageMetadata?: any,
     responseText?: string,
     url?: string,
-    statusCode?: number,
-    extra?: {
-      requestText?: string;
-      providerRequestText?: string;
-      providerResponseText?: string;
-    }
+    statusCode?: number
   ) {
     this.type = 'api-response';
     this.timestamp = new Date();
@@ -321,9 +311,6 @@ export class ApiResponseEvent {
     this.responseText = responseText;
     this.url = url || 'mock-api-url';
     this.statusCode = statusCode || 200;
-    this.requestText = extra?.requestText;
-    this.providerRequestText = extra?.providerRequestText;
-    this.providerResponseText = extra?.providerResponseText;
   }
 }
 
@@ -436,21 +423,19 @@ export function appendToMainLog(kind: string, event: unknown) {
 export const logApiError = (_config: any, event: any) => {
   appendToMainLog('api-error', event);
   if (process.env['NODE_ENV'] === 'development') {
-    console.log(`[Mock] API error:`, event);
+    console.log(`[Mock] API error:`, config, event);
   }
 };
 
-export const logApiRequest = (_config: any, event: any) => {
-  appendToMainLog('api-request', event);
+export const logApiRequest = (config: any, event: any) => {
   if (process.env['NODE_ENV'] === 'development') {
-    console.log(`[Mock] API request:`, event);
+    console.log(`[Mock] API request:`, config, event);
   }
 };
 
-export const logApiResponse = (_config: any, event: any) => {
-  appendToMainLog('api-response', event);
+export const logApiResponse = (config: any, event: any) => {
   if (process.env['NODE_ENV'] === 'development') {
-    console.log(`[Mock] API response:`, event);
+    console.log(`[Mock] API response:`, config, event);
   }
 };
 

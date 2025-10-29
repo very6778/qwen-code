@@ -18,7 +18,6 @@ import type {
   TrackedCancelledToolCall,
 } from './useReactToolScheduler.js';
 import { useReactToolScheduler } from './useReactToolScheduler.js';
-import * as reactToolSchedulerModule from './useReactToolScheduler.js';
 import type {
   Config,
   EditorType,
@@ -33,12 +32,8 @@ import {
 } from '@qwen-code/qwen-code-core';
 import type { Part, PartListUnion } from '@google/genai';
 import type { UseHistoryManagerReturn } from './useHistoryManager.js';
-import type {
-  HistoryItem,
-  HistoryItemToolGroup,
-  SlashCommandProcessorResult,
-} from '../types.js';
-import { MessageType, StreamingState, ToolCallStatus } from '../types.js';
+import type { HistoryItem, SlashCommandProcessorResult } from '../types.js';
+import { MessageType, StreamingState } from '../types.js';
 import type { LoadedSettings } from '../../config/settings.js';
 
 // --- MOCKS ---
@@ -165,16 +160,12 @@ describe('useGeminiStream', () => {
   let mockScheduleToolCalls: Mock;
   let mockCancelAllToolCalls: Mock;
   let mockMarkToolsAsSubmitted: Mock;
-  let mockUpdateItem: Mock;
-  let mockRefreshHistoryDisplay: Mock;
   let handleAtCommandSpy: MockInstance;
 
   beforeEach(() => {
     vi.clearAllMocks(); // Clear mocks before each test
 
     mockAddItem = vi.fn();
-    mockUpdateItem = vi.fn();
-    mockRefreshHistoryDisplay = vi.fn();
     // Define the mock for getGeminiClient
     const mockGetGeminiClient = vi.fn().mockImplementation(() => {
       // MockedGeminiClientClass is defined in the module scope by the previous change.
@@ -307,7 +298,6 @@ describe('useGeminiStream', () => {
           props.client,
           props.history,
           props.addItem,
-          mockUpdateItem as unknown as UseHistoryManagerReturn['updateItem'],
           props.config,
           props.onDebugMessage,
           props.handleSlashCommand,
@@ -317,7 +307,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -472,7 +461,6 @@ describe('useGeminiStream', () => {
         new MockedGeminiClientClass(mockConfig),
         [],
         mockAddItem,
-        mockUpdateItem,
         mockConfig,
         mockOnDebugMessage,
         mockHandleSlashCommand,
@@ -482,7 +470,6 @@ describe('useGeminiStream', () => {
         () => Promise.resolve(),
         false,
         () => {},
-        mockRefreshHistoryDisplay,
         () => {},
         () => {},
         false, // visionModelPreviewEnabled
@@ -555,7 +542,6 @@ describe('useGeminiStream', () => {
         client,
         [],
         mockAddItem,
-        mockUpdateItem,
         mockConfig,
         mockOnDebugMessage,
         mockHandleSlashCommand,
@@ -565,7 +551,6 @@ describe('useGeminiStream', () => {
         () => Promise.resolve(),
         false,
         () => {},
-        mockRefreshHistoryDisplay,
         () => {},
         () => {},
         false, // visionModelPreviewEnabled
@@ -667,7 +652,6 @@ describe('useGeminiStream', () => {
         client,
         [],
         mockAddItem,
-        mockUpdateItem,
         mockConfig,
         mockOnDebugMessage,
         mockHandleSlashCommand,
@@ -677,7 +661,6 @@ describe('useGeminiStream', () => {
         () => Promise.resolve(),
         false,
         () => {},
-        mockRefreshHistoryDisplay,
         () => {},
         () => {},
         false, // visionModelPreviewEnabled
@@ -714,102 +697,6 @@ describe('useGeminiStream', () => {
       // No message should be sent back to the API for a turn with only cancellations
       expect(mockSendMessageStream).not.toHaveBeenCalled();
     });
-  });
-
-  it('should batch eligible tool groups and refresh the static display', async () => {
-    const existingGroup: HistoryItem = {
-      id: 4242,
-      type: 'tool_group',
-      tools: [
-        {
-          callId: 'prev-call',
-          name: 'Read',
-          description: 'packages/cli/package.json',
-          status: ToolCallStatus.Success,
-          confirmationDetails: undefined,
-          resultDisplay: 'Read 88 lines',
-          renderOutputAsMarkdown: false,
-        },
-      ],
-    } as unknown as HistoryItem;
-
-    let capturedOnComplete:
-      | ((completedTools: TrackedToolCall[]) => Promise<void>)
-      | null = null;
-
-    mockUseReactToolScheduler.mockImplementation((onComplete) => {
-      capturedOnComplete = onComplete;
-      return [[], mockScheduleToolCalls, mockMarkToolsAsSubmitted];
-    });
-
-    const mapToDisplaySpy = vi
-      .spyOn(reactToolSchedulerModule, 'mapToDisplay')
-      .mockReturnValue({
-        type: 'tool_group',
-        tools: [
-          {
-            callId: 'new-call',
-            name: 'Read',
-            description: 'packages/core/Makefile',
-            status: ToolCallStatus.Success,
-            confirmationDetails: undefined,
-            resultDisplay: 'Read 90 lines',
-            renderOutputAsMarkdown: false,
-          },
-        ],
-      });
-
-    renderHook(() =>
-      useGeminiStream(
-        new MockedGeminiClientClass(mockConfig),
-        [existingGroup],
-        mockAddItem,
-        mockUpdateItem,
-        mockConfig,
-        mockOnDebugMessage,
-        mockHandleSlashCommand,
-        false,
-        () => 'vscode' as EditorType,
-        () => {},
-        () => Promise.resolve(),
-        false,
-        () => {},
-        mockRefreshHistoryDisplay,
-        () => {},
-        () => {},
-        false,
-        undefined,
-      ),
-    );
-
-    await act(async () => {
-      await capturedOnComplete?.([
-        {
-          request: {
-            callId: 'new-call',
-            name: 'Read',
-            args: {},
-            isClientInitiated: false,
-            prompt_id: 'prompt',
-          },
-          status: 'success',
-          responseSubmittedToGemini: false,
-          response: {
-            callId: 'new-call',
-            responseParts: [],
-            errorType: undefined,
-          },
-        } as TrackedCompletedToolCall,
-      ]);
-    });
-
-    expect(mockAddItem).not.toHaveBeenCalled();
-    expect(mockUpdateItem).toHaveBeenCalledWith(
-      existingGroup.id,
-      expect.any(Function),
-    );
-    expect(mockRefreshHistoryDisplay).toHaveBeenCalled();
-    mapToDisplaySpy.mockRestore();
   });
 
   it('should not flicker streaming state to Idle between tool completion and submission', async () => {
@@ -876,7 +763,6 @@ describe('useGeminiStream', () => {
         new MockedGeminiClientClass(mockConfig),
         [],
         mockAddItem,
-        mockUpdateItem,
         mockConfig,
         mockOnDebugMessage,
         mockHandleSlashCommand,
@@ -886,7 +772,6 @@ describe('useGeminiStream', () => {
         () => Promise.resolve(),
         false,
         () => {},
-        mockRefreshHistoryDisplay,
         () => {},
         () => {},
         false, // visionModelPreviewEnabled
@@ -1009,7 +894,6 @@ describe('useGeminiStream', () => {
           mockConfig.getGeminiClient(),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1019,7 +903,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           cancelSubmitSpy,
           false, // visionModelPreviewEnabled
@@ -1324,7 +1207,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1334,7 +1216,6 @@ describe('useGeminiStream', () => {
           mockPerformMemoryRefresh,
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -1381,7 +1262,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(testConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           testConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1391,7 +1271,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -1435,7 +1314,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1445,7 +1323,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -1487,7 +1364,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1497,7 +1373,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -1540,7 +1415,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1550,7 +1424,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -1633,7 +1506,6 @@ describe('useGeminiStream', () => {
             new MockedGeminiClientClass(mockConfig),
             [],
             mockAddItem,
-            mockUpdateItem,
             mockConfig,
             mockOnDebugMessage,
             mockHandleSlashCommand,
@@ -1643,7 +1515,6 @@ describe('useGeminiStream', () => {
             () => Promise.resolve(),
             false,
             () => {},
-            mockRefreshHistoryDisplay,
             () => {},
             () => {},
             false, // visionModelPreviewEnabled
@@ -1687,7 +1558,6 @@ describe('useGeminiStream', () => {
         mockConfig.getGeminiClient() as GeminiClient,
         [],
         mockAddItem,
-        mockUpdateItem,
         mockConfig,
         mockOnDebugMessage,
         mockHandleSlashCommand,
@@ -1697,7 +1567,6 @@ describe('useGeminiStream', () => {
         vi.fn(), // performMemoryRefresh
         false, // modelSwitched
         vi.fn(), // setModelSwitched
-        mockRefreshHistoryDisplay,
         vi.fn(), // onEditorClose
         vi.fn(), // onCancelSubmit
         false, // visionModelPreviewEnabled
@@ -1756,7 +1625,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1766,7 +1634,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -1838,7 +1705,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1848,7 +1714,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -1896,7 +1761,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -1906,7 +1770,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -2109,7 +1972,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -2119,7 +1981,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -2145,7 +2006,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -2201,7 +2061,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -2211,7 +2070,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled
@@ -2242,7 +2100,6 @@ describe('useGeminiStream', () => {
           new MockedGeminiClientClass(mockConfig),
           [],
           mockAddItem,
-          mockUpdateItem,
           mockConfig,
           mockOnDebugMessage,
           mockHandleSlashCommand,
@@ -2252,7 +2109,6 @@ describe('useGeminiStream', () => {
           () => Promise.resolve(),
           false,
           () => {},
-          mockRefreshHistoryDisplay,
           () => {},
           () => {},
           false, // visionModelPreviewEnabled

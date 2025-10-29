@@ -6,7 +6,7 @@
 
 import type React from 'react';
 import { memo } from 'react';
-import type { HistoryItem, ToolGroupDisplayMode } from '../types.js';
+import type { HistoryItem } from '../types.js';
 import { UserMessage } from './messages/UserMessage.js';
 import { UserShellMessage } from './messages/UserShellMessage.js';
 import { GeminiMessage } from './messages/GeminiMessage.js';
@@ -36,7 +36,6 @@ interface HistoryItemDisplayProps {
   isFocused?: boolean;
   commands?: readonly SlashCommand[];
   layout?: 'default' | 'minimal';
-  displayMode?: ToolGroupDisplayMode;
 }
 
 const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
@@ -48,11 +47,10 @@ const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
   commands,
   isFocused = true,
   layout = 'minimal',
-  displayMode,
 }) => (
   <Box flexDirection="column" key={item.id}>
     {/* Render standard message types */}
-    {item.type === 'user' && <UserMessage text={item.text} terminalWidth={terminalWidth} />}
+    {item.type === 'user' && <UserMessage text={item.text} />}
     {item.type === 'user_shell' && <UserShellMessage text={item.text} />}
     {item.type === 'gemini' && (
       <GeminiMessage
@@ -98,7 +96,7 @@ const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
         terminalWidth={terminalWidth}
         config={config}
         isFocused={isFocused}
-        />
+      />
     )}
     {item.type === 'tool_group' && layout === 'default' && (
       <ToolGroupMessage
@@ -108,7 +106,7 @@ const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
         terminalWidth={terminalWidth}
         config={config}
         isFocused={isFocused}
-        />
+      />
     )}
     {item.type === 'compression' && (
       <CompressionMessage compression={item.compression} />

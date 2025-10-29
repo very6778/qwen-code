@@ -150,6 +150,7 @@ const PlanResultRenderer: React.FC<{
   />
 );
 
+
 /**
  * Component to render string results (markdown or plain text)
  */

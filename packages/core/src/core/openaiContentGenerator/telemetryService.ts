@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2025 Qwen
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,36 +38,34 @@ export interface TelemetryService {
 }
 
 export interface RequestContext {
+  userPromptId: string;
+  model: string;
+  authType: string;
   startTime: number;
-  userPromptId?: string;
-  isStreaming?: boolean;
-  duration?: number;
-  model?: string;
-  authType?: string;
-  error?: any;
-  responseId?: string;
-  promptId?: string;
-  requestText?: string;
-  responseText?: string;
-  responseTokens?: number;
-  statusCode?: number;
-  // Add any other properties that might be used
-  [key: string]: any;
+  duration: number;
+  isStreaming: boolean;
 }
 
-export function createRequestContext(): RequestContext {
-  return {
-    startTime: Date.now(),
-    userPromptId: 'mock-id',
-    isStreaming: false,
-    duration: 0,
-    model: 'mock-model',
-    authType: 'mock-auth',
-  };
-}
+export interface TelemetryService {
+  logSuccess(
+    context: RequestContext,
+    response: GenerateContentResponse,
+    openaiRequest?: OpenAI.Chat.ChatCompletionCreateParams,
+    openaiResponse?: OpenAI.Chat.ChatCompletion,
+  ): Promise<void>;
 
-export function logRequestCompletion() {
-  // No-op
+  logError(
+    context: RequestContext,
+    error: unknown,
+    openaiRequest?: OpenAI.Chat.ChatCompletionCreateParams,
+  ): Promise<void>;
+
+  logStreamingSuccess(
+    context: RequestContext,
+    responses: GenerateContentResponse[],
+    openaiRequest?: OpenAI.Chat.ChatCompletionCreateParams,
+    openaiChunks?: OpenAI.Chat.ChatCompletionChunk[],
+  ): Promise<void>;
 }
 
 export class DefaultTelemetryService implements TelemetryService {
@@ -75,62 +73,6 @@ export class DefaultTelemetryService implements TelemetryService {
     private config: Config,
     private enableOpenAILogging: boolean = false,
   ) {}
-
-  private serializeForLogging(value: unknown): string | undefined {
-    if (value === undefined) {
-      return undefined;
-    }
-    const seen = new WeakSet();
-    const replacer = (_key: string, val: unknown) => {
-      if (typeof val === 'bigint') {
-        return val.toString();
-      }
-      if (val && typeof val === 'object') {
-        if (seen.has(val as object)) {
-          return '[Circular]';
-        }
-        seen.add(val as object);
-        if (val instanceof Map) {
-          return Object.fromEntries(val);
-        }
-        if (val instanceof Set) {
-          return Array.from(val);
-        }
-        if (typeof (val as { toJSON?: () => unknown }).toJSON === 'function') {
-          try {
-            return (val as { toJSON: () => unknown }).toJSON();
-          } catch (error) {
-            return `[toJSON error: ${
-              error instanceof Error ? error.message : String(error)
-            }]`;
-          }
-        }
-        const tag = Object.prototype.toString.call(val);
-        if (tag === '[object AbortSignal]') {
-          return '[AbortSignal]';
-        }
-      }
-      if (typeof val === 'function') {
-        return `[Function ${(val as { name?: string }).name || 'anonymous'}]`;
-      }
-      if (val instanceof Error) {
-        return {
-          name: val.name,
-          message: val.message,
-          stack: val.stack,
-        };
-      }
-      return val;
-    };
-
-    try {
-      return JSON.stringify(value, replacer);
-    } catch (error) {
-      return `Failed to serialize: ${
-        error instanceof Error ? error.message : String(error)
-      }`;
-    }
-  }
 
   async logSuccess(
     context: RequestContext,
@@ -146,12 +88,7 @@ export class DefaultTelemetryService implements TelemetryService {
       context.userPromptId,
       context.authType,
       response.usageMetadata,
-      this.serializeForLogging(response),
     );
-    responseEvent.requestText = this.serializeForLogging(openaiRequest);
-    responseEvent.providerRequestText = this.serializeForLogging(openaiRequest);
-    responseEvent.providerResponseText =
-      this.serializeForLogging(openaiResponse);
 
     logApiResponse(this.config, responseEvent);
 
@@ -177,13 +114,11 @@ export class DefaultTelemetryService implements TelemetryService {
       context.duration,
       context.userPromptId,
       context.authType,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (error as any)?.type,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (error as any)?.code,
     );
-    errorEvent.extra = {
-      errorType: (error as { type?: string })?.type,
-      statusCode: (error as { code?: number })?.code,
-      requestText: this.serializeForLogging(openaiRequest),
-      stack: error instanceof Error ? error.stack : undefined,
-    };
     logApiError(this.config, errorEvent);
 
     // Log error interaction if enabled
@@ -208,13 +143,6 @@ export class DefaultTelemetryService implements TelemetryService {
       .reverse()
       .find((r) => r.usageMetadata)?.usageMetadata;
 
-    let combinedResponseForLogging: OpenAI.Chat.ChatCompletion | undefined;
-    if (openaiChunks && openaiChunks.length > 0) {
-      combinedResponseForLogging = this.combineOpenAIChunksForLogging(
-        openaiChunks,
-      );
-    }
-
     // Log API response event for UI telemetry
     const responseEvent = new ApiResponseEvent(
       responses[responses.length - 1]?.responseId || 'unknown',
@@ -223,12 +151,6 @@ export class DefaultTelemetryService implements TelemetryService {
       context.userPromptId,
       context.authType,
       finalUsageMetadata,
-      this.serializeForLogging(responses),
-    );
-    responseEvent.requestText = this.serializeForLogging(openaiRequest);
-    responseEvent.providerRequestText = this.serializeForLogging(openaiRequest);
-    responseEvent.providerResponseText = this.serializeForLogging(
-      combinedResponseForLogging,
     );
 
     logApiResponse(this.config, responseEvent);
@@ -237,12 +159,11 @@ export class DefaultTelemetryService implements TelemetryService {
     if (
       this.enableOpenAILogging &&
       openaiRequest &&
-      combinedResponseForLogging
+      openaiChunks &&
+      openaiChunks.length > 0
     ) {
-      await openaiLogger.logInteraction(
-        openaiRequest,
-        combinedResponseForLogging,
-      );
+      const combinedResponse = this.combineOpenAIChunksForLogging(openaiChunks);
+      await openaiLogger.logInteraction(openaiRequest, combinedResponse);
     }
   }
 

@@ -16,6 +16,7 @@ import {
   detectFileType,
   processSingleFileContent,
   DEFAULT_ENCODING,
+  getSpecificMimeType,
   DEFAULT_MAX_LINES_TEXT_FILE,
 } from '../utils/fileUtils.js';
 import type { PartListUnion } from '@google/genai';

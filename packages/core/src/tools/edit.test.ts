@@ -8,6 +8,7 @@
 
 const mockOpenDiff = vi.hoisted(() => vi.fn());
 
+
 vi.mock('../utils/editor.js', () => ({
   openDiff: mockOpenDiff,
 }));

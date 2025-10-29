@@ -21,6 +21,7 @@ export interface DialogCloseOptions {
   ) => Promise<void>;
   selectedAuthType: AuthType | undefined;
 
+  
   // Settings dialog
   isSettingsDialogOpen: boolean;
   closeSettingsDialog: () => void;
@@ -57,6 +58,7 @@ export function useDialogClose(options: DialogCloseOptions) {
       return true;
     }
 
+    
     if (options.isSettingsDialogOpen) {
       // Mimic ESC behavior: onSelect(undefined, selectedScope)
       options.closeSettingsDialog();

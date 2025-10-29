@@ -20,7 +20,9 @@ import type {
 import {
   ToolConfirmationOutcome,
   ApprovalMode,
+  logToolCall,
   ToolErrorType,
+  ToolCallEvent,
 } from '../index.js';
 import type { Part, PartListUnion } from '@google/genai';
 import { getResponseTextFromParts } from '../utils/generateContentResponseUtilities.js';
@@ -986,8 +988,7 @@ export class CoreToolScheduler {
       this.toolCalls = [];
 
       for (const call of completedCalls) {
-        // Tool call completed - call parameter is intentionally unused
-        void call;
+        logToolCall(this.config, new ToolCallEvent(call));
       }
 
       if (this.onAllToolCallsComplete) {

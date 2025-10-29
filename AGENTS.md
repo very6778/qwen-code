@@ -1,53 +1,4 @@
-Bu bir cli(terminal) interface coding agent projesidir BEN BU PROJEYİ Qwen code yi modifiye ederek yaptım;
-
-
-## Core Analysis Principle
-
-**HER ZAMEN Analiz Et, Sonra Uygula:** Doğrudan implementasyon isteklerinde bile, mevcut yapıyı anlamadan, ilgili bilgileri toplamadan ve kodu analiz etmeden asla değişiklik yapma(eğer hemen konuşma öncesi gerekli şeyleri analiz etmişsen doğrudan uygulayabilirsin). Bu analiz adımı her türlü uygulama/değiştirme işleminin önünde gelmelidir.
-
----
-
-## Claude Code Core Principles
-
-* Use tools when necessary.
-* Work iteratively with checkpoints; for long/expensive or risky steps, request confirmation before proceeding.
-* Never use emojis unless explicitly requested.
-* Keep replies concise — under 1–4 sentences, excluding code and tool use.
-* Never create or edit documentation or README files unless explicitly asked.
-* Do not retry tool calls cancelled by the user unless requested.
-* Focus strictly on the user's request — no tangents or unsolicited suggestions.
-* After finishing, provide a brief summary (1–4 sentences) of what I did.
-* Be mindful of token usage while ensuring completeness.
-* If nearing token/context limits, summarize progress and ask whether to continue.
-* Respond in the same language the user speaks
-
-## Token Economy
-* Prefer targeted reads/snippets for large files; avoid full-file reads unless necessary.
-
-## Response Guidelines
-
-Do exactly what the user asks — no more, no less.
-Incorrect behaviors:
-* Don't suggest improvements unless asked.
-* Don't explain alternatives unless the user asks "how should I…".
-* Don't add extra analysis or context.
-* Don't offer to perform related tasks unless requested.
-* No hacks, no unsafe shortcuts.
-* Don't abandon tasks due to unexpected issues — debug systematically.
-
-If the user asks how to approach something, first explain the plan briefly, then ask if they want me to implement it.
-If the user asks me to do something clearly, I proceed with the implementation without asking for confirmation.
-
-## Coding Conventions
-
-* Understand the existing codebase structure and style before editing.
-* Match surrounding code style and patterns.
-* Use only existing dependencies; if adding a new one is required, ask first.
-* Be cautious about security — never expose secrets, API keys, or credentials in any code or logs.
-
-
-
-
+Bu bir cli(terminal) interface coding agent projesidir
 
 ## Mimari Genel Bakış
 
@@ -159,7 +110,4 @@ KeypressProvider (kitty/paste workarounds, debug logging)
    - Tool scheduler: `useToolScheduler.test.ts` ve `shellCommandProcessor.test.ts`.  
    - Entegrasyon: `integration-tests` altındaki vitest senaryoları sandbox modlarıyla koşuyor; yeni akışlar için smoke test ekleyin.
 
-Bu yapı taşları sayesinde CLI'yi baştan sona izlemek, hata ayıklamak veya yeni yetenekler eklemek çok daha kolay olacaktır. File path referansları ve hook ilişkileri değiştikçe bu rehberi güncelleyerek katkıcıların projeye giriş eşiğini düşürebilirsiniz.
-
----
-
+Bu yapı taşları sayesinde CLI’yi baştan sona izlemek, hata ayıklamak veya yeni yetenekler eklemek çok daha kolay olacaktır. File path referansları ve hook ilişkileri değiştikçe bu rehberi güncelleyerek katkıcıların projeye giriş eşiğini düşük tutabilirsiniz.

@@ -205,25 +205,6 @@ function mapCoreStatusToDisplayStatus(coreStatus: CoreStatus): ToolCallStatus {
 }
 
 /**
- * Determines if tools should be displayed in batched mode based on tool names.
- */
-function shouldDisplayBatched(toolCalls: TrackedToolCall[]): boolean {
-  if (toolCalls.length < 2) {
-    return false;
-  }
-  
-  const firstToolName = toolCalls[0]?.tool?.displayName;
-  if (!firstToolName) {
-    return false;
-  }
-  
-  // Check if all tools have the same display name
-  return toolCalls.every(
-    (tool) => tool.tool?.displayName === firstToolName
-  );
-}
-
-/**
  * Transforms `TrackedToolCall` objects into `HistoryItemToolGroup` objects for UI display.
  */
 export function mapToDisplay(
@@ -320,11 +301,8 @@ export function mapToDisplay(
     },
   );
 
-  const displayMode = shouldDisplayBatched(toolCalls) ? 'batched' : 'default';
-
   return {
     type: 'tool_group',
     tools: toolDisplays,
-    displayMode,
   };
 }

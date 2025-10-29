@@ -1,12 +1,10 @@
 # CLAUDE.md
 
-This file provides comprehensive guidance for Claude Code (claude.ai/code) when working with the Qwen Code repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-Qwen Code is a streamlined CLI-based AI development workflow tool adapted from Google Gemini CLI, optimized for Qwen3-Coder models. It's a TypeScript monorepo with a tool-based architecture where the AI can execute various operations (file I/O, shell commands, web fetching, etc.) through a secure tool execution system.
-
-**Current Status**: The project has been simplified to focus on core AI development workflow functionality. Sub-agent and IDE integration features have been removed to streamline the user experience.
+Qwen Code is a CLI-based AI development workflow tool adapted from Google Gemini CLI, optimized for Qwen3-Coder models. It's a TypeScript monorepo with a tool-based architecture where the AI can execute various operations (file I/O, shell commands, web fetching, etc.) through a secure tool execution system.
 
 ## Complete Architecture
 
@@ -18,7 +16,7 @@ qwen-code/
 │   ├── cli/                    # User-facing CLI interface (React Ink TUI)
 │   ├── core/                   # Backend engine (AI communication + tool orchestration)
 │   ├── test-utils/             # Shared testing utilities
-│   └── vscode-ide-companion/   # VS Code extension (archived - no longer maintained)
+│   └── vscode-ide-companion/   # VS Code extension for IDE integration
 ├── scripts/                    # Build and utility scripts
 ├── integration-tests/          # End-to-end testing suite
 ├── docs/                       # Comprehensive documentation
@@ -29,7 +27,7 @@ qwen-code/
 
 - **cli** depends on **core** and **test-utils**
 - **core** is standalone with external AI provider dependencies
-- **vscode-ide-companion** is archived (IDE integration removed)
+- **vscode-ide-companion** is standalone IDE extension
 - **test-utils** shared across all packages
 
 ## Development Commands
@@ -125,12 +123,25 @@ packages/core/src/
 │   │   ├── fileSearch.ts    # Search implementation
 │   │   └── ignore.ts        # Gitignore-style patterns
 │   ├── request-tokenizer/   # Token counting utilities
+│   ├── editor.ts            # Editor integration
 │   ├── gitUtils.ts          # Git helper functions
+│   ├── workspaceContext.ts  # Workspace context management
 │   └── formatters.ts        # Data formatting utilities
+├── ide/                       # IDE integration
+│   ├── ide-client.ts        # IDE communication client
+│   ├── ideContext.ts        # IDE state management
+│   ├── ide-installer.ts     # IDE extension installation
+│   ├── detect-ide.ts        # IDE detection logic
+│   └── process-utils.ts     # Process management
 ├── mcp/                       # Model Context Protocol
 │   ├── oauth-provider.ts    # OAuth authentication
 │   ├── oauth-token-storage.ts # Token persistence
 │   └── token-storage/       # Token storage implementations
+├── subagents/                 # Sub-agent system
+│   ├── subagent-manager.ts  # Agent lifecycle management
+│   ├── subagent.ts          # Individual agent implementation
+│   ├── builtin-agents.ts    # Predefined agents
+│   └── types.ts             # Agent type definitions
 ├── telemetry/                 # Analytics and monitoring
 │   ├── loggers.ts           # Logging infrastructure
 │   ├── metrics.ts           # Metrics collection
@@ -153,7 +164,8 @@ packages/cli/src/
 │   │   ├── Header.tsx        # Application header
 │   │   ├── Footer.tsx        # Application footer
 │   │   ├── InputPrompt.tsx   # User input handling
-│   │   └── messages/         # Message display components
+│   │   ├── messages/         # Message display components
+│   │   └── subagents/        # Sub-agent management UI
 │   ├── contexts/             # React contexts
 │   │   ├── SessionContext.tsx # Session state management
 │   │   ├── SettingsContext.tsx # Settings state
@@ -202,80 +214,96 @@ packages/cli/src/
 │   ├── installationInfo.ts   # Installation detection
 │   ├── sandbox.ts            # Sandbox configuration
 │   └── version.ts            # Version management
+├── zed-integration/           # Zed editor integration
+│   ├── zedIntegration.ts     # Main integration logic
+│   ├── acp.ts                # ACP protocol implementation
+│   └── fileSystemService.ts  # File system operations
 └── index.ts                  # CLI entry point
 ```
 
-### VS Code Extension (Archived)
-
-The VS Code extension (`packages/vscode-ide-companion/`) is no longer maintained as part of the project simplification. IDE integration features have been removed to focus on core CLI functionality.
+### VS Code Extension (`packages/vscode-ide-companion/src/`)
 
 ```
 packages/vscode-ide-companion/src/
-├── extension.ts              # Main extension entry point (archived)
-├── server.ts                 # HTTP server for IDE communication (archived)
-├── diff/                     # Diff handling for code edits (archived)
-└── utils/                    # Extension utilities (archived)
+├── extension.ts              # Main extension entry point
+├── server.ts                 # HTTP server for IDE communication
+├── diff/                     # Diff handling for code edits
+│   ├── diffProvider.ts       # Diff visualization
+│   └── diffController.ts     # Diff state management
+└── utils/                    # Extension utilities
+    ├── authentication.ts     # IDE authentication
+    └── workspace.ts          # Workspace management
 ```
 
 ## Key Architectural Patterns
 
-### 1. Tool System Architecture
+### 1. Multi-Provider AI Architecture with Pluggable Content Generators
+
+**Location**: `/packages/core/src/core/`
+
+The system uses a sophisticated provider-based architecture that supports multiple AI providers through a unified interface:
+
+- **Content Generator Interface**: Abstract base class that defines common operations like `generateContent`, `generateContentStream`, `countTokens`, and `embedContent`
+- **Provider Pattern**: Different AI providers (Gemini, OpenAI, Qwen, ZAI, etc.) implement specialized providers that handle API-specific logic
+- **Dynamic Provider Selection**: The `determineProvider()` function automatically selects the appropriate provider based on configuration, model names, and endpoints
+- **Specialized Qwen Integration**: Custom `QwenContentGenerator` extends `OpenAIContentGenerator` with OAuth token management and automatic refresh capabilities
+
+### 2. Declarative Tool System with Execution Lifecycle
 
 **Location**: `/packages/core/src/tools/`
 
-- **Tool Interface**: All tools implement `ToolInvocation` interface with validation, execution, and confirmation
-- **Tool Registry**: Central registration system in `tool-registry.ts`
-- **Tool Categories**:
-  - File System: `read-file`, `write-file`, `edit`, `ls`, `glob`
-  - Search: `grep`, `ripGrep`, `web-search`
-  - Execution: `shell`, `task`
-  - Communication: `web-fetch`, `mcp-client`, `mcp-tool`
-  - Management: `memoryTool`, `todoWrite`
+The tool architecture is highly sophisticated with clear separation of concerns:
 
-### 2. Configuration Management
+- **Tool Interface Hierarchy**:
+  - `ToolBuilder` - Base interface for tool registration
+  - `DeclarativeTool` - Abstract base class with validation logic
+  - `BaseDeclarativeTool` - Concrete implementation with JSON schema validation
+  - `ToolInvocation` - Represents a validated, ready-to-execute tool call
 
-**Multi-layered system** in `/packages/core/src/config/`:
+- **Tool Registry Pattern**: Centralized `ToolRegistry` manages tool discovery, registration, and provides function declarations to AI models
+- **Tool Discovery**: Supports multiple discovery mechanisms:
+  - Static registration of core tools
+  - Dynamic discovery via command-line tools
+  - MCP (Model Context Protocol) server integration
 
-- **Environment Variables**: `.env` files
-- **Project Settings**: `.qwen/settings.json` in project root
-- **User Settings**: `~/.qwen/settings.json`
-- **CLI Arguments**: Command-line overrides
-- **Session Settings**: In-memory session overrides
+### 3. Sophisticated Configuration System with Multiple Layers
 
 **Key files**:
-
 - `config.ts`: Main configuration loading and merging
 - `storage.ts`: Persistent settings storage
 - `models.ts`: Configuration data models and validation
 
-### 3. AI Communication Layer
+- **Configuration Sources** (in priority order):
+  1. CLI arguments (highest)
+  2. Session overrides
+  3. Project settings (`.qwen/settings.json`)
+  4. User settings (`~/.qwen/settings.json`)
+  5. Environment variables
+  6. Default values (lowest)
 
-**Location**: `/packages/core/src/core/`
+- **Config Class Design**: The main `Config` class acts as a configuration orchestrator that:
+  - Manages initialization order
+  - Provides type-safe accessors
+  - Handles configuration validation
+  - Manages dependent services (tool registry, file service, etc.)
 
-- **Content Generator Interface**: Abstraction over different AI providers
-- **Providers**:
-  - Google Gemini via `@google/genai`
-  - OpenAI-compatible via `openai` package
-  - Qwen via custom implementation
-- **Streaming Support**: Real-time response streaming
-- **Tool Orchestration**: `coreToolScheduler.ts` manages tool execution
+### 4. Advanced Tool Execution with Confirmation Flow
 
-### 4. Simplified Architecture
+### 4. IDE Integration System
 
-**Note**: IDE integration and sub-agent systems have been removed as part of project simplification.
+**Location**: `/packages/core/src/ide/`
 
-- **Removed Features**:
-  - IDE detection and communication
-  - Sub-agent delegation system
-  - Diff visualization in IDEs
-  - Workspace context sharing with IDEs
-
-- **Current Focus**: Core CLI-based AI workflow with direct tool execution
+- **IDE Detection**: Automatic detection of VS Code, Zed, etc.
+- **Communication**: HTTP-based communication protocol
+- **Features**:
+  - Diff visualization for code edits
+  - Real-time file synchronization
+  - Workspace context sharing
+  - Authentication and security
 
 ### 5. Session Management
 
 **Components**:
-
 - **Token Limits**: Intelligent context window management
 - **History Persistence**: Conversation history storage
 - **Compression**: Smart context compression when limits reached
@@ -293,7 +321,7 @@ packages/vscode-ide-companion/src/
 ### Adding New Tools
 
 1. Create tool file in `/packages/core/src/tools/`
-2. Implement `ToolInvocation` interface
+2. Extend `BaseDeclarativeTool` class and implement `invoke()` method
 3. Add to tool registry in `/packages/core/src/config/config.ts`
 4. Add tests alongside tool file
 5. Update documentation in `/docs/tools/`
@@ -308,7 +336,7 @@ packages/vscode-ide-companion/src/
 ### Adding New AI Providers
 
 1. Create provider in `/packages/core/src/core/openaiContentGenerator/provider/`
-2. Implement provider interface
+2. Implement provider interface extending `ContentGenerator`
 3. Add configuration options
 4. Add authentication handling
 5. Add tests
@@ -316,13 +344,11 @@ packages/vscode-ide-companion/src/
 ## Testing Strategy
 
 ### Unit Tests
-
 - **Framework**: Vitest
 - **Location**: Alongside source files (`.test.ts`)
 - **Coverage**: Integrated coverage reporting
 
 ### Integration Tests
-
 - **Location**: `/integration-tests/`
 - **Types**:
   - Sandbox variants (none, docker, podman)
@@ -330,21 +356,18 @@ packages/vscode-ide-companion/src/
   - E2E workflow tests
 
 ### Test Utilities
-
 - **Location**: `/packages/test-utils/`
 - **Contents**: Mock implementations, test helpers, fixtures
 
 ## Build and Deployment
 
 ### Build Process
-
 1. **TypeScript Compilation**: Individual package compilation
 2. **Bundling**: esbuild for optimized bundles
 3. **Asset Copy**: Static asset management
 4. **Package Preparation**: npm package preparation
 
 ### CI/CD Pipeline
-
 - **Platform**: GitHub Actions
 - **Stages**: Lint → Test → Build → Package → Release
 - **Artifacts**: npm packages, Docker images, VS Code extensions
@@ -361,7 +384,7 @@ packages/vscode-ide-companion/src/
 - **Architecture**: `/docs/architecture.md`
 - **Tools**: `/docs/tools/` (individual tool documentation)
 - **Core API**: `/docs/core/`
-- **Sub-agents**: `/docs/subagents.md` (historical reference - feature removed)
+- **IDE Integration**: `/docs/ide-integration.md`
 - **Troubleshooting**: `/docs/troubleshooting.md`
 
 ## Development Notes
@@ -373,45 +396,3 @@ packages/vscode-ide-companion/src/
 - **Testing**: Comprehensive test coverage required
 - **Security**: Docker-based sandboxing for tool execution
 - **Performance**: Terminal benchmarking and optimization
-
-## Core Analysis Principle
-
-**ALWAYS Analyze Before Acting:** Even with direct implementation requests, never make changes without first understanding the current structure, gathering relevant information, and analyzing the codebase. This analysis step must precede any implementation/modification work.
-
-## Claude Code Core Principles
-
-* Use tools when necessary.
-* Work iteratively with checkpoints; for long/expensive or risky steps, request confirmation before proceeding.
-* Never use emojis unless explicitly requested.
-* Keep replies concise — under 1–4 sentences, excluding code and tool use.
-* Never create or edit documentation or README files unless explicitly asked.
-* Do not retry tool calls cancelled by the user unless requested.
-* Focus strictly on the user's request — no tangents or unsolicited suggestions.
-* After finishing, provide a brief summary (1–4 sentences) of what I did.
-* Be mindful of token usage while ensuring completeness.
-* If nearing token/context limits, summarize progress and ask whether to continue.
-* Respond in the same language the user speaks
-
-## Token Economy
-* Prefer targeted reads/snippets for large files; avoid full-file reads unless necessary.
-
-## Response Guidelines
-
-Do exactly what the user asks — no more, no less.
-Incorrect behaviors:
-* Don't suggest improvements unless asked.
-* Don't explain alternatives unless the user asks "how should I…".
-* Don't add extra analysis or context.
-* Don't offer to perform related tasks unless requested.
-* No hacks, no unsafe shortcuts.
-* Don't abandon tasks due to unexpected issues — debug systematically.
-
-If the user asks how to approach something, first explain the plan briefly, then ask if they want me to implement it.
-If the user asks me to do something clearly, I proceed with the implementation without asking for confirmation.
-
-## Coding Conventions
-
-* Understand the existing codebase structure and style before editing.
-* Match surrounding code style and patterns.
-* Use only existing dependencies; if adding a new one is required, ask first.
-* Be cautious about security — never expose secrets, API keys, or credentials in any code or logs.

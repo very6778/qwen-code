@@ -63,6 +63,7 @@ export const ModelSelectionDialog: React.FC<ModelSelectionDialogProps> = ({
       borderColor={Colors.AccentBlue}
       padding={1}
       width="100%"
+      marginLeft={1}
     >
       <Box flexDirection="column" marginBottom={1}>
         <Text bold>Select Model</Text>

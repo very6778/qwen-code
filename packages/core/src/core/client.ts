@@ -50,7 +50,7 @@ import {
   getCoreSystemPrompt,
   getCustomSystemPrompt,
   getPlanModeSystemReminder,
-} from './prompts.js';
+  } from './prompts.js';
 import { tokenLimit } from './tokenLimits.js';
 import type { ChatCompressionInfo, ServerGeminiStreamEvent } from './turn.js';
 import { CompressionStatus, GeminiEventType, Turn } from './turn.js';
@@ -116,7 +116,7 @@ export class GeminiClient {
 
   private readonly loopDetector: LoopDetectionService;
   private lastPromptId: string;
-
+    
   /**
    * At any point in this conversation, was compression triggered without
    * being forced and did it fail?
@@ -441,6 +441,7 @@ export class GeminiClient {
     if (isNewPrompt) {
       const systemReminders = [];
 
+      
       // add plan mode system reminder if approval mode is plan
       if (this.config.getApprovalMode() === ApprovalMode.PLAN) {
         systemReminders.push(getPlanModeSystemReminder());
@@ -503,6 +504,14 @@ export class GeminiClient {
         this.getChat(),
         this,
         signal,
+      );
+      logNextSpeakerCheck(
+        this.config,
+        new NextSpeakerCheckEvent(
+          prompt_id,
+          turn.finishReason?.toString() || '',
+          nextSpeakerCheck?.next_speaker || '',
+        ),
       );
       if (nextSpeakerCheck?.next_speaker === 'model') {
         const nextRequest = [{ text: 'Please continue.' }];
