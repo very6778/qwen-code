@@ -107,22 +107,17 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     0,
     Math.min(inputWidth, normalizedFrameWidth - prefixWidth),
   );
-  const getPaddedPlaceholder = useCallback((): string => {
+  const getPlaceholderText = useCallback((): string => {
     if (!placeholder) {
       return '';
     }
-    let displayText = placeholder;
     if (effectiveInputWidth > 0) {
-      if (stringWidth(displayText) > effectiveInputWidth) {
-        displayText = cpSlice(displayText, 0, effectiveInputWidth);
+      if (stringWidth(placeholder) > effectiveInputWidth) {
+        return cpSlice(placeholder, 0, effectiveInputWidth);
       }
-      const paddingLength = Math.max(
-        0,
-        effectiveInputWidth - stringWidth(displayText),
-      );
-      displayText = displayText + ' '.repeat(paddingLength);
+      return placeholder;
     }
-    return displayText;
+    return placeholder;
   }, [effectiveInputWidth, placeholder]);
 
   const completion = useCommandCompletion(
@@ -771,7 +766,15 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           {buffer.text.length === 0 && placeholder ? (
             <Text>
               {chalk.bgHex(promptBackgroundColor)(
-                chalk.hex(placeholderColor)(getPaddedPlaceholder()),
+                chalk.hex(placeholderColor)(
+                  `${getPlaceholderText()}${' '.repeat(
+                    Math.max(
+                      0,
+                      effectiveInputWidth -
+                        stringWidth(getPlaceholderText()),
+                    ),
+                  )}`,
+                ),
               )}
             </Text>
           ) : (
