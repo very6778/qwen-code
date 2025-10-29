@@ -11,7 +11,7 @@ import type {
 } from '@google/genai';
 import type { PipelineConfig } from './pipeline.js';
 import { ContentGenerationPipeline } from './pipeline.js';
-import { TelemetryService } from './telemetryService.js';
+import { DefaultTelemetryService } from './telemetryService.js';
 import { EnhancedErrorHandler } from './errorHandler.js';
 import { getDefaultTokenizer } from '../../utils/request-tokenizer/index.js';
 import type { ContentGeneratorConfig } from '../contentGenerator.js';
