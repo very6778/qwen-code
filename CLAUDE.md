@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides comprehensive guidance for Claude Code (claude.ai/code) when working with the Qwen Code repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -237,45 +237,57 @@ packages/vscode-ide-companion/src/
 
 ## Key Architectural Patterns
 
-### 1. Tool System Architecture
+### 1. Multi-Provider AI Architecture with Pluggable Content Generators
+
+**Location**: `/packages/core/src/core/`
+
+The system uses a sophisticated provider-based architecture that supports multiple AI providers through a unified interface:
+
+- **Content Generator Interface**: Abstract base class that defines common operations like `generateContent`, `generateContentStream`, `countTokens`, and `embedContent`
+- **Provider Pattern**: Different AI providers (Gemini, OpenAI, Qwen, ZAI, etc.) implement specialized providers that handle API-specific logic
+- **Dynamic Provider Selection**: The `determineProvider()` function automatically selects the appropriate provider based on configuration, model names, and endpoints
+- **Specialized Qwen Integration**: Custom `QwenContentGenerator` extends `OpenAIContentGenerator` with OAuth token management and automatic refresh capabilities
+
+### 2. Declarative Tool System with Execution Lifecycle
 
 **Location**: `/packages/core/src/tools/`
 
-- **Tool Interface**: All tools implement `ToolInvocation` interface with validation, execution, and confirmation
-- **Tool Registry**: Central registration system in `tool-registry.ts`
-- **Tool Categories**:
-  - File System: `read-file`, `write-file`, `edit`, `ls`, `glob`
-  - Search: `grep`, `ripGrep`, `web-search`
-  - Execution: `shell`, `task`
-  - Communication: `web-fetch`, `mcp-client`, `mcp-tool`
-  - Management: `memoryTool`, `todoWrite`
+The tool architecture is highly sophisticated with clear separation of concerns:
 
-### 2. Configuration Management
+- **Tool Interface Hierarchy**:
+  - `ToolBuilder` - Base interface for tool registration
+  - `DeclarativeTool` - Abstract base class with validation logic
+  - `BaseDeclarativeTool` - Concrete implementation with JSON schema validation
+  - `ToolInvocation` - Represents a validated, ready-to-execute tool call
 
-**Multi-layered system** in `/packages/core/src/config/`:
+- **Tool Registry Pattern**: Centralized `ToolRegistry` manages tool discovery, registration, and provides function declarations to AI models
+- **Tool Discovery**: Supports multiple discovery mechanisms:
+  - Static registration of core tools
+  - Dynamic discovery via command-line tools
+  - MCP (Model Context Protocol) server integration
 
-- **Environment Variables**: `.env` files
-- **Project Settings**: `.qwen/settings.json` in project root
-- **User Settings**: `~/.qwen/settings.json`
-- **CLI Arguments**: Command-line overrides
-- **Session Settings**: In-memory session overrides
+### 3. Sophisticated Configuration System with Multiple Layers
 
 **Key files**:
 - `config.ts`: Main configuration loading and merging
 - `storage.ts`: Persistent settings storage
 - `models.ts`: Configuration data models and validation
 
-### 3. AI Communication Layer
+- **Configuration Sources** (in priority order):
+  1. CLI arguments (highest)
+  2. Session overrides
+  3. Project settings (`.qwen/settings.json`)
+  4. User settings (`~/.qwen/settings.json`)
+  5. Environment variables
+  6. Default values (lowest)
 
-**Location**: `/packages/core/src/core/`
+- **Config Class Design**: The main `Config` class acts as a configuration orchestrator that:
+  - Manages initialization order
+  - Provides type-safe accessors
+  - Handles configuration validation
+  - Manages dependent services (tool registry, file service, etc.)
 
-- **Content Generator Interface**: Abstraction over different AI providers
-- **Providers**:
-  - Google Gemini via `@google/genai`
-  - OpenAI-compatible via `openai` package
-  - Qwen via custom implementation
-- **Streaming Support**: Real-time response streaming
-- **Tool Orchestration**: `coreToolScheduler.ts` manages tool execution
+### 4. Advanced Tool Execution with Confirmation Flow
 
 ### 4. IDE Integration System
 
@@ -309,7 +321,7 @@ packages/vscode-ide-companion/src/
 ### Adding New Tools
 
 1. Create tool file in `/packages/core/src/tools/`
-2. Implement `ToolInvocation` interface
+2. Extend `BaseDeclarativeTool` class and implement `invoke()` method
 3. Add to tool registry in `/packages/core/src/config/config.ts`
 4. Add tests alongside tool file
 5. Update documentation in `/docs/tools/`
@@ -324,7 +336,7 @@ packages/vscode-ide-companion/src/
 ### Adding New AI Providers
 
 1. Create provider in `/packages/core/src/core/openaiContentGenerator/provider/`
-2. Implement provider interface
+2. Implement provider interface extending `ContentGenerator`
 3. Add configuration options
 4. Add authentication handling
 5. Add tests
