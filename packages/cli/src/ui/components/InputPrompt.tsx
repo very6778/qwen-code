@@ -70,6 +70,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 }) => {
   const normalizedFrameWidth = Math.max(0, Math.floor(frameWidth));
   const promptBackgroundColor = '#242424';
+  const promptTextColor = '#d4d4d4';
   const placeholderColor = '#999797';
   const [justNavigatedHistory, setJustNavigatedHistory] = useState(false);
   const [escPressCount, setEscPressCount] = useState(0);
@@ -745,16 +746,28 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         chalk.hex('#f5f5f5')('> '),
       );
   const prefixAriaLabel =
-    shellModeActive && reverseSearchActive ? SCREEN_READER_USER_PREFIX : undefined;
+    shellModeActive && reverseSearchActive
+      ? SCREEN_READER_USER_PREFIX
+      : undefined;
+
+  const totalWidth = Math.max(
+    normalizedFrameWidth,
+    prefixWidth + effectiveInputWidth,
+  );
+  const blankLine = totalWidth
+    ? chalk.bgHex(promptBackgroundColor)(' '.repeat(totalWidth))
+    : '';
 
   return (
     <>
       <Box
         width={normalizedFrameWidth > 0 ? normalizedFrameWidth : undefined}
-        flexDirection="row"
+        flexDirection="column"
       >
-        <Text aria-label={prefixAriaLabel}>{prefixDisplay}</Text>
-        <Box flexGrow={1} flexDirection="column">
+        {blankLine && <Text>{blankLine}</Text>}
+        <Box flexDirection="row">
+          <Text aria-label={prefixAriaLabel}>{prefixDisplay}</Text>
+          <Box flexGrow={1} flexDirection="column">
           {buffer.text.length === 0 && placeholder ? (
             <Text>
               {chalk.bgHex(promptBackgroundColor)(
@@ -830,6 +843,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                   lineContent += ' '.repeat(trailingPadding);
                 }
 
+                lineContent = chalk.hex(promptTextColor)(lineContent);
                 lineContent = chalk.bgHex(promptBackgroundColor)(lineContent);
 
                 return (
@@ -858,7 +872,9 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                 }),
               )
           )}
+          </Box>
         </Box>
+        {blankLine && <Text>{blankLine}</Text>}
       </Box>
       {completion.showSuggestions && (
         <Box paddingRight={1}>
