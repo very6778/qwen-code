@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides comprehensive guidance for Claude Code (claude.ai/code) when working with the Qwen Code repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -219,48 +219,144 @@ packages/vscode-ide-companion/src/
 
 ## Key Architectural Patterns
 
-### 1. Tool System Architecture
-
-**Location**: `/packages/core/src/tools/`
-
-- **Tool Interface**: All tools implement `ToolInvocation` interface with validation, execution, and confirmation
-- **Tool Registry**: Central registration system in `tool-registry.ts`
-- **Tool Categories**:
-  - File System: `read-file`, `write-file`, `edit`, `ls`, `glob`
-  - Search: `grep`, `ripGrep`, `web-search`
-  - Execution: `shell`, `task`
-  - Communication: `web-fetch`, `mcp-client`, `mcp-tool`
-  - Management: `memoryTool`, `todoWrite`
-
-### 2. Configuration Management
-
-**Multi-layered system** in `/packages/core/src/config/`:
-
-- **Environment Variables**: `.env` files
-- **Project Settings**: `.qwen/settings.json` in project root
-- **User Settings**: `~/.qwen/settings.json`
-- **CLI Arguments**: Command-line overrides
-- **Session Settings**: In-memory session overrides
-
-**Key files**:
-
-- `config.ts`: Main configuration loading and merging
-- `storage.ts`: Persistent settings storage
-- `models.ts`: Configuration data models and validation
-
-### 3. AI Communication Layer
+### 1. Multi-Provider AI Architecture with Pluggable Content Generators
 
 **Location**: `/packages/core/src/core/`
 
-- **Content Generator Interface**: Abstraction over different AI providers
-- **Providers**:
-  - Google Gemini via `@google/genai`
-  - OpenAI-compatible via `openai` package
-  - Qwen via custom implementation
-- **Streaming Support**: Real-time response streaming
-- **Tool Orchestration**: `coreToolScheduler.ts` manages tool execution
+The system uses a sophisticated provider-based architecture that supports multiple AI providers through a unified interface:
 
-### 4. Simplified Architecture
+- **Content Generator Interface**: Abstract base class that defines common operations like `generateContent`, `generateContentStream`, `countTokens`, and `embedContent`
+- **Provider Pattern**: Different AI providers (Gemini, OpenAI, Qwen, ZAI, etc.) implement specialized providers that handle API-specific logic
+- **Dynamic Provider Selection**: The `determineProvider()` function automatically selects the appropriate provider based on configuration, model names, and endpoints
+- **Specialized Qwen Integration**: Custom `QwenContentGenerator` extends `OpenAIContentGenerator` with OAuth token management and automatic refresh capabilities
+
+### 2. Declarative Tool System with Execution Lifecycle
+
+**Location**: `/packages/core/src/tools/`
+
+The tool architecture is highly sophisticated with clear separation of concerns:
+
+- **Tool Interface Hierarchy**:
+  - `ToolBuilder` - Base interface for tool registration
+  - `DeclarativeTool` - Abstract base class with validation logic
+  - `BaseDeclarativeTool` - Concrete implementation with JSON schema validation
+  - `ToolInvocation` - Represents a validated, ready-to-execute tool call
+
+- **Tool Registry Pattern**: Centralized `ToolRegistry` manages tool discovery, registration, and provides function declarations to AI models
+- **Tool Discovery**: Supports multiple discovery mechanisms:
+  - Static registration of core tools
+  - Dynamic discovery via command-line tools
+  - MCP (Model Context Protocol) server integration
+
+### 3. Sophisticated Configuration System with Multiple Layers
+
+**Location**: `/packages/core/src/config/`
+
+The configuration system is multi-layered and hierarchical:
+
+- **Configuration Sources** (in priority order):
+  1. CLI arguments (highest)
+  2. Session overrides
+  3. Project settings (`.qwen/settings.json`)
+  4. User settings (`~/.qwen/settings.json`)
+  5. Environment variables
+  6. Default values (lowest)
+
+- **Config Class Design**: The main `Config` class acts as a configuration orchestrator that:
+  - Manages initialization order
+  - Provides type-safe accessors
+  - Handles configuration validation
+  - Manages dependent services (tool registry, file service, etc.)
+
+### 4. Advanced Tool Execution with Confirmation Flow
+
+**Location**: `/packages/core/src/core/coreToolScheduler.ts`
+
+The tool execution system includes sophisticated approval and confirmation mechanisms:
+
+- **CoreToolScheduler**: Manages tool execution lifecycle with states:
+  - `validating` → `scheduled` → `executing` → `success/error/cancelled`
+  - `awaiting_approval` for interactive confirmation
+- **Approval Modes**: Multiple approval strategies:
+  - `DEFAULT` - Standard confirmation for destructive operations
+  - `PLAN` - Read-only mode for planning
+  - `AUTO_EDIT` - Automatic approval for certain operations
+  - `YOLO` - Execute without confirmation
+- **Tool Confirmation Details**: Rich confirmation system with different types (edit, execute, MCP, info)
+
+### 5. MCP (Model Context Protocol) Integration
+
+**Location**: `/packages/core/src/mcp/` and `/packages/core/src/tools/mcp-*.ts`
+
+The system has deep MCP integration for external tool and prompt providers:
+
+- **MCP Client Management**: `McpClientManager` handles multiple MCP servers
+- **Transport Support**: Multiple transport types (stdio, SSE, HTTP, WebSocket)
+- **OAuth Integration**: `MCPOAuthProvider` handles OAuth authentication for MCP servers
+- **Dynamic Tool Discovery**: MCP servers can expose tools that are automatically registered
+
+### 6. Streaming and State Management Architecture
+
+**Location**: `/packages/cli/src/`
+
+The CLI uses React Ink with sophisticated state management:
+
+- **Streaming Context**: Global state for managing AI response streaming
+- **Message Queue**: Handles user input during streaming to prevent lost input
+- **History Management**: Comprehensive conversation history with persistence
+- **Real-time Updates**: Live tool execution output streaming
+
+### 7. Multi-Model Support with Automatic Fallback
+
+The system supports multiple AI models with intelligent fallback:
+
+- **Model Switching**: Dynamic model switching during sessions
+- **Flash Fallback**: Automatic fallback to faster models when quota limits are reached
+- **Vision Model Auto-Switch**: Automatic detection and switching for vision-capable models
+- **User Tier Awareness**: Different behavior based on user subscription tiers
+
+### 8. File System Abstraction and Filtering
+
+**Location**: `/packages/core/src/services/fileDiscoveryService.ts`
+
+Sophisticated file system handling with respect for version control:
+
+- **FileDiscoveryService**: Centralized file discovery with git-aware filtering
+- **Multi-layer Filtering**: Supports both `.gitignore` and `.qwenignore` patterns
+- **Workspace Context**: Manages multiple include directories and project structure
+- **Security Boundaries**: Trusted folder system for security restrictions
+
+### 9. Service Layer Architecture
+
+Clean separation of business logic through services:
+
+- **FileSystemService**: Abstracted file operations
+- **GitService**: Git operations and integration
+- **ShellExecutionService**: Secure shell command execution
+- **ChatRecordingService**: Conversation persistence
+
+### 10. OAuth and Authentication Management
+
+**Location**: `/packages/core/src/qwen/` and `/packages/core/src/mcp/`
+
+Sophisticated authentication system supporting multiple providers:
+
+- **Qwen OAuth**: Custom OAuth2 implementation with automatic token refresh
+- **Shared Token Manager**: Centralized token management across components
+- **Multiple Auth Types**: Support for API keys, OAuth, Google credentials, etc.
+- **Authentication State Management**: Rich authentication state with timeout handling
+
+## Key Design Patterns Used
+
+1. **Provider Pattern** - For AI provider abstraction
+2. **Registry Pattern** - For tool and prompt management
+3. **Strategy Pattern** - For different approval modes and authentication methods
+4. **Observer Pattern** - For streaming updates and state changes
+5. **Factory Pattern** - For creating content generators and providers
+6. **Command Pattern** - For tool execution with undo/redo capabilities
+7. **State Machine** - For tool execution lifecycle and connection states
+
+## Simplified Architecture
 
 **Note**: IDE integration and sub-agent systems have been removed as part of project simplification.
 
@@ -272,28 +368,12 @@ packages/vscode-ide-companion/src/
 
 - **Current Focus**: Core CLI-based AI workflow with direct tool execution
 
-### 5. Session Management
-
-**Components**:
-
-- **Token Limits**: Intelligent context window management
-- **History Persistence**: Conversation history storage
-- **Compression**: Smart context compression when limits reached
-- **Memory Management**: Context memory and retrieval
-
-### 6. Security Architecture
-
-- **Sandboxing**: Docker/Podman containerization for tool execution
-- **Confirmation System**: User confirmation for destructive operations
-- **Trusted Folders**: Security boundaries for file access
-- **Authentication**: OAuth2 and token-based auth for external services
-
 ## Development Workflows
 
 ### Adding New Tools
 
 1. Create tool file in `/packages/core/src/tools/`
-2. Implement `ToolInvocation` interface
+2. Extend `BaseDeclarativeTool` class and implement `invoke()` method
 3. Add to tool registry in `/packages/core/src/config/config.ts`
 4. Add tests alongside tool file
 5. Update documentation in `/docs/tools/`
@@ -308,7 +388,7 @@ packages/vscode-ide-companion/src/
 ### Adding New AI Providers
 
 1. Create provider in `/packages/core/src/core/openaiContentGenerator/provider/`
-2. Implement provider interface
+2. Implement provider interface extending `ContentGenerator`
 3. Add configuration options
 4. Add authentication handling
 5. Add tests
