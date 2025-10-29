@@ -6,6 +6,7 @@
 
 import type React from 'react';
 import { Text, Box } from 'ink';
+import { Colors } from '../../colors.js';
 import { MarkdownDisplay } from '../../utils/MarkdownDisplay.js';
 import { SCREEN_READER_MODEL_PREFIX } from '../../textConstants.js';
 import { TOOL_STATUS } from '../../constants.js';

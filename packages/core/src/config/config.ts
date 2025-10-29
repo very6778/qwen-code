@@ -96,6 +96,12 @@ export interface SummarizeToolOutputSettings {
   tokenBudget?: number;
 }
 
+export interface TelemetrySettings {
+  enabled: boolean;
+  target?: TelemetryTarget;
+  otlpEndpoint?: string;
+}
+
 export interface GitCoAuthorSettings {
   enabled?: boolean;
   name?: string;
@@ -333,6 +339,7 @@ export class Config {
   private readonly enablePromptCompletion: boolean = false;
   private readonly skipLoopDetection: boolean;
   private readonly vlmSwitchMode: string | undefined;
+  private readonly telemetrySettings: TelemetrySettings;
   private initialized: boolean = false;
   readonly storage: Storage;
   private readonly fileExclusions: FileExclusions;
@@ -421,6 +428,11 @@ export class Config {
     this.storage = new Storage(this.targetDir);
     this.enablePromptCompletion = params.enablePromptCompletion ?? false;
     this.vlmSwitchMode = params.vlmSwitchMode;
+    this.telemetrySettings = {
+      enabled: params.telemetry?.enabled ?? false,
+      target: params.telemetry?.target ?? DEFAULT_TELEMETRY_TARGET,
+      otlpEndpoint: params.telemetry?.otlpEndpoint ?? DEFAULT_OTLP_ENDPOINT,
+    };
     this.fileExclusions = new FileExclusions(this);
 
     // Initialize logger asynchronously

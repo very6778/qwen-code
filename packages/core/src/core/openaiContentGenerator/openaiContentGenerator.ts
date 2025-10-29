@@ -29,7 +29,7 @@ export class OpenAIContentGenerator implements ContentGenerator {
       cliConfig,
       provider,
       contentGeneratorConfig,
-      telemetryService: new TelemetryService(
+      telemetryService: new DefaultTelemetryService(
         cliConfig,
         contentGeneratorConfig.enableOpenAILogging,
       ),

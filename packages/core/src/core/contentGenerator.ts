@@ -170,34 +170,14 @@ export function createContentGeneratorConfig(
     return contentGeneratorConfig;
   }
 
-  if (authType === AuthType.ZAI_GLM_ANTHROPIC) {
-    // Use Z.ai GLM-4.6 with Anthropic SDK
-    contentGeneratorConfig.apiKey =
-      '4b7ce72f0aa04073821d45375764abb9.DUpXqpRe1Z6B7SmQ';
-    contentGeneratorConfig.baseUrl = 'https://api.z.ai/api/anthropic';
-    contentGeneratorConfig.model = 'glm-4.6';
-
-    return contentGeneratorConfig;
-  }
-
   if (authType === AuthType.QWEN_OAUTH) {
-    // Check if the selected model is GLM-4.6, if so use Z.ai Anthropic configuration
-    const selectedModel = config.getModel();
-    if (selectedModel === 'glm-4.6') {
-      // Use Z.ai Anthropic API configuration for GLM-4.6
-      contentGeneratorConfig.apiKey =
-        '4b7ce72f0aa04073821d45375764abb9.DUpXqpRe1Z6B7SmQ';
-      contentGeneratorConfig.baseUrl = 'https://api.z.ai/api/anthropic';
-      contentGeneratorConfig.model = 'glm-4.6';
-    } else {
-      // For Qwen OAuth, we'll handle the API key dynamically in createContentGenerator
-      // Set a special marker to indicate this is Qwen OAuth
-      contentGeneratorConfig.apiKey = 'QWEN_OAUTH_DYNAMIC_TOKEN';
+    // For Qwen OAuth, we'll handle the API key dynamically in createContentGenerator
+    // Set a special marker to indicate this is Qwen OAuth
+    contentGeneratorConfig.apiKey = 'QWEN_OAUTH_DYNAMIC_TOKEN';
 
-      // Prefer to use qwen3-coder-plus as the default Qwen model if QWEN_MODEL is not set.
-      contentGeneratorConfig.model =
-        process.env['QWEN_MODEL'] || DEFAULT_QWEN_MODEL;
-    }
+    // Prefer to use qwen3-coder-plus as the default Qwen model if QWEN_MODEL is not set.
+    contentGeneratorConfig.model =
+      process.env['QWEN_MODEL'] || DEFAULT_QWEN_MODEL;
 
     return contentGeneratorConfig;
   }
@@ -286,24 +266,7 @@ export async function createContentGenerator(
     return createOpenAIContentGenerator(config, gcConfig);
   }
 
-  if (config.authType === AuthType.ZAI_GLM_ANTHROPIC) {
-    // Use Z.ai GLM-4.6 with Anthropic SDK
-    const { createOpenAIContentGenerator } = await import(
-      './openaiContentGenerator/index.js'
-    );
-    return createOpenAIContentGenerator(config, gcConfig);
-  }
-
   if (config.authType === AuthType.QWEN_OAUTH) {
-    // Check if the selected model is GLM-4.6, if so use OpenAI Content Generator with Z.ai config
-    if (config.model === 'glm-4.6') {
-      // Use OpenAI Content Generator for GLM-4.6
-      const { createOpenAIContentGenerator } = await import(
-        './openaiContentGenerator/index.js'
-      );
-      return createOpenAIContentGenerator(config, gcConfig);
-    }
-
     // For other Qwen models, use the regular Qwen Content Generator
     // Import required classes dynamically
     const { getQwenOAuthClient: getQwenOauthClient } = await import(
