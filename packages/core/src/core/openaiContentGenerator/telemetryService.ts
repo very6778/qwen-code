@@ -327,5 +327,3 @@ export class DefaultTelemetryService implements TelemetryService {
     return combinedResponse;
   }
 }
-
-export const DefaultTelemetryService = new TelemetryService();
