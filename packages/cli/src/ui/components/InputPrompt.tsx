@@ -5,7 +5,7 @@
  */
 
 import type React from 'react';
-import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { Box, Text } from 'ink';
 import { theme } from '../semantic-colors.js';
 import { SuggestionsDisplay } from './SuggestionsDisplay.js';
@@ -69,13 +69,8 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   vimHandleInput,
 }) => {
   const normalizedFrameWidth = Math.max(0, Math.floor(frameWidth));
-  const horizontalLine = useMemo(() => {
-    if (normalizedFrameWidth <= 0) {
-      return '';
-    }
-    return '─'.repeat(normalizedFrameWidth);
-  }, [normalizedFrameWidth]);
-  const frameLineColor = shellModeActive ? theme.status.warning : '#53626e';
+  const promptBackgroundColor = '#242424';
+  const placeholderColor = '#999797';
   const [justNavigatedHistory, setJustNavigatedHistory] = useState(false);
   const [escPressCount, setEscPressCount] = useState(0);
   const [showEscapePrompt, setShowEscapePrompt] = useState(false);
@@ -738,36 +733,34 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
   const { inlineGhost, additionalLines } = getGhostTextLines();
 
+  const prefixDisplay = shellModeActive
+    ? reverseSearchActive
+      ? chalk.bgHex(promptBackgroundColor)(
+          chalk.hex(theme.text.link)('(r:) '),
+        )
+      : chalk.bgHex(promptBackgroundColor)(
+          chalk.hex(theme.status.warning)('! '),
+        )
+    : chalk.bgHex(promptBackgroundColor)(
+        chalk.hex('#f5f5f5')('> '),
+      );
+  const prefixAriaLabel =
+    shellModeActive && reverseSearchActive ? SCREEN_READER_USER_PREFIX : undefined;
+
   return (
     <>
-      {horizontalLine && <Text color={frameLineColor}>{horizontalLine}</Text>}
       <Box
         width={normalizedFrameWidth > 0 ? normalizedFrameWidth : undefined}
         flexDirection="row"
       >
-        <Text color={shellModeActive ? theme.status.warning : '#f5f5f5'}>
-          {shellModeActive ? (
-            reverseSearchActive ? (
-              <Text
-                color={theme.text.link}
-                aria-label={SCREEN_READER_USER_PREFIX}
-              >
-                (r:){' '}
-              </Text>
-            ) : (
-              '! '
-            )
-          ) : (
-            '> '
-          )}
-        </Text>
+        <Text aria-label={prefixAriaLabel}>{prefixDisplay}</Text>
         <Box flexGrow={1} flexDirection="column">
           {buffer.text.length === 0 && placeholder ? (
-            focus ? (
-              <Text color="#999797">{getPaddedPlaceholder()}</Text>
-            ) : (
-              <Text color="#999797">{getPaddedPlaceholder()}</Text>
-            )
+            <Text>
+              {chalk.bgHex(promptBackgroundColor)(
+                chalk.hex(placeholderColor)(getPaddedPlaceholder()),
+              )}
+            </Text>
           ) : (
             linesToRender
               .map((lineText, visualIdxInRenderedSet) => {
@@ -824,16 +817,24 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                   effectiveInputWidth - totalContentWidth,
                 );
 
+                let lineContent = display;
+                if (showCursorBeforeGhost) {
+                  lineContent += chalk.inverse(' ');
+                }
+                if (currentLineGhost) {
+                  lineContent += chalk.hex(theme.text.secondary)(
+                    currentLineGhost,
+                  );
+                }
+                if (trailingPadding > 0) {
+                  lineContent += ' '.repeat(trailingPadding);
+                }
+
+                lineContent = chalk.bgHex(promptBackgroundColor)(lineContent);
+
                 return (
                   <Text key={`line-${visualIdxInRenderedSet}`}>
-                    {display}
-                    {showCursorBeforeGhost && chalk.inverse(' ')}
-                    {currentLineGhost && (
-                      <Text color={theme.text.secondary}>
-                        {currentLineGhost}
-                      </Text>
-                    )}
-                    {trailingPadding > 0 && ' '.repeat(trailingPadding)}
+                    {lineContent}
                   </Text>
                 );
               })
@@ -843,13 +844,15 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                     0,
                     effectiveInputWidth - stringWidth(ghostLine),
                   );
+                  let ghostContent =
+                    chalk.hex(theme.text.secondary)(ghostLine) +
+                    ' '.repeat(padding);
+                  ghostContent = chalk.bgHex(promptBackgroundColor)(
+                    ghostContent,
+                  );
                   return (
-                    <Text
-                      key={`ghost-line-${index}`}
-                      color={theme.text.secondary}
-                    >
-                      {ghostLine}
-                      {' '.repeat(padding)}
+                    <Text key={`ghost-line-${index}`}>
+                      {ghostContent}
                     </Text>
                   );
                 }),
@@ -857,7 +860,6 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           )}
         </Box>
       </Box>
-      {horizontalLine && <Text color={frameLineColor}>{horizontalLine}</Text>}
       {completion.showSuggestions && (
         <Box paddingRight={1}>
           <SuggestionsDisplay
