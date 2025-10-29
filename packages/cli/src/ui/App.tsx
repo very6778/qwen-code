@@ -1243,33 +1243,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
           </Box>
         </OverflowProvider>
 
-        {streamingState !== StreamingState.Idle && (
-          <Box flexDirection="column">
-            <LoadingIndicator
-              thought={
-                streamingState === StreamingState.WaitingForConfirmation ||
-                config.getAccessibility()?.disableLoadingPhrases ||
-                config.getScreenReader()
-                  ? undefined
-                  : thought
-              }
-              currentLoadingPhrase={
-                streamingState === StreamingState.WaitingForConfirmation ||
-                config.getAccessibility()?.disableLoadingPhrases ||
-                config.getScreenReader()
-                  ? undefined
-                  : currentLoadingPhrase
-              }
-              elapsedTime={elapsedTime}
-              queuedMessages={messageQueue}
-              maxQueuedMessages={MAX_DISPLAYED_QUEUED_MESSAGES}
-              width={mainAreaWidth}
-              topPaddingLines={0}
-              linesBelow={0}
-            />
-          </Box>
-        )}
-
         <Box flexDirection="column" ref={mainControlsRef}>
           {/* Move UpdateNotification to render update notification above input area */}
           {updateInfo && <UpdateNotification message={updateInfo.message} />}
@@ -1486,6 +1459,35 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                   </OverflowProvider>
                 )}
               </Box>
+
+              {streamingState !== StreamingState.Idle && (
+                <Box width="100%">
+                  <LoadingIndicator
+                    thought={
+                      streamingState ===
+                        StreamingState.WaitingForConfirmation ||
+                      config.getAccessibility()?.disableLoadingPhrases ||
+                      config.getScreenReader()
+                        ? undefined
+                        : thought
+                    }
+                    currentLoadingPhrase={
+                      streamingState ===
+                        StreamingState.WaitingForConfirmation ||
+                      config.getAccessibility()?.disableLoadingPhrases ||
+                      config.getScreenReader()
+                        ? undefined
+                        : currentLoadingPhrase
+                    }
+                    elapsedTime={elapsedTime}
+                    queuedMessages={messageQueue}
+                    maxQueuedMessages={MAX_DISPLAYED_QUEUED_MESSAGES}
+                    width={mainAreaWidth}
+                    topPaddingLines={0}
+                    linesBelow={0}
+                  />
+                </Box>
+              )}
 
               {isInputActive && (
                 <Box
