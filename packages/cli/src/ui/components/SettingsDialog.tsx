@@ -762,7 +762,7 @@ export function SettingsDialog({
 
         <Box marginTop={1} flexDirection="column">
           <Text bold={focusSection === 'scope'} wrap="truncate">
-            {focusSection === 'scope' ? '> ' : '  '}Apply To
+            {focusSection === 'scope' ? '› ' : '  '}Apply To
           </Text>
           <RadioButtonSelect
             items={scopeItems}

@@ -98,7 +98,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     ? reverseSearchActive
       ? '(r:) '
       : '! '
-    : '> ';
+    : '› ';
   const prefixWidth = Math.min(
     normalizedFrameWidth,
     stringWidth(promptPrefixText),
@@ -738,7 +738,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           chalk.hex(theme.status.warning)('! '),
         )
     : chalk.bgHex(promptBackgroundColor)(
-        chalk.hex('#f5f5f5')('> '),
+        chalk.hex('#f5f5f5')('› '),
       );
   const prefixAriaLabel =
     shellModeActive && reverseSearchActive

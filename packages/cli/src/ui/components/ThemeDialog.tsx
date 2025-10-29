@@ -221,7 +221,7 @@ export function ThemeDialog({
         {/* Left Column: Selection */}
         <Box flexDirection="column" width="45%" paddingRight={2}>
           <Text bold={currentFocusedSection === 'theme'} wrap="truncate">
-            {currentFocusedSection === 'theme' ? '> ' : '  '}Select Theme{' '}
+            {currentFocusedSection === 'theme' ? '› ' : '  '}Select Theme{' '}
             <Text color={Colors.Gray}>{otherScopeModifiedMessage}</Text>
           </Text>
           <RadioButtonSelect
@@ -240,7 +240,7 @@ export function ThemeDialog({
           {showScopeSelection && (
             <Box marginTop={1} flexDirection="column">
               <Text bold={currentFocusedSection === 'scope'} wrap="truncate">
-                {currentFocusedSection === 'scope' ? '> ' : '  '}Apply To
+                {currentFocusedSection === 'scope' ? '› ' : '  '}Apply To
               </Text>
               <RadioButtonSelect
                 items={scopeItems}

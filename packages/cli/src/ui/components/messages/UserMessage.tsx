@@ -16,7 +16,7 @@ interface UserMessageProps {
 }
 
 export const UserMessage: React.FC<UserMessageProps> = ({ text, terminalWidth = 80 }) => {
-  const prefix = '> ';
+  const prefix = '› ';
   const isSlashCommand = checkIsSlashCommand(text);
 
   const textColor = isSlashCommand ? Colors.AccentPurple : Colors.Gray;

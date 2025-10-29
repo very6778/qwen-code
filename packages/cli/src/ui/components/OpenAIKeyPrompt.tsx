@@ -153,7 +153,7 @@ export function OpenAIKeyPrompt({
         </Box>
         <Box flexGrow={1}>
           <Text>
-            {currentField === 'apiKey' ? '> ' : '  '}
+            {currentField === 'apiKey' ? '› ' : '  '}
             {apiKey || ' '}
           </Text>
         </Box>
@@ -168,7 +168,7 @@ export function OpenAIKeyPrompt({
         </Box>
         <Box flexGrow={1}>
           <Text>
-            {currentField === 'baseUrl' ? '> ' : '  '}
+            {currentField === 'baseUrl' ? '› ' : '  '}
             {baseUrl}
           </Text>
         </Box>
@@ -183,7 +183,7 @@ export function OpenAIKeyPrompt({
         </Box>
         <Box flexGrow={1}>
           <Text>
-            {currentField === 'model' ? '> ' : '  '}
+            {currentField === 'model' ? '› ' : '  '}
             {model}
           </Text>
         </Box>
