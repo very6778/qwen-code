@@ -1244,7 +1244,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         </OverflowProvider>
 
         {streamingState !== StreamingState.Idle && (
-          <Box flexDirection="column" marginY={1}>
+          <Box flexDirection="column">
             <LoadingIndicator
               thought={
                 streamingState === StreamingState.WaitingForConfirmation ||
