@@ -1167,8 +1167,8 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   // enough but not too large to make the terminal hard to use.
   const staticAreaMaxItemHeight = Math.max(terminalHeight * 4, 100);
   const placeholder = vimModeEnabled
-    ? "  Press 'i' for INSERT mode and 'Esc' for NORMAL mode."
-    : '  Type your message';
+    ? "Press 'i' for INSERT mode and 'Esc' for NORMAL mode."
+    : 'Type your message';
 
   return (
     <StreamingContext.Provider value={streamingState}>

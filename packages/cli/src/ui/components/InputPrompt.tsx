@@ -58,7 +58,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   config,
   slashCommands,
   commandContext,
-  placeholder = '  Type your message',
+  placeholder = 'Type your message',
   focus = true,
   inputWidth,
   frameWidth,
