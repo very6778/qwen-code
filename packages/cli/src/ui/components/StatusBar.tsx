@@ -142,12 +142,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       rightSegment,
     ].filter((segment) => segment);
 
-    if (topSegments.length > 0) {
-      const joined = topSegments.join(' ').replace(/\s+/g, ' ').trim();
-      lines.push(<Text key="main">{joined}</Text>);
-    }
-
-    // Add queued messages
+    // Add queued messages first so they appear above the indicator line
     const queueLimit = Math.max(0, maxQueuedMessages);
     if (queuedMessages.length > 0 && queueLimit > 0) {
       const visibleQueued = queuedMessages.slice(0, queueLimit);
@@ -174,6 +169,11 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           </Text>
         );
       }
+    }
+
+    if (topSegments.length > 0) {
+      const joined = topSegments.join(' ').replace(/\s+/g, ' ').trim();
+      lines.push(<Text key="main">{joined}</Text>);
     }
 
     return lines;
