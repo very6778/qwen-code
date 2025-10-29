@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Text, useStdout } from 'ink';
-import ansiEscapes from 'ansi-escapes';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Text } from 'ink';
 import cliSpinners from 'cli-spinners';
 import stringWidth from 'string-width';
 import sliceAnsi from 'slice-ansi';
@@ -86,6 +85,8 @@ interface StatusBarProps {
   maxQueuedMessages: number;
   width?: number;
   rightContent?: string;
+  linesBelow?: number;
+  topPaddingLines?: number;
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({
@@ -96,14 +97,14 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   maxQueuedMessages,
   width,
   rightContent,
+  linesBelow = 0,
+  topPaddingLines = 0,
 }) => {
-  const { stdout } = useStdout();
-  const previousLineCountRef = useRef(0);
   const spinnerFrame = useSpinnerFrame(streamingState);
 
-  const { content, lineCount } = useMemo(() => {
+  const content = useMemo(() => {
     const effectiveWidth = Math.max(width ?? DEFAULT_WIDTH, 10);
-    const lines: string[] = [];
+    const lines: React.ReactElement[] = [];
 
     const spinnerSegment = spinnerFrame
       ? colorize(Colors.AccentGreen, spinnerFrame)
@@ -133,6 +134,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       ? colorize(Colors.Gray, truncateWithEllipsis(rightContent, effectiveWidth))
       : '';
 
+    // Build main status line
     const topSegments = [
       spinnerSegment,
       primarySegment,
@@ -142,42 +144,39 @@ export const StatusBar: React.FC<StatusBarProps> = ({
 
     if (topSegments.length > 0) {
       const joined = topSegments.join(' ').replace(/\s+/g, ' ').trim();
-      lines.push(truncateWithEllipsis(joined, effectiveWidth));
+      lines.push(<Text key="main">{joined}</Text>);
     }
 
+    // Add queued messages
     const queueLimit = Math.max(0, maxQueuedMessages);
     if (queuedMessages.length > 0 && queueLimit > 0) {
       const visibleQueued = queuedMessages.slice(0, queueLimit);
-      const queueLines = visibleQueued.map((message) => {
+      visibleQueued.forEach((message, index) => {
         const normalized = normalizeQueuedMessage(message);
         const prefixed = `  ${normalized}`;
-        return chalk.dim(truncateWithEllipsis(prefixed, effectiveWidth));
+        lines.push(
+          <Text key={`queue-${index}`} color="gray">
+            {chalk.dim(truncateWithEllipsis(prefixed, effectiveWidth))}
+          </Text>
+        );
       });
-      lines.push(...queueLines);
 
       if (queuedMessages.length > queueLimit) {
         const remaining = queuedMessages.length - queueLimit;
         lines.push(
-          chalk.dim(
-            truncateWithEllipsis(
-              `  ...(+${remaining} more)`,
-              effectiveWidth,
-            ),
-          ),
+          <Text key="more" color="gray">
+            {chalk.dim(
+              truncateWithEllipsis(
+                `  ...(+${remaining} more)`,
+                effectiveWidth,
+              ),
+            )}
+          </Text>
         );
       }
     }
 
-    const filteredLines = lines.filter((line) => line.length > 0);
-    return {
-      content:
-        filteredLines.length > 0
-          ? filteredLines.join('\n')
-          : streamingState === StreamingState.Idle
-            ? ''
-            : '',
-      lineCount: filteredLines.length,
-    };
+    return lines;
   }, [
     elapsedTime,
     maxQueuedMessages,
@@ -187,56 +186,26 @@ export const StatusBar: React.FC<StatusBarProps> = ({
     spinnerFrame,
     streamingState,
     width,
+    topPaddingLines,
   ]);
 
-  useEffect(() => {
-    if (!stdout || typeof stdout.write !== 'function') {
-      return;
-    }
-
-    const previousLines = previousLineCountRef.current;
-
-    stdout.write(ansiEscapes.cursorSavePosition);
-    if (previousLines > 0) {
-      stdout.write(ansiEscapes.cursorUp(previousLines));
-      stdout.write(ansiEscapes.cursorTo(0));
-      stdout.write(ansiEscapes.eraseDown);
-    }
-
-    if (content) {
-      stdout.write(content);
-    }
-
-    previousLineCountRef.current = lineCount;
-    stdout.write(ansiEscapes.cursorRestorePosition);
-
-    return () => {
-      if (!stdout || typeof stdout.write !== 'function') {
-        return;
-      }
-      const linesToClear = previousLineCountRef.current;
-      if (linesToClear > 0) {
-        stdout.write(ansiEscapes.cursorSavePosition);
-        stdout.write(ansiEscapes.cursorUp(linesToClear));
-        stdout.write(ansiEscapes.cursorTo(0));
-        stdout.write(ansiEscapes.eraseDown);
-        stdout.write(ansiEscapes.cursorRestorePosition);
-      }
-      previousLineCountRef.current = 0;
-    };
-  }, [content, lineCount, stdout]);
-
-  const placeholderLineCount =
-    lineCount || (streamingState !== StreamingState.Idle ? 1 : 0);
-
-  if (placeholderLineCount === 0) {
+  // Don't render if idle and no content
+  if (
+    streamingState === StreamingState.Idle &&
+    queuedMessages.length === 0 &&
+    !primaryText
+  ) {
     return null;
   }
 
   return (
     <Box flexDirection="column">
-      {Array.from({ length: placeholderLineCount }).map((_, index) => (
-        <Text key={`status-placeholder-${index}`}>{' '}</Text>
+      {topPaddingLines > 0 && Array.from({ length: topPaddingLines }).map((_, index) => (
+        <Text key={`padding-${index}`}> </Text>
+      ))}
+      {content}
+      {linesBelow > 0 && Array.from({ length: linesBelow }).map((_, index) => (
+        <Text key={`below-${index}`}> </Text>
       ))}
     </Box>
   );

@@ -113,7 +113,6 @@ export interface OpenDialogActionReturn {
     | 'help'
     | 'auth'
     | 'theme'
-    | 'editor'
     | 'privacy'
     | 'settings'
     | 'model'

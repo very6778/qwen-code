@@ -5,7 +5,6 @@
  */
 
 import type {
-  Content,
   CountTokensParameters,
   CountTokensResponse,
   EmbedContentParameters,
@@ -21,12 +20,11 @@ import {
   logApiError,
   ApiRequestEvent,
   ApiResponseEvent,
-  ApiErrorEvent
+  ApiErrorEvent,
 } from '../telemetry-mocks.js';
 
 import type { Config } from '../config/config.js';
 import type { ContentGenerator } from './contentGenerator.js';
-import { toContents } from '../code_assist/converter.js';
 import { isStructuredError } from '../utils/quotaErrorDetection.js';
 
 interface StructuredError {
@@ -46,15 +44,73 @@ export class LoggingContentGenerator implements ContentGenerator {
     return this.wrapped;
   }
 
+  private serializeForLogging(value: unknown): string {
+    const seen = new WeakSet();
+    const replacer = (_key: string, val: unknown) => {
+      if (typeof val === 'bigint') {
+        return val.toString();
+      }
+      if (val && typeof val === 'object') {
+        if (seen.has(val as object)) {
+          return '[Circular]';
+        }
+        seen.add(val as object);
+        if (val instanceof Map) {
+          return Object.fromEntries(val);
+        }
+        if (val instanceof Set) {
+          return Array.from(val);
+        }
+        const constructorName = (val as { constructor?: { name?: string } })
+          .constructor?.name;
+        if (constructorName === 'AbortSignal') {
+          return '[AbortSignal]';
+        }
+        if (typeof (val as { toJSON?: () => unknown }).toJSON === 'function') {
+          try {
+            return (val as { toJSON: () => unknown }).toJSON();
+          } catch (error) {
+            return `[toJSON error: ${
+              error instanceof Error ? error.message : String(error)
+            }]`;
+          }
+        }
+        const tag = Object.prototype.toString.call(val);
+        if (tag === '[object AbortSignal]') {
+          return '[AbortSignal]';
+        }
+      }
+      if (typeof val === 'function') {
+        return `[Function ${(val as { name?: string }).name || 'anonymous'}]`;
+      }
+      if (val instanceof Error) {
+        return {
+          name: val.name,
+          message: val.message,
+          stack: val.stack,
+        };
+      }
+      return val;
+    };
+
+    try {
+      return JSON.stringify(value, replacer);
+    } catch (error) {
+      return `"Failed to serialize: ${
+        error instanceof Error ? error.message : String(error)
+      }"`;
+    }
+  }
+
   private logApiRequest(
-    contents: Content[],
+    request: GenerateContentParameters,
     model: string,
     promptId: string,
   ): void {
-    const requestText = JSON.stringify(contents);
+    const requestText = this.serializeForLogging(request);
     logApiRequest(
       this.config,
-      new ApiRequestEvent(model, promptId, requestText),
+      new ApiRequestEvent(model, promptId, requestText, request.contents),
     );
   }
 
@@ -64,6 +120,11 @@ export class LoggingContentGenerator implements ContentGenerator {
     prompt_id: string,
     usageMetadata?: GenerateContentResponseUsageMetadata,
     responseText?: string,
+    extra?: {
+      requestText?: string;
+      providerRequestText?: string;
+      providerResponseText?: string;
+    },
   ): void {
     logApiResponse(
       this.config,
@@ -75,18 +136,25 @@ export class LoggingContentGenerator implements ContentGenerator {
         this.config.getContentGeneratorConfig()?.authType,
         usageMetadata,
         responseText,
+        undefined,
+        undefined,
+        extra,
       ),
     );
   }
 
   private _logApiError(
-    responseId: string | undefined,
+    requestText: string | undefined,
     durationMs: number,
     error: unknown,
     prompt_id: string,
+    responseId?: string,
   ): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorType = error instanceof Error ? error.name : 'unknown';
+    const statusCode = isStructuredError(error)
+      ? (error as StructuredError).status
+      : undefined;
 
     logApiError(
       this.config,
@@ -97,10 +165,13 @@ export class LoggingContentGenerator implements ContentGenerator {
         durationMs,
         prompt_id,
         this.config.getContentGeneratorConfig()?.authType,
-        errorType,
-        isStructuredError(error)
-          ? (error as StructuredError).status
-          : undefined,
+        undefined,
+        {
+          errorType,
+          statusCode,
+          requestText,
+          stack: error instanceof Error ? error.stack : undefined,
+        },
       ),
     );
   }
@@ -110,7 +181,8 @@ export class LoggingContentGenerator implements ContentGenerator {
     userPromptId: string,
   ): Promise<GenerateContentResponse> {
     const startTime = Date.now();
-    this.logApiRequest(toContents(req.contents), req.model, userPromptId);
+    const serializedRequest = this.serializeForLogging(req);
+    this.logApiRequest(req, req.model, userPromptId);
     try {
       const response = await this.wrapped.generateContent(req, userPromptId);
       const durationMs = Date.now() - startTime;
@@ -119,12 +191,20 @@ export class LoggingContentGenerator implements ContentGenerator {
         durationMs,
         userPromptId,
         response.usageMetadata,
-        JSON.stringify(response),
+        this.serializeForLogging(response),
+        {
+          requestText: serializedRequest,
+        },
       );
       return response;
     } catch (error) {
       const durationMs = Date.now() - startTime;
-      this._logApiError(undefined, durationMs, error, userPromptId);
+      this._logApiError(
+        serializedRequest,
+        durationMs,
+        error,
+        userPromptId,
+      );
       throw error;
     }
   }
@@ -134,24 +214,37 @@ export class LoggingContentGenerator implements ContentGenerator {
     userPromptId: string,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
     const startTime = Date.now();
-    this.logApiRequest(toContents(req.contents), req.model, userPromptId);
+    const serializedRequest = this.serializeForLogging(req);
+    this.logApiRequest(req, req.model, userPromptId);
 
     let stream: AsyncGenerator<GenerateContentResponse>;
     try {
       stream = await this.wrapped.generateContentStream(req, userPromptId);
     } catch (error) {
       const durationMs = Date.now() - startTime;
-      this._logApiError(undefined, durationMs, error, userPromptId);
+      this._logApiError(
+        serializedRequest,
+        durationMs,
+        error,
+        userPromptId,
+        undefined,
+      );
       throw error;
     }
 
-    return this.loggingStreamWrapper(stream, startTime, userPromptId);
+    return this.loggingStreamWrapper(
+      stream,
+      startTime,
+      userPromptId,
+      serializedRequest,
+    );
   }
 
   private async *loggingStreamWrapper(
     stream: AsyncGenerator<GenerateContentResponse>,
     startTime: number,
     userPromptId: string,
+    serializedRequest: string,
   ): AsyncGenerator<GenerateContentResponse> {
     let lastResponse: GenerateContentResponse | undefined;
     const responses: GenerateContentResponse[] = [];
@@ -168,7 +261,7 @@ export class LoggingContentGenerator implements ContentGenerator {
       }
     } catch (error) {
       const durationMs = Date.now() - startTime;
-      this._logApiError(undefined, durationMs, error, userPromptId);
+      this._logApiError(serializedRequest, durationMs, error, userPromptId);
       throw error;
     }
     const durationMs = Date.now() - startTime;
@@ -178,7 +271,10 @@ export class LoggingContentGenerator implements ContentGenerator {
         durationMs,
         userPromptId,
         lastUsageMetadata,
-        JSON.stringify(responses),
+        this.serializeForLogging(responses),
+        {
+          requestText: serializedRequest,
+        },
       );
     }
   }

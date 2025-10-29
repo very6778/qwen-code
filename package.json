@@ -1,6 +1,6 @@
 {
   "name": "@qwen-code/qwen-code",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -13,7 +13,7 @@
     "url": "git+https://github.com/QwenLM/qwen-code.git"
   },
   "config": {
-    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.0.14"
+    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.0.28"
   },
   "scripts": {
     "start": "node scripts/start.js",
@@ -94,6 +94,7 @@
     "yargs": "^17.7.2"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.67.0",
     "@lvce-editor/ripgrep": "^1.6.0",
     "simple-git": "^3.28.0",
     "strip-ansi": "^7.1.0"

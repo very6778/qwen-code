@@ -24,8 +24,8 @@ function getAvailableModelsForAuthType(authType: AuthType): AvailableModel[] {
     case AuthType.QWEN_OAUTH:
       return AVAILABLE_MODELS_QWEN;
     case AuthType.USE_OPENAI: {
-      const openAIModel = getOpenAIAvailableModelFromEnv();
-      return openAIModel ? [openAIModel] : [];
+      // Return the full list of available OpenAI models (currently GLM-4.6)
+      return getOpenAIAvailableModels();
     }
     case AuthType.USE_ZAI_OPENROUTER:
       return AVAILABLE_MODELS_ZAI;

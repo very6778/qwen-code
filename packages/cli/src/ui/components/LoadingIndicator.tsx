@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React, { useMemo } from 'react';
 import type { ThoughtSummary } from '@qwen-code/qwen-code-core';
 import { useStreamingContext } from '../contexts/StreamingContext.js';
 import { StreamingState } from '../types.js';
@@ -18,6 +19,8 @@ interface LoadingIndicatorProps {
   maxQueuedMessages?: number;
   width?: number;
   rightContent?: string;
+  linesBelow?: number;
+  topPaddingLines?: number;
 }
 
 export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
@@ -28,9 +31,37 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
   maxQueuedMessages = 3,
   width,
   rightContent,
+  linesBelow = 0,
+  topPaddingLines = 0,
 }) => {
   const streamingState = useStreamingContext();
   const { columns } = useTerminalSize();
+
+  const primaryText = thought?.subject || currentLoadingPhrase;
+  const effectiveWidth = width ?? columns ?? 80;
+
+  // Ensure stable props to prevent unnecessary re-renders during streaming
+  const stableProps = useMemo(() => ({
+    streamingState,
+    primaryText,
+    elapsedTime,
+    queuedMessages,
+    maxQueuedMessages,
+    width: effectiveWidth,
+    rightContent,
+    linesBelow,
+    topPaddingLines,
+  }), [
+    streamingState,
+    primaryText,
+    elapsedTime,
+    queuedMessages,
+    maxQueuedMessages,
+    effectiveWidth,
+    rightContent,
+    linesBelow,
+    topPaddingLines,
+  ]);
 
   if (
     streamingState === StreamingState.Idle &&
@@ -39,18 +70,7 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
     return null;
   }
 
-  const primaryText = thought?.subject || currentLoadingPhrase;
-  const effectiveWidth = width ?? columns ?? 80;
-
   return (
-    <StatusBar
-      streamingState={streamingState}
-      primaryText={primaryText}
-      elapsedTime={elapsedTime}
-      queuedMessages={queuedMessages}
-      maxQueuedMessages={maxQueuedMessages}
-      width={effectiveWidth}
-      rightContent={rightContent}
-    />
+    <StatusBar {...stableProps} />
   );
 };

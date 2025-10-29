@@ -26,6 +26,11 @@ export interface ColorsTheme {
   Comment: string;
   Gray: string;
   GradientColors?: string[];
+  // Professional CLI colors for enhanced contrast
+  HighContrastGreen?: string;
+  HighContrastRed?: string;
+  MutedGray?: string;
+  BoldGreen?: string;
 }
 
 export interface CustomTheme {
@@ -92,7 +97,7 @@ export const lightTheme: ColorsTheme = {
   DiffRemoved: '#FFCCCC',
   Comment: '#008000',
   Gray: '#97a0b0',
-  GradientColors: ['#4796E4', '#847ACE', '#C3677F'],
+  GradientColors: ['#ffaa55'],
 };
 
 export const darkTheme: ColorsTheme = {
@@ -110,7 +115,7 @@ export const darkTheme: ColorsTheme = {
   DiffRemoved: '#430000',
   Comment: '#6C7086',
   Gray: '#6C7086',
-  GradientColors: ['#4796E4', '#847ACE', '#C3677F'],
+  GradientColors: ['#ffaa55'],
 };
 
 export const ansiTheme: ColorsTheme = {

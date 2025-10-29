@@ -7,7 +7,6 @@
 import type {
   MCPServerConfig,
   BugCommandSettings,
-  TelemetrySettings,
   AuthType,
   ChatCompressionSettings,
 } from '@qwen-code/qwen-code-core';
@@ -228,6 +227,15 @@ export const SETTINGS_SCHEMA = {
         description: 'Show line numbers in the chat.',
         showInDialog: true,
       },
+      toolLayout: {
+        type: 'string',
+        label: 'Tool Layout',
+        category: 'UI',
+        requiresRestart: false,
+        default: 'minimal',
+        description: 'Layout style for tool output display',
+        showInDialog: true,
+      },
       accessibility: {
         type: 'object',
         label: 'Accessibility',
@@ -310,16 +318,6 @@ export const SETTINGS_SCHEMA = {
         showInDialog: false,
       },
     },
-  },
-
-  telemetry: {
-    type: 'object',
-    label: 'Telemetry',
-    category: 'Advanced',
-    requiresRestart: true,
-    default: undefined as TelemetrySettings | undefined,
-    description: 'Telemetry configuration.',
-    showInDialog: false,
   },
 
   model: {

@@ -5,6 +5,8 @@
  */
 
 // Complete mock telemetry system to replace all telemetry imports
+import fs from 'node:fs';
+import path from 'node:path';
 
 // Mock types
 export interface TelemetryTarget {
@@ -288,6 +290,9 @@ export class ApiResponseEvent {
   authType?: string;
   usageMetadata?: any;
   responseText?: string;
+  requestText?: string;
+  providerRequestText?: string;
+  providerResponseText?: string;
 
   constructor(
     responseId?: string,
@@ -298,7 +303,12 @@ export class ApiResponseEvent {
     usageMetadata?: any,
     responseText?: string,
     url?: string,
-    statusCode?: number
+    statusCode?: number,
+    extra?: {
+      requestText?: string;
+      providerRequestText?: string;
+      providerResponseText?: string;
+    }
   ) {
     this.type = 'api-response';
     this.timestamp = new Date();
@@ -311,6 +321,9 @@ export class ApiResponseEvent {
     this.responseText = responseText;
     this.url = url || 'mock-api-url';
     this.statusCode = statusCode || 200;
+    this.requestText = extra?.requestText;
+    this.providerRequestText = extra?.providerRequestText;
+    this.providerResponseText = extra?.providerResponseText;
   }
 }
 
@@ -388,21 +401,56 @@ export const logInvalidChunk = (config: any, event: any) => {
   }
 };
 
-export const logApiError = (config: any, event: any) => {
+const MAIN_LOG_FILE_NAME = 'main-logging';
+
+function resolveMainLogPath(): string {
+  const envPath = process.env['QWEN_MAIN_LOG_PATH'];
+  if (envPath && envPath.trim().length > 0) {
+    return path.resolve(envPath);
+  }
+  return path.resolve(process.cwd(), MAIN_LOG_FILE_NAME);
+}
+
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch (error) {
+    return `"Failed to serialize payload: ${
+      error instanceof Error ? error.message : String(error)
+    }"`;
+  }
+}
+
+function appendToMainLog(kind: string, event: unknown) {
+  const timestamp = new Date().toISOString();
+  const line = `[${timestamp}] [${kind}] ${safeStringify(event)}\n`;
+  try {
+    fs.appendFileSync(resolveMainLogPath(), line);
+  } catch (error) {
+    if (process.env['NODE_ENV'] === 'development') {
+      console.error('[Mock] Failed to write to main log file:', error);
+    }
+  }
+}
+
+export const logApiError = (_config: any, event: any) => {
+  appendToMainLog('api-error', event);
   if (process.env['NODE_ENV'] === 'development') {
-    console.log(`[Mock] API error:`, config, event);
+    console.log(`[Mock] API error:`, event);
   }
 };
 
-export const logApiRequest = (config: any, event: any) => {
+export const logApiRequest = (_config: any, event: any) => {
+  appendToMainLog('api-request', event);
   if (process.env['NODE_ENV'] === 'development') {
-    console.log(`[Mock] API request:`, config, event);
+    console.log(`[Mock] API request:`, event);
   }
 };
 
-export const logApiResponse = (config: any, event: any) => {
+export const logApiResponse = (_config: any, event: any) => {
+  appendToMainLog('api-response', event);
   if (process.env['NODE_ENV'] === 'development') {
-    console.log(`[Mock] API response:`, config, event);
+    console.log(`[Mock] API response:`, event);
   }
 };
 

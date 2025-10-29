@@ -25,3 +25,11 @@ export const TOOL_STATUS = {
   CANCELED: '⏺',
   ERROR: '⏺',
 } as const;
+
+// Visual status icons for professional CLI appearance
+export const VISUAL_STATUS_ICONS = {
+  SUCCESS: '⏺',  // Medium white circle - successful operation (will be colored green)
+  INFO: '⏺',     // Medium white circle - informational content
+  ERROR: '⏺',    // Medium white circle - error/failed operation (will be colored red)
+  PENDING: '⏺',  // Medium white circle - operation in progress (will be colored yellow)
+} as const;

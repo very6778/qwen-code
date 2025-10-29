@@ -1,0 +1,1049 @@
+{
+  "timestamp": "2025-10-28T16:28:03.571Z",
+  "summary": {
+    "totalFiles": 673,
+    "filesWithEmojis": 16,
+    "totalOccurrences": 83,
+    "criticalAnalysis": {
+      "totalOccurrences": 83,
+      "criticalFileOccurrences": 37,
+      "criticalFileBreakdown": {
+        "App.tsx": 24,
+        "mcpCommand.ts": 6,
+        "DetailedMessagesDisplay.tsx": 3,
+        "SummaryMessage.tsx": 1,
+        "useGeminiStream.ts": 3
+      }
+    }
+  },
+  "details": {
+    "App.tsx": [
+      {
+        "line": 468,
+        "emoji": "⚡",
+        "text": "message = `⚡ You have reached your daily ${currentModel} quota limit.",
+        "context": [
+          "        if (error && isProQuotaExceededError(error)) {",
+          "          if (isPaidTier) {",
+          "            message = `⚡ You have reached your daily ${currentModel} quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;"
+        ]
+      },
+      {
+        "line": 469,
+        "emoji": "⚡",
+        "text": "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+        "context": [
+          "          if (isPaidTier) {",
+          "            message = `⚡ You have reached your daily ${currentModel} quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+          "          } else {"
+        ]
+      },
+      {
+        "line": 470,
+        "emoji": "⚡",
+        "text": "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+        "context": [
+          "            message = `⚡ You have reached your daily ${currentModel} quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+          "          } else {",
+          "            message = `⚡ You have reached your daily ${currentModel} quota limit."
+        ]
+      },
+      {
+        "line": 472,
+        "emoji": "⚡",
+        "text": "message = `⚡ You have reached your daily ${currentModel} quota limit.",
+        "context": [
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+          "          } else {",
+          "            message = `⚡ You have reached your daily ${currentModel} quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist"
+        ]
+      },
+      {
+        "line": 473,
+        "emoji": "⚡",
+        "text": "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+        "context": [
+          "          } else {",
+          "            message = `⚡ You have reached your daily ${currentModel} quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key"
+        ]
+      },
+      {
+        "line": 474,
+        "emoji": "⚡",
+        "text": "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+        "context": [
+          "            message = `⚡ You have reached your daily ${currentModel} quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;"
+        ]
+      },
+      {
+        "line": 475,
+        "emoji": "⚡",
+        "text": "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+        "context": [
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;",
+          "          }"
+        ]
+      },
+      {
+        "line": 476,
+        "emoji": "⚡",
+        "text": "⚡ You can switch authentication methods by typing /auth`;",
+        "context": [
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;",
+          "          }",
+          "        } else if (error && isGenericQuotaExceededError(error)) {"
+        ]
+      },
+      {
+        "line": 480,
+        "emoji": "⚡",
+        "text": "message = `⚡ You have reached your daily quota limit.",
+        "context": [
+          "        } else if (error && isGenericQuotaExceededError(error)) {",
+          "          if (isPaidTier) {",
+          "            message = `⚡ You have reached your daily quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;"
+        ]
+      },
+      {
+        "line": 481,
+        "emoji": "⚡",
+        "text": "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+        "context": [
+          "          if (isPaidTier) {",
+          "            message = `⚡ You have reached your daily quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+          "          } else {"
+        ]
+      },
+      {
+        "line": 482,
+        "emoji": "⚡",
+        "text": "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+        "context": [
+          "            message = `⚡ You have reached your daily quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+          "          } else {",
+          "            message = `⚡ You have reached your daily quota limit."
+        ]
+      },
+      {
+        "line": 484,
+        "emoji": "⚡",
+        "text": "message = `⚡ You have reached your daily quota limit.",
+        "context": [
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+          "          } else {",
+          "            message = `⚡ You have reached your daily quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist"
+        ]
+      },
+      {
+        "line": 485,
+        "emoji": "⚡",
+        "text": "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+        "context": [
+          "          } else {",
+          "            message = `⚡ You have reached your daily quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key"
+        ]
+      },
+      {
+        "line": 486,
+        "emoji": "⚡",
+        "text": "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+        "context": [
+          "            message = `⚡ You have reached your daily quota limit.",
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;"
+        ]
+      },
+      {
+        "line": 487,
+        "emoji": "⚡",
+        "text": "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+        "context": [
+          "⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;",
+          "          }"
+        ]
+      },
+      {
+        "line": 488,
+        "emoji": "⚡",
+        "text": "⚡ You can switch authentication methods by typing /auth`;",
+        "context": [
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;",
+          "          }",
+          "        } else {"
+        ]
+      },
+      {
+        "line": 493,
+        "emoji": "⚡",
+        "text": "message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.",
+        "context": [
+          "          if (isPaidTier) {",
+          "            // Default fallback message for other cases (like consecutive 429s)",
+          "            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.",
+          "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;"
+        ]
+      },
+      {
+        "line": 494,
+        "emoji": "⚡",
+        "text": "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+        "context": [
+          "            // Default fallback message for other cases (like consecutive 429s)",
+          "            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.",
+          "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+          "          } else {"
+        ]
+      },
+      {
+        "line": 495,
+        "emoji": "⚡",
+        "text": "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+        "context": [
+          "            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.",
+          "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+          "⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;",
+          "          } else {",
+          "            // Default fallback message for other cases (like consecutive 429s)"
+        ]
+      },
+      {
+        "line": 498,
+        "emoji": "⚡",
+        "text": "message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.",
+        "context": [
+          "          } else {",
+          "            // Default fallback message for other cases (like consecutive 429s)",
+          "            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.",
+          "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist"
+        ]
+      },
+      {
+        "line": 499,
+        "emoji": "⚡",
+        "text": "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+        "context": [
+          "            // Default fallback message for other cases (like consecutive 429s)",
+          "            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.",
+          "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key"
+        ]
+      },
+      {
+        "line": 500,
+        "emoji": "⚡",
+        "text": "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+        "context": [
+          "            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.",
+          "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;"
+        ]
+      },
+      {
+        "line": 501,
+        "emoji": "⚡",
+        "text": "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+        "context": [
+          "⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit",
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;",
+          "          }"
+        ]
+      },
+      {
+        "line": 502,
+        "emoji": "⚡",
+        "text": "⚡ You can switch authentication methods by typing /auth`;",
+        "context": [
+          "⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist",
+          "⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key",
+          "⚡ You can switch authentication methods by typing /auth`;",
+          "          }",
+          "        }"
+        ]
+      }
+    ],
+    "mcpCommand.test.ts": [
+      {
+        "line": 205,
+        "emoji": "🟢",
+        "text": "'🟢 \\u001b[1mserver1\\u001b[0m - Ready (2 tools)',",
+        "context": [
+          "        // Server 1 - Connected",
+          "        expect(message).toContain(",
+          "          '🟢 \\u001b[1mserver1\\u001b[0m - Ready (2 tools)',",
+          "        );",
+          "        expect(message).toContain('server1_tool1');"
+        ]
+      },
+      {
+        "line": 212,
+        "emoji": "🟢",
+        "text": "'🟢 \\u001b[1mserver2\\u001b[0m - Ready (1 tool)',",
+        "context": [
+          "        // Server 2 - Connected",
+          "        expect(message).toContain(",
+          "          '🟢 \\u001b[1mserver2\\u001b[0m - Ready (1 tool)',",
+          "        );",
+          "        expect(message).toContain('server2_tool1');"
+        ]
+      },
+      {
+        "line": 218,
+        "emoji": "🟢",
+        "text": "'🟢 \\u001b[1mserver3\\u001b[0m - Ready (1 tool)',",
+        "context": [
+          "        // Server 3 - Disconnected but with cached tools, so shows as Ready",
+          "        expect(message).toContain(",
+          "          '🟢 \\u001b[1mserver3\\u001b[0m - Ready (1 tool)',",
+          "        );",
+          "        expect(message).toContain('server3_tool1');"
+        ]
+      },
+      {
+        "line": 223,
+        "emoji": "💡",
+        "text": "expect(message).toContain('💡 Tips:');",
+        "context": [
+          "",
+          "        // Check that helpful tips are displayed when no arguments are provided",
+          "        expect(message).toContain('💡 Tips:');",
+          "        expect(message).toContain('/mcp desc');",
+          "        expect(message).toContain('/mcp schema');"
+        ]
+      },
+      {
+        "line": 282,
+        "emoji": "💡",
+        "text": "expect(message).not.toContain('💡 Tips:');",
+        "context": [
+          "",
+          "        // Check that tips are NOT displayed when arguments are provided",
+          "        expect(message).not.toContain('💡 Tips:');",
+          "      }",
+          "    });"
+        ]
+      },
+      {
+        "line": 322,
+        "emoji": "💡",
+        "text": "expect(message).not.toContain('💡 Tips:');",
+        "context": [
+          "",
+          "        // Check that tips are NOT displayed when arguments are provided",
+          "        expect(message).not.toContain('💡 Tips:');",
+          "      }",
+          "    });"
+        ]
+      },
+      {
+        "line": 354,
+        "emoji": "🟢",
+        "text": "'🟢 \\u001b[1mserver1\\u001b[0m - Ready (1 tool)',",
+        "context": [
+          "        const message = result.content;",
+          "        expect(message).toContain(",
+          "          '🟢 \\u001b[1mserver1\\u001b[0m - Ready (1 tool)',",
+          "        );",
+          "        expect(message).toContain('\\u001b[36mserver1_tool1\\u001b[0m');"
+        ]
+      },
+      {
+        "line": 358,
+        "emoji": "🔴",
+        "text": "'🔴 \\u001b[1mserver2\\u001b[0m - Disconnected (0 tools cached)',",
+        "context": [
+          "        expect(message).toContain('\\u001b[36mserver1_tool1\\u001b[0m');",
+          "        expect(message).toContain(",
+          "          '🔴 \\u001b[1mserver2\\u001b[0m - Disconnected (0 tools cached)',",
+          "        );",
+          "        expect(message).toContain('No tools or prompts available');"
+        ]
+      },
+      {
+        "line": 410,
+        "emoji": "🟢",
+        "text": "'🟢 \\u001b[1mserver1\\u001b[0m - Ready (1 tool)',",
+        "context": [
+          "        // Check server statuses",
+          "        expect(message).toContain(",
+          "          '🟢 \\u001b[1mserver1\\u001b[0m - Ready (1 tool)',",
+          "        );",
+          "        expect(message).toContain("
+        ]
+      },
+      {
+        "line": 413,
+        "emoji": "🔄",
+        "text": "'🔄 \\u001b[1mserver2\\u001b[0m - Starting... (first startup may take longer) (tools and prompts will appear when ready)',",
+        "context": [
+          "        );",
+          "        expect(message).toContain(",
+          "          '🔄 \\u001b[1mserver2\\u001b[0m - Starting... (first startup may take longer) (tools and prompts will appear when ready)',",
+          "        );",
+          "      }"
+        ]
+      },
+      {
+        "line": 446,
+        "emoji": "🔴",
+        "text": "'🔴 \\u001b[1mblocked-server (from my-extension)\\u001b[0m - Blocked',",
+        "context": [
+          "        const message = result.content;",
+          "        expect(message).toContain(",
+          "          '🔴 \\u001b[1mblocked-server (from my-extension)\\u001b[0m - Blocked',",
+          "        );",
+          "      }"
+        ]
+      },
+      {
+        "line": 468,
+        "emoji": "🔴",
+        "text": "'🔴 \\u001b[1mblocked-server (from another-extension)\\u001b[0m - Blocked',",
+        "context": [
+          "        expect(message).toContain('server1 (from my-extension)');",
+          "        expect(message).toContain(",
+          "          '🔴 \\u001b[1mblocked-server (from another-extension)\\u001b[0m - Blocked',",
+          "        );",
+          "      }"
+        ]
+      }
+    ],
+    "mcpCommand.ts": [
+      {
+        "line": 113,
+        "emoji": "🟢",
+        "text": "statusIndicator = '🟢';",
+        "context": [
+          "    switch (status) {",
+          "      case MCPServerStatus.CONNECTED:",
+          "        statusIndicator = '🟢';",
+          "        statusText = 'Ready';",
+          "        break;"
+        ]
+      },
+      {
+        "line": 117,
+        "emoji": "🔄",
+        "text": "statusIndicator = '🔄';",
+        "context": [
+          "        break;",
+          "      case MCPServerStatus.CONNECTING:",
+          "        statusIndicator = '🔄';",
+          "        statusText = 'Starting... (first startup may take longer)';",
+          "        break;"
+        ]
+      },
+      {
+        "line": 122,
+        "emoji": "🔴",
+        "text": "statusIndicator = '🔴';",
+        "context": [
+          "      case MCPServerStatus.DISCONNECTED:",
+          "      default:",
+          "        statusIndicator = '🔴';",
+          "        statusText = 'Disconnected';",
+          "        break;"
+        ]
+      },
+      {
+        "line": 291,
+        "emoji": "🔴",
+        "text": "message += `🔴 \\u001b[1m${serverDisplayName}\\u001b[0m - Blocked\\n\\n`;",
+        "context": [
+          "      serverDisplayName += ` (from ${server.extensionName})`;",
+          "    }",
+          "    message += `🔴 \\u001b[1m${serverDisplayName}\\u001b[0m - Blocked\\n\\n`;",
+          "  }",
+          ""
+        ]
+      },
+      {
+        "line": 297,
+        "emoji": "💡",
+        "text": "message += `${COLOR_CYAN}💡 Tips:${RESET_COLOR}\\n`;",
+        "context": [
+          "  if (showTips) {",
+          "    message += '\\n';",
+          "    message += `${COLOR_CYAN}💡 Tips:${RESET_COLOR}\\n`;",
+          "    message += `  • Use ${COLOR_CYAN}/mcp desc${RESET_COLOR} to show server and tool descriptions\\n`;",
+          "    message += `  • Use ${COLOR_CYAN}/mcp schema${RESET_COLOR} to show tool parameter schemas\\n`;"
+        ]
+      },
+      {
+        "line": 398,
+        "emoji": "✅",
+        "text": "text: `✅ Successfully authenticated with MCP server '${serverName}'!`,",
+        "context": [
+          "        {",
+          "          type: 'info',",
+          "          text: `✅ Successfully authenticated with MCP server '${serverName}'!`,",
+          "        },",
+          "        Date.now(),"
+        ]
+      }
+    ],
+    "summaryCommand.ts": [
+      {
+        "line": 173,
+        "emoji": "❌",
+        "text": "text: `❌ Failed to generate project context summary: ${",
+        "context": [
+          "        {",
+          "          type: 'error' as const,",
+          "          text: `❌ Failed to generate project context summary: ${",
+          "            error instanceof Error ? error.message : String(error)",
+          "          }`,"
+        ]
+      }
+    ],
+    "ConsoleSummaryDisplay.tsx": [
+      {
+        "line": 23,
+        "emoji": "✖",
+        "text": "const errorIcon = '\\u2716'; // Heavy multiplication x (✖)",
+        "context": [
+          "  }",
+          "",
+          "  const errorIcon = '\\u2716'; // Heavy multiplication x (✖)",
+          "",
+          "  return ("
+        ]
+      }
+    ],
+    "DetailedMessagesDisplay.tsx": [
+      {
+        "line": 46,
+        "emoji": "ℹ",
+        "text": "let icon = '\\u2139'; // Information source (ℹ)",
+        "context": [
+          "        {messages.map((msg, index) => {",
+          "          let textColor = Colors.Foreground;",
+          "          let icon = '\\u2139'; // Information source (ℹ)",
+          "",
+          "          switch (msg.type) {"
+        ]
+      },
+      {
+        "line": 55,
+        "emoji": "✖",
+        "text": "icon = '\\u2716'; // Heavy multiplication x (✖)",
+        "context": [
+          "            case 'error':",
+          "              textColor = Colors.AccentRed;",
+          "              icon = '\\u2716'; // Heavy multiplication x (✖)",
+          "              break;",
+          "            case 'debug':"
+        ]
+      },
+      {
+        "line": 59,
+        "emoji": "🔍",
+        "text": "icon = '\\u{1F50D}'; // Left-pointing magnifying glass (🔍)",
+        "context": [
+          "            case 'debug':",
+          "              textColor = Colors.Gray; // Or Colors.Gray",
+          "              icon = '\\u{1F50D}'; // Left-pointing magnifying glass (🔍)",
+          "              break;",
+          "            case 'log':"
+        ]
+      }
+    ],
+    "InputPrompt.test.tsx": [
+      {
+        "line": 928,
+        "emoji": "👍",
+        "text": "mockBuffer.text = '@src/file👍.txt';",
+        "context": [
+          "    it('should handle Unicode characters (emojis) correctly in paths', async () => {",
+          "      // Test with emoji in path after @",
+          "      mockBuffer.text = '@src/file👍.txt';",
+          "      mockBuffer.lines = ['@src/file👍.txt'];",
+          "      mockBuffer.cursor = [0, 14]; // After the emoji character"
+        ]
+      },
+      {
+        "line": 929,
+        "emoji": "👍",
+        "text": "mockBuffer.lines = ['@src/file👍.txt'];",
+        "context": [
+          "      // Test with emoji in path after @",
+          "      mockBuffer.text = '@src/file👍.txt';",
+          "      mockBuffer.lines = ['@src/file👍.txt'];",
+          "      mockBuffer.cursor = [0, 14]; // After the emoji character",
+          ""
+        ]
+      },
+      {
+        "line": 935,
+        "emoji": "👍",
+        "text": "suggestions: [{ label: 'file👍.txt', value: 'file👍.txt' }],",
+        "context": [
+          "        ...mockCommandCompletion,",
+          "        showSuggestions: true,",
+          "        suggestions: [{ label: 'file👍.txt', value: 'file👍.txt' }],",
+          "      });",
+          ""
+        ]
+      },
+      {
+        "line": 956,
+        "emoji": "👍",
+        "text": "mockBuffer.text = '@src/file👍.txt hello';",
+        "context": [
+          "    it('should handle Unicode characters with spaces after them', async () => {",
+          "      // Test with emoji followed by space - should NOT trigger completion",
+          "      mockBuffer.text = '@src/file👍.txt hello';",
+          "      mockBuffer.lines = ['@src/file👍.txt hello'];",
+          "      mockBuffer.cursor = [0, 20]; // After the space"
+        ]
+      },
+      {
+        "line": 957,
+        "emoji": "👍",
+        "text": "mockBuffer.lines = ['@src/file👍.txt hello'];",
+        "context": [
+          "      // Test with emoji followed by space - should NOT trigger completion",
+          "      mockBuffer.text = '@src/file👍.txt hello';",
+          "      mockBuffer.lines = ['@src/file👍.txt hello'];",
+          "      mockBuffer.cursor = [0, 20]; // After the space",
+          ""
+        ]
+      },
+      {
+        "line": 1098,
+        "emoji": "👍",
+        "text": "mockBuffer.text = '@' + path.join('files', 'emoji\\\\ 👍\\\\ test.txt');",
+        "context": [
+          "    it('should handle Unicode characters with escaped spaces', async () => {",
+          "      // Test combining Unicode and escaped spaces",
+          "      mockBuffer.text = '@' + path.join('files', 'emoji\\\\ 👍\\\\ test.txt');",
+          "      mockBuffer.lines = ['@' + path.join('files', 'emoji\\\\ 👍\\\\ test.txt')];",
+          "      mockBuffer.cursor = [0, 25]; // After the escaped space and emoji"
+        ]
+      },
+      {
+        "line": 1099,
+        "emoji": "👍",
+        "text": "mockBuffer.lines = ['@' + path.join('files', 'emoji\\\\ 👍\\\\ test.txt')];",
+        "context": [
+          "      // Test combining Unicode and escaped spaces",
+          "      mockBuffer.text = '@' + path.join('files', 'emoji\\\\ 👍\\\\ test.txt');",
+          "      mockBuffer.lines = ['@' + path.join('files', 'emoji\\\\ 👍\\\\ test.txt')];",
+          "      mockBuffer.cursor = [0, 25]; // After the escaped space and emoji",
+          ""
+        ]
+      },
+      {
+        "line": 1106,
+        "emoji": "👍",
+        "text": "{ label: 'emoji 👍 test.txt', value: 'emoji 👍 test.txt' },",
+        "context": [
+          "        showSuggestions: true,",
+          "        suggestions: [",
+          "          { label: 'emoji 👍 test.txt', value: 'emoji 👍 test.txt' },",
+          "        ],",
+          "      });"
+        ]
+      }
+    ],
+    "WelcomeBackDialog.tsx": [
+      {
+        "line": 75,
+        "emoji": "🎯",
+        "text": "🎯 Overall Goal:",
+        "context": [
+          "        <Box flexDirection=\"column\" marginBottom={1}>",
+          "          <Text color={Colors.Foreground} bold>",
+          "            🎯 Overall Goal:",
+          "          </Text>",
+          "          <Box marginTop={1} paddingLeft={2}>"
+        ]
+      }
+    ],
+    "InfoMessage.tsx": [
+      {
+        "line": 22,
+        "emoji": "ℹ",
+        "text": "const prefix = 'ℹ ';",
+        "context": [
+          "  }",
+          "",
+          "  const prefix = 'ℹ ';",
+          "  const prefixWidth = prefix.length;",
+          ""
+        ]
+      }
+    ],
+    "SummaryMessage.tsx": [
+      {
+        "line": 44,
+        "emoji": "✅",
+        "text": "return <Text color={Colors.AccentGreen}>✅</Text>;",
+        "context": [
+          "      return <Spinner type=\"dots\" />;",
+          "    }",
+          "    return <Text color={Colors.AccentGreen}>✅</Text>;",
+          "  };",
+          ""
+        ]
+      }
+    ],
+    "ToolMessage.test.tsx": [
+      {
+        "line": 52,
+        "emoji": "🤖",
+        "text": "🤖 {data.subagentName} • Task: {data.taskDescription}",
+        "context": [
+          "    return (",
+          "      <Text>",
+          "        🤖 {data.subagentName} • Task: {data.taskDescription}",
+          "      </Text>",
+          "    );"
+        ]
+      },
+      {
+        "line": 228,
+        "emoji": "🤖",
+        "text": "expect(output).toContain('🤖'); // Subagent execution display should show",
+        "context": [
+          "",
+          "    const output = lastFrame();",
+          "    expect(output).toContain('🤖'); // Subagent execution display should show",
+          "    expect(output).toContain('file-search'); // Actual subagent name",
+          "    expect(output).toContain('Search for files matching pattern'); // Actual task description"
+        ]
+      }
+    ],
+    "useGeminiStream.test.tsx": [
+      {
+        "line": 1466,
+        "emoji": "⚠️",
+        "text": "text: '⚠️  Response truncated due to token limits.',",
+        "context": [
+          "          {",
+          "            type: 'info',",
+          "            text: '⚠️  Response truncated due to token limits.',",
+          "          },",
+          "          expect.any(Number),"
+        ]
+      },
+      {
+        "line": 1580,
+        "emoji": "⚠️",
+        "text": "message: '⚠️  Response stopped due to safety reasons.',",
+        "context": [
+          "        {",
+          "          reason: 'SAFETY',",
+          "          message: '⚠️  Response stopped due to safety reasons.',",
+          "        },",
+          "        {"
+        ]
+      },
+      {
+        "line": 1584,
+        "emoji": "⚠️",
+        "text": "message: '⚠️  Response stopped due to recitation policy.',",
+        "context": [
+          "        {",
+          "          reason: 'RECITATION',",
+          "          message: '⚠️  Response stopped due to recitation policy.',",
+          "        },",
+          "        {"
+        ]
+      },
+      {
+        "line": 1588,
+        "emoji": "⚠️",
+        "text": "message: '⚠️  Response stopped due to unsupported language.',",
+        "context": [
+          "        {",
+          "          reason: 'LANGUAGE',",
+          "          message: '⚠️  Response stopped due to unsupported language.',",
+          "        },",
+          "        {"
+        ]
+      },
+      {
+        "line": 1592,
+        "emoji": "⚠️",
+        "text": "message: '⚠️  Response stopped due to forbidden terms.',",
+        "context": [
+          "        {",
+          "          reason: 'BLOCKLIST',",
+          "          message: '⚠️  Response stopped due to forbidden terms.',",
+          "        },",
+          "        {"
+        ]
+      },
+      {
+        "line": 1596,
+        "emoji": "⚠️",
+        "text": "message: '⚠️  Response stopped due to prohibited content.',",
+        "context": [
+          "        {",
+          "          reason: 'PROHIBITED_CONTENT',",
+          "          message: '⚠️  Response stopped due to prohibited content.',",
+          "        },",
+          "        {"
+        ]
+      },
+      {
+        "line": 1601,
+        "emoji": "⚠️",
+        "text": "'⚠️  Response stopped due to sensitive personally identifiable information.',",
+        "context": [
+          "          reason: 'SPII',",
+          "          message:",
+          "            '⚠️  Response stopped due to sensitive personally identifiable information.',",
+          "        },",
+          "        { reason: 'OTHER', message: '⚠️  Response stopped for other reasons.' },"
+        ]
+      },
+      {
+        "line": 1603,
+        "emoji": "⚠️",
+        "text": "{ reason: 'OTHER', message: '⚠️  Response stopped for other reasons.' },",
+        "context": [
+          "            '⚠️  Response stopped due to sensitive personally identifiable information.',",
+          "        },",
+          "        { reason: 'OTHER', message: '⚠️  Response stopped for other reasons.' },",
+          "        {",
+          "          reason: 'MALFORMED_FUNCTION_CALL',"
+        ]
+      },
+      {
+        "line": 1606,
+        "emoji": "⚠️",
+        "text": "message: '⚠️  Response stopped due to malformed function call.',",
+        "context": [
+          "        {",
+          "          reason: 'MALFORMED_FUNCTION_CALL',",
+          "          message: '⚠️  Response stopped due to malformed function call.',",
+          "        },",
+          "        {"
+        ]
+      },
+      {
+        "line": 1610,
+        "emoji": "⚠️",
+        "text": "message: '⚠️  Response stopped due to image safety violations.',",
+        "context": [
+          "        {",
+          "          reason: 'IMAGE_SAFETY',",
+          "          message: '⚠️  Response stopped due to image safety violations.',",
+          "        },",
+          "        {"
+        ]
+      },
+      {
+        "line": 1614,
+        "emoji": "⚠️",
+        "text": "message: '⚠️  Response stopped due to unexpected tool call.',",
+        "context": [
+          "        {",
+          "          reason: 'UNEXPECTED_TOOL_CALL',",
+          "          message: '⚠️  Response stopped due to unexpected tool call.',",
+          "        },",
+          "      ];"
+        ]
+      }
+    ],
+    "useGeminiStream.ts": [
+      {
+        "line": 579,
+        "emoji": "⚠️",
+        "text": "text: `⚠️  ${message}`,",
+        "context": [
+          "          {",
+          "            type: 'info',",
+          "            text: `⚠️  ${message}`,",
+          "          },",
+          "          userMessageTimestamp,"
+        ]
+      },
+      {
+        "line": 624,
+        "emoji": "🚫",
+        "text": "`🚫 Session token limit exceeded: ${value.currentTokens.toLocaleString()} tokens > ${value.limit.toLocaleString()} limit.\\n\\n` +",
+        "context": [
+          "          type: 'error',",
+          "          text:",
+          "            `🚫 Session token limit exceeded: ${value.currentTokens.toLocaleString()} tokens > ${value.limit.toLocaleString()} limit.\\n\\n` +",
+          "            `💡 Solutions:\\n` +",
+          "            `   • Start a new session: Use /clear command\\n` +"
+        ]
+      },
+      {
+        "line": 625,
+        "emoji": "💡",
+        "text": "`💡 Solutions:\\n` +",
+        "context": [
+          "          text:",
+          "            `🚫 Session token limit exceeded: ${value.currentTokens.toLocaleString()} tokens > ${value.limit.toLocaleString()} limit.\\n\\n` +",
+          "            `💡 Solutions:\\n` +",
+          "            `   • Start a new session: Use /clear command\\n` +",
+          "            `   • Increase limit: Add \"sessionTokenLimit\": (e.g., 128000) to your settings.json\\n` +"
+        ]
+      }
+    ],
+    "streamingToolCallParser.test.ts": [
+      {
+        "line": 427,
+        "emoji": "🚀",
+        "text": "'{\"emoji\": \"🚀\", \"chinese\": \"你好\"}',",
+        "context": [
+          "      const result = parser.addChunk(",
+          "        0,",
+          "        '{\"emoji\": \"🚀\", \"chinese\": \"你好\"}',",
+          "        'call_1',",
+          "        'function1',"
+        ]
+      },
+      {
+        "line": 432,
+        "emoji": "🚀",
+        "text": "expect(result.value).toEqual({ emoji: '🚀', chinese: '你好' });",
+        "context": [
+          "      );",
+          "      expect(result.complete).toBe(true);",
+          "      expect(result.value).toEqual({ emoji: '🚀', chinese: '你好' });",
+          "    });",
+          ""
+        ]
+      }
+    ],
+    "oauth-provider.ts": [
+      {
+        "line": 742,
+        "emoji": "💡",
+        "text": "'💡 TIP: Triple-click to select the entire URL, then copy and paste it into your browser.',",
+        "context": [
+          "    console.log('');",
+          "    console.log(",
+          "      '💡 TIP: Triple-click to select the entire URL, then copy and paste it into your browser.',",
+          "    );",
+          "    console.log("
+        ]
+      },
+      {
+        "line": 745,
+        "emoji": "⚠️",
+        "text": "'⚠️  Make sure to copy the COMPLETE URL - it may wrap across multiple lines.',",
+        "context": [
+          "    );",
+          "    console.log(",
+          "      '⚠️  Make sure to copy the COMPLETE URL - it may wrap across multiple lines.',",
+          "    );",
+          "    console.log('');"
+        ]
+      }
+    ],
+    "mcp-client.ts": [
+      {
+        "line": 342,
+        "emoji": "❌",
+        "text": "`❌ Could not configure OAuth for '${mcpServerName}' - please authenticate manually with /mcp auth ${mcpServerName}`,",
+        "context": [
+          "    if (!oauthConfig) {",
+          "      console.error(",
+          "        `❌ Could not configure OAuth for '${mcpServerName}' - please authenticate manually with /mcp auth ${mcpServerName}`,",
+          "      );",
+          "      return false;"
+        ]
+      },
+      {
+        "line": 1087,
+        "emoji": "🔍",
+        "text": "console.log(`🔍 Attempting OAuth discovery for '${mcpServerName}'...`);",
+        "context": [
+          "",
+          "        // For SSE/HTTP servers, try to discover OAuth configuration from the base URL",
+          "        console.log(`🔍 Attempting OAuth discovery for '${mcpServerName}'...`);",
+          "",
+          "        if (hasNetworkTransport(mcpServerConfig)) {"
+        ]
+      },
+      {
+        "line": 1184,
+        "emoji": "❌",
+        "text": "`❌ Could not configure OAuth for '${mcpServerName}' - please authenticate manually with /mcp auth ${mcpServerName}`,",
+        "context": [
+          "            } else {",
+          "              console.error(",
+          "                `❌ Could not configure OAuth for '${mcpServerName}' - please authenticate manually with /mcp auth ${mcpServerName}`,",
+          "              );",
+          "              throw new Error("
+        ]
+      },
+      {
+        "line": 1192,
+        "emoji": "❌",
+        "text": "`❌ OAuth discovery failed for '${mcpServerName}' - please authenticate manually with /mcp auth ${mcpServerName}`,",
+        "context": [
+          "          } catch (discoveryError) {",
+          "            console.error(",
+          "              `❌ OAuth discovery failed for '${mcpServerName}' - please authenticate manually with /mcp auth ${mcpServerName}`,",
+          "            );",
+          "            throw discoveryError;"
+        ]
+      },
+      {
+        "line": 1198,
+        "emoji": "❌",
+        "text": "`❌ '${mcpServerName}' requires authentication but no OAuth configuration found`,",
+        "context": [
+          "        } else {",
+          "          console.error(",
+          "            `❌ '${mcpServerName}' requires authentication but no OAuth configuration found`,",
+          "          );",
+          "          throw new Error("
+        ]
+      }
+    ]
+  }
+}

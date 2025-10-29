@@ -55,7 +55,7 @@ const StatRow: React.FC<{
 export const ToolStatsDisplay: React.FC = () => {
   const { stats } = useSessionStats();
   const { tools } = stats.metrics;
-  const activeTools = Object.entries(tools.byName).filter(
+  const activeTools = Object.entries(tools['byName']).filter(
     ([, metrics]) => metrics.count > 0,
   );
 
@@ -72,7 +72,7 @@ export const ToolStatsDisplay: React.FC = () => {
     );
   }
 
-  const totalDecisions = Object.values(tools.byName).reduce(
+  const totalDecisions = Object.values(tools['byName']).reduce(
     (acc, tool) => {
       acc.accept += tool.decisions.accept;
       acc.reject += tool.decisions.reject;

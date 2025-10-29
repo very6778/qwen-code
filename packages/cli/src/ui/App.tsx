@@ -4,7 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
 import {
   Box,
   type DOMElement,
@@ -191,10 +198,9 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const { stats: sessionStats } = useSessionStats();
   const [staticNeedsRefresh, setStaticNeedsRefresh] = useState(false);
   const [staticKey, setStaticKey] = useState(0);
-  const refreshStatic = useCallback(() => {
-    stdout.write(ansiEscapes.clearTerminal);
-    setStaticKey((prev) => prev + 1);
-  }, [setStaticKey, stdout]);
+
+  // Temporary refreshStatic that will be properly defined after streamingState is available
+  const refreshStaticRef = useRef<() => void>(() => {});
 
     // const [geminiMdFileCount, setGeminiMdFileCount] = useState<number>(0);
   const [debugMessage, setDebugMessage] = useState<string>('');
@@ -459,41 +465,41 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
         // Check if this is a Pro quota exceeded error
         if (error && isProQuotaExceededError(error)) {
           if (isPaidTier) {
-            message = `⚡ You have reached your daily ${currentModel} quota limit.
-⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
-⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+            message = `---- You have reached your daily ${currentModel} quota limit.
+---- Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+---- To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
           } else {
-            message = `⚡ You have reached your daily ${currentModel} quota limit.
-⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
-⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
-⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
-⚡ You can switch authentication methods by typing /auth`;
+            message = `---- You have reached your daily ${currentModel} quota limit.
+---- Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+---- To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
+---- Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
+---- You can switch authentication methods by typing /auth`;
           }
         } else if (error && isGenericQuotaExceededError(error)) {
           if (isPaidTier) {
-            message = `⚡ You have reached your daily quota limit.
-⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
-⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+            message = `---- You have reached your daily quota limit.
+---- Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+---- To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
           } else {
-            message = `⚡ You have reached your daily quota limit.
-⚡ Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
-⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
-⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
-⚡ You can switch authentication methods by typing /auth`;
+            message = `---- You have reached your daily quota limit.
+---- Automatically switching from ${currentModel} to ${fallbackModel} for the remainder of this session.
+---- To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
+---- Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
+---- You can switch authentication methods by typing /auth`;
           }
         } else {
           if (isPaidTier) {
             // Default fallback message for other cases (like consecutive 429s)
-            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
-⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit
-⚡ To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
+            message = `---- Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
+---- Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit
+---- To continue accessing the ${currentModel} model today, consider using /auth to switch to using a paid API key from AI Studio at https://aistudio.google.com/apikey`;
           } else {
             // Default fallback message for other cases (like consecutive 429s)
-            message = `⚡ Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
-⚡ Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit
-⚡ To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
-⚡ Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
-⚡ You can switch authentication methods by typing /auth`;
+            message = `---- Automatically switching from ${currentModel} to ${fallbackModel} for faster responses for the remainder of this session.
+---- Possible reasons for this are that you have received multiple consecutive capacity errors or you have reached your daily ${currentModel} quota limit
+---- To increase your limits, upgrade to a Gemini Code Assist Standard or Enterprise plan with higher limits at https://goo.gle/set-up-gemini-code-assist
+---- Or you can utilize a Gemini API Key. See: https://goo.gle/gemini-cli-docs-auth#gemini-api-key
+---- You can switch authentication methods by typing /auth`;
           }
         }
 
@@ -667,7 +673,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     addItem,
     clearItems,
     loadHistory,
-    refreshStatic,
+    () => refreshStaticRef.current(),
     setDebugMessage,
     openThemeDialog,
     openAuthDialog,
@@ -717,8 +723,8 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     performMemoryRefresh,
     modelSwitchedFromQuotaError,
     setModelSwitchedFromQuotaError,
-    refreshStatic,
-    refreshStatic,
+    () => refreshStaticRef.current(),
+    () => refreshStaticRef.current(),
     () => cancelHandlerRef.current(),
     settings.merged.experimental?.visionModelPreview ?? true,
     handleVisionSwitchRequired,
@@ -734,6 +740,19 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
       ),
     [pendingSlashCommandHistoryItems, pendingGeminiHistoryItems],
   );
+
+  const refreshStatic = useCallback(() => {
+    // During streaming, avoid full terminal clear to preserve queued messages
+    if (streamingState !== StreamingState.Idle) {
+      setStaticNeedsRefresh(true);
+      return;
+    }
+    stdout.write(ansiEscapes.clearTerminal);
+    setStaticKey((prev) => prev + 1);
+  }, [setStaticKey, stdout, streamingState]);
+
+  // Update the ref with the actual refreshStatic function
+  refreshStaticRef.current = refreshStatic;
 
   // Welcome back functionality
   const {
@@ -1003,14 +1022,45 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   }, [clearItems, clearConsoleMessagesState, refreshStatic]);
 
   const mainControlsRef = useRef<DOMElement>(null);
+  const controlsBelowIndicatorRef = useRef<DOMElement>(null);
+  const inputPromptRef = useRef<DOMElement>(null);
   const pendingHistoryItemRef = useRef<DOMElement>(null);
+  const [areaBelowIndicatorHeight, setAreaBelowIndicatorHeight] = useState(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (mainControlsRef.current) {
       const fullFooterMeasurement = measureElement(mainControlsRef.current);
       setFooterHeight(fullFooterMeasurement.height);
     }
-  }, [terminalHeight, consoleMessages, showErrorDetails]);
+    let totalHeight = 0;
+    if (controlsBelowIndicatorRef.current) {
+      const measurement = measureElement(controlsBelowIndicatorRef.current);
+      if (Number.isFinite(measurement.height)) {
+        totalHeight += Math.max(0, Math.round(measurement.height));
+      }
+    }
+    if (inputPromptRef.current) {
+      const measurement = measureElement(inputPromptRef.current);
+      if (Number.isFinite(measurement.height)) {
+        totalHeight += Math.max(0, Math.round(measurement.height));
+      }
+    }
+    if (totalHeight !== areaBelowIndicatorHeight) {
+      setAreaBelowIndicatorHeight(totalHeight);
+    }
+  }, [
+    terminalHeight,
+    consoleMessages,
+    showErrorDetails,
+    ctrlCPressedOnce,
+    ctrlDPressedOnce,
+    showEscapePrompt,
+    showAutoAcceptIndicator,
+    shellModeActive,
+    isNarrow,
+    isInputActive,
+    buffer.text,
+  ]);
 
   const staticExtraHeight = /* margins and padding */ 3;
   const availableTerminalHeight = useMemo(
@@ -1142,28 +1192,58 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 settings.merged.ui?.hideBanner || config.getScreenReader()
               ) && <Header version={version} nightly={nightly} />}
               </Box>,
-            ...history.map((h) => (
-              <HistoryItemDisplay
-                terminalWidth={mainAreaWidth}
-                availableTerminalHeight={staticAreaMaxItemHeight}
-                key={h.id}
-                item={h}
-                isPending={false}
-                config={config}
-                commands={slashCommands}
-                layout={
-                  h.type === 'tool_group'
-                    ? (settings.merged.ui?.toolLayout === 'default' || settings.merged.ui?.toolLayout === 'minimal'
-                        ? settings.merged.ui.toolLayout
-                        : 'minimal')
-                    : 'default'
-                }
-              />
-            )),
+            ...history.map((h, index) => {
+              const shouldAddMargin = index > 0 && history[index - 1]?.type !== 'tool_group';
+              return (
+              <Box key={h.id} marginTop={shouldAddMargin ? 1 : 0}>
+                <HistoryItemDisplay
+                  terminalWidth={mainAreaWidth}
+                  availableTerminalHeight={staticAreaMaxItemHeight}
+                  item={h}
+                  isPending={false}
+                  config={config}
+                  commands={slashCommands}
+                  layout={
+                    h.type === 'tool_group'
+                      ? (settings.merged.ui?.toolLayout === 'default' || settings.merged.ui?.toolLayout === 'minimal'
+                          ? settings.merged.ui.toolLayout
+                          : 'minimal')
+                      : 'default'
+                  }
+                />
+              </Box>
+              );
+            }),
           ]}
         >
           {(item) => item}
         </Static>
+        {streamingState !== StreamingState.Idle && (
+          <Box flexDirection="column" marginBottom={1}>
+            <LoadingIndicator
+              thought={
+                streamingState === StreamingState.WaitingForConfirmation ||
+                config.getAccessibility()?.disableLoadingPhrases ||
+                config.getScreenReader()
+                  ? undefined
+                  : thought
+              }
+              currentLoadingPhrase={
+                streamingState === StreamingState.WaitingForConfirmation ||
+                config.getAccessibility()?.disableLoadingPhrases ||
+                config.getScreenReader()
+                  ? undefined
+                  : currentLoadingPhrase
+              }
+              elapsedTime={elapsedTime}
+              queuedMessages={messageQueue}
+              maxQueuedMessages={MAX_DISPLAYED_QUEUED_MESSAGES}
+              width={mainAreaWidth}
+              topPaddingLines={0}
+              linesBelow={0}
+            />
+          </Box>
+        )}
         <OverflowProvider>
           <Box ref={pendingHistoryItemRef} flexDirection="column">
             {pendingHistoryItems.map((item) => (
@@ -1351,95 +1431,87 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
             />
           ) : (
             <>
-              <LoadingIndicator
-                thought={
-                  streamingState === StreamingState.WaitingForConfirmation ||
-                  config.getAccessibility()?.disableLoadingPhrases ||
-                  config.getScreenReader()
-                    ? undefined
-                    : thought
-                }
-                currentLoadingPhrase={
-                  streamingState === StreamingState.WaitingForConfirmation ||
-                  config.getAccessibility()?.disableLoadingPhrases ||
-                  config.getScreenReader()
-                    ? undefined
-                    : currentLoadingPhrase
-                }
-                elapsedTime={elapsedTime}
-                queuedMessages={messageQueue}
-                maxQueuedMessages={MAX_DISPLAYED_QUEUED_MESSAGES}
-                width={mainAreaWidth}
-              />
-
+    
               <Box
-                marginTop={1}
-                justifyContent="space-between"
+                ref={controlsBelowIndicatorRef}
+                flexDirection="column"
                 width="100%"
-                flexDirection={isNarrow ? 'column' : 'row'}
-                alignItems={isNarrow ? 'flex-start' : 'center'}
               >
-                <Box>
-                  {process.env['GEMINI_SYSTEM_MD'] && (
-                    <Text color={Colors.AccentRed}>|⌐■_■| </Text>
-                  )}
-                  {ctrlCPressedOnce ? (
-                    <Text color={Colors.AccentYellow}>
-                      Press Ctrl+C again to confirm exit.
-                    </Text>
-                  ) : ctrlDPressedOnce ? (
-                    <Text color={Colors.AccentYellow}>
-                      Press Ctrl+D again to exit.
-                    </Text>
-                  ) : showEscapePrompt ? (
-                    <Text color={Colors.Gray}>Press Esc again to clear.</Text>
-                  ) : null}
-                </Box>
-                <Box paddingTop={isNarrow ? 1 : 0}>
-                  {showAutoAcceptIndicator !== ApprovalMode.DEFAULT &&
-                    !shellModeActive && (
-                      <AutoAcceptIndicator
-                        approvalMode={showAutoAcceptIndicator}
-                      />
+                <Box
+                  justifyContent="space-between"
+                  width="100%"
+                  flexDirection={isNarrow ? 'column' : 'row'}
+                  alignItems={isNarrow ? 'flex-start' : 'center'}
+                >
+                  <Box>
+                    {process.env['GEMINI_SYSTEM_MD'] && (
+                      <Text color={Colors.AccentRed}>|⌐■_■| </Text>
                     )}
-                  {shellModeActive && <ShellModeIndicator />}
+                    {ctrlCPressedOnce ? (
+                      <Text color={Colors.AccentYellow}>
+                        Press Ctrl+C again to confirm exit.
+                      </Text>
+                    ) : ctrlDPressedOnce ? (
+                      <Text color={Colors.AccentYellow}>
+                        Press Ctrl+D again to exit.
+                      </Text>
+                    ) : showEscapePrompt ? (
+                      <Text color={Colors.Gray}>Press Esc again to clear.</Text>
+                    ) : null}
+                  </Box>
+                  <Box paddingTop={isNarrow ? 1 : 0}>
+                    {showAutoAcceptIndicator !== ApprovalMode.DEFAULT &&
+                      !shellModeActive && (
+                        <AutoAcceptIndicator
+                          approvalMode={showAutoAcceptIndicator}
+                        />
+                      )}
+                    {shellModeActive && <ShellModeIndicator />}
+                  </Box>
                 </Box>
+
+                {showErrorDetails && (
+                  <OverflowProvider>
+                    <Box flexDirection="column">
+                      <DetailedMessagesDisplay
+                        messages={filteredConsoleMessages}
+                        maxHeight={
+                          constrainHeight ? debugConsoleMaxHeight : undefined
+                        }
+                        width={inputWidth}
+                      />
+                      <ShowMoreLines constrainHeight={constrainHeight} />
+                    </Box>
+                  </OverflowProvider>
+                )}
               </Box>
 
-              {showErrorDetails && (
-                <OverflowProvider>
-                  <Box flexDirection="column">
-                    <DetailedMessagesDisplay
-                      messages={filteredConsoleMessages}
-                      maxHeight={
-                        constrainHeight ? debugConsoleMaxHeight : undefined
-                      }
-                      width={inputWidth}
-                    />
-                    <ShowMoreLines constrainHeight={constrainHeight} />
-                  </Box>
-                </OverflowProvider>
-              )}
-
               {isInputActive && (
-                <InputPrompt
-                  buffer={buffer}
-                  inputWidth={inputWidth}
-                  frameWidth={promptFrameWidth}
-                  suggestionsWidth={suggestionsWidth}
-                  onSubmit={handleFinalSubmit}
-                  userMessages={userMessages}
-                  onClearScreen={handleClearScreen}
-                  config={config}
-                  slashCommands={slashCommands}
-                  commandContext={commandContext}
-                  shellModeActive={shellModeActive}
-                  setShellModeActive={setShellModeActive}
-                  onEscapePromptChange={handleEscapePromptChange}
-                  focus={isFocused}
-                  vimHandleInput={vimHandleInput}
-                  placeholder={placeholder}
-                />
+                <Box
+                  paddingTop={1}
+                  width="100%"
+                  flexDirection="column"
+                  ref={inputPromptRef}
+                >
+                  <InputPrompt
+                    buffer={buffer}
+                    inputWidth={inputWidth}
+                    frameWidth={promptFrameWidth}
+                    suggestionsWidth={suggestionsWidth}
+                    onSubmit={handleFinalSubmit}
+                    userMessages={userMessages}
+                    onClearScreen={handleClearScreen}
+                    config={config}
+                    slashCommands={slashCommands}
+                    commandContext={commandContext}
+                    shellModeActive={shellModeActive}
+                    setShellModeActive={setShellModeActive}
+                    onEscapePromptChange={handleEscapePromptChange}
+                    focus={isFocused}
+                    vimHandleInput={vimHandleInput}
+                    placeholder={placeholder}
+                  />
+                </Box>
               )}
             </>
           )}

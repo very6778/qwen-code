@@ -1,35 +1,42 @@
 # Subagents
 
-Subagents are specialized AI assistants that handle specific types of tasks within Qwen Code. They allow you to delegate focused work to AI agents that are configured with task-specific prompts, tools, and behaviors.
+> **⚠️ Status: This feature is currently not available in Qwen Code.**
+> The sub-agent system has been removed in the current version to streamline the CLI and focus on core functionality.
+
+This documentation is preserved for historical reference and may be reintroduced in future versions.
+
+Subagents were specialized AI assistants that handled specific types of tasks within Qwen Code. They allowed you to delegate focused work to AI agents that were configured with task-specific prompts, tools, and behaviors.
 
 ## What are Subagents?
 
-Subagents are independent AI assistants that:
+Subagents were independent AI assistants that:
 
-- **Specialize in specific tasks** - Each subagent is configured with a focused system prompt for particular types of work
-- **Have separate context** - They maintain their own conversation history, separate from your main chat
-- **Use controlled tools** - You can configure which tools each subagent has access to
-- **Work autonomously** - Once given a task, they work independently until completion or failure
-- **Provide detailed feedback** - You can see their progress, tool usage, and execution statistics in real-time
+- **Specialized in specific tasks** - Each subagent was configured with a focused system prompt for particular types of work
+- **Had separate context** - They maintained their own conversation history, separate from your main chat
+- **Used controlled tools** - You could configure which tools each subagent had access to
+- **Worked autonomously** - Once given a task, they worked independently until completion or failure
+- **Provided detailed feedback** - You could see their progress, tool usage, and execution statistics in real-time
 
 ## Key Benefits
 
-- **Task Specialization**: Create agents optimized for specific workflows (testing, documentation, refactoring, etc.)
-- **Context Isolation**: Keep specialized work separate from your main conversation
-- **Reusability**: Save and reuse agent configurations across projects and sessions
-- **Controlled Access**: Limit which tools each agent can use for security and focus
-- **Progress Visibility**: Monitor agent execution with real-time progress updates
+- **Task Specialization**: Created agents optimized for specific workflows (testing, documentation, refactoring, etc.)
+- **Context Isolation**: Kept specialized work separate from your main conversation
+- **Reusability**: Saved and reused agent configurations across projects and sessions
+- **Controlled Access**: Limited which tools each agent could use for security and focus
+- **Progress Visibility**: Monitored agent execution with real-time progress updates
 
-## How Subagents Work
+## How Subagents Worked
 
-1. **Configuration**: You create subagent configurations that define their behavior, tools, and system prompts
-2. **Delegation**: The main AI can automatically delegate tasks to appropriate subagents
-3. **Execution**: Subagents work independently, using their configured tools to complete tasks
-4. **Results**: They return results and execution summaries back to the main conversation
+1. **Configuration**: You created subagent configurations that defined their behavior, tools, and system prompts
+2. **Delegation**: The main AI could automatically delegate tasks to appropriate subagents
+3. **Execution**: Subagents worked independently, using their configured tools to complete tasks
+4. **Results**: They returned results and execution summaries back to the main conversation
 
 ## Getting Started
 
-### Quick Start
+> **Note:** This section describes the previous functionality. Sub-agent commands are currently not available in Qwen Code.
+
+### Previous Quick Start
 
 1. **Create your first subagent**:
 
@@ -48,9 +55,9 @@ Subagents are independent AI assistants that:
    View and manage your configured subagents.
 
 3. **Use subagents automatically**:
-   Simply ask the main AI to perform tasks that match your subagents' specializations. The AI will automatically delegate appropriate work.
+   Simply ask the main AI to perform tasks that match your subagents' specializations. The AI would automatically delegate appropriate work.
 
-### Example Usage
+### Previous Example Usage
 
 ```
 User: "Please write comprehensive tests for the authentication module"
@@ -63,15 +70,17 @@ AI: I'll delegate this to your testing specialist subagent.
 
 ## Management
 
-### CLI Commands
+> **Note:** These commands were available in previous versions but are currently disabled.
 
-Subagents are managed through the `/agents` slash command and its subcommands:
+### Previous CLI Commands
+
+Subagents were managed through the `/agents` slash command and its subcommands:
 
 #### `/agents create`
 
-Creates a new subagent through a guided step wizard.
+Created a new subagent through a guided step wizard.
 
-**Usage:**
+**Previous Usage:**
 
 ```
 /agents create
@@ -79,9 +88,9 @@ Creates a new subagent through a guided step wizard.
 
 #### `/agents manage`
 
-Opens an interactive management dialog for viewing and managing existing subagents.
+Opened an interactive management dialog for viewing and managing existing subagents.
 
-**Usage:**
+**Previous Usage:**
 
 ```
 /agents manage
@@ -89,16 +98,136 @@ Opens an interactive management dialog for viewing and managing existing subagen
 
 ### Storage Locations
 
-Subagents are stored as Markdown files in two locations:
+Subagents were stored as Markdown files in two locations:
 
-- **Project-level**: `.qwen/agents/` (takes precedence)
+- **Project-level**: `.qwen/agents/` (took precedence)
 - **User-level**: `~/.qwen/agents/` (fallback)
 
-This allows you to have both project-specific agents and personal agents that work across all projects.
+This allowed you to have both project-specific agents and personal agents that worked across all projects.
+
+> **Current Status:** These directories may still exist if you previously used sub-agents, but the system no longer reads or processes them.
 
 ### File Format
 
-Subagents are configured using Markdown files with YAML frontmatter. This format is human-readable and easy to edit with any text editor.
+Subagents were configured using Markdown files with YAML frontmatter. This format was human-readable and easy to edit with any text editor.
+
+## Current Alternatives (2025)
+
+Since the sub-agent system has been streamlined out of Qwen Code, here are the current approaches for handling specialized tasks:
+
+### Direct AI Assistance
+
+The main Qwen Code AI now handles all tasks directly without delegation:
+
+- **Task Specialization**: Simply describe your specific needs in detail
+- **Context Awareness**: The AI maintains full context of your project and conversation
+- **Tool Access**: Full access to all tools (file operations, shell commands, web search, etc.)
+- **Continuous Conversation**: No context switching between different agents
+
+### Example Usage
+
+Instead of relying on specialized sub-agents, you can now:
+
+```
+User: "Please write comprehensive unit tests for the authentication module. I need tests for login, logout, password reset, and token validation. Use Jest and include mocking for the database calls."
+
+User: "Create detailed API documentation for the user management endpoints. Include request/response examples, error codes, and authentication requirements."
+
+User: "Review this React component for performance issues and suggest optimizations. I'm concerned about unnecessary re-renders and bundle size."
+```
+
+### Benefits of the Simplified Approach
+
+- **Simplified Workflow**: No need to configure or manage separate agents
+- **Better Context**: The AI maintains complete understanding of your project
+- **Faster Response**: Direct communication without delegation overhead
+- **Full Tool Access**: No restrictions on which tools can be used for specific tasks
+- **Easier Debugging**: Single conversation history to review and troubleshoot
+
+### Best Practices for Task Specialization
+
+To get the best results for specialized tasks:
+
+1. **Be Specific**: Clearly describe what you need, including technologies, frameworks, and standards
+2. **Provide Context**: Include relevant details about your project structure and requirements
+3. **Request Iterations**: Ask for step-by-step approaches or multiple options when appropriate
+4. **Use Examples**: Provide code examples or references to guide the AI
+5. **Give Constraints**: Specify any limitations, coding standards, or architectural patterns to follow
+
+## Future Development
+
+The sub-agent system may be reintroduced in future versions with:
+
+- Improved configuration management
+- Better integration with the core AI system
+- Enhanced security and isolation features
+- Performance optimizations for complex workflows
+
+If you were a heavy user of sub-agents, consider providing feedback through GitHub issues to help shape the future implementation.
+
+## Migration Guide
+
+### For Previous Sub-Agent Users
+
+If you previously used sub-agents, here's how to migrate your workflows:
+
+#### Testing Specialist → Direct Testing Requests
+
+Instead of configuring a testing specialist sub-agent:
+
+```
+Old way: /agents create testing-expert
+New way: "Please act as a testing specialist and create comprehensive unit tests for..."
+```
+
+#### Documentation Writer → Direct Documentation Requests
+
+Instead of using a documentation writer sub-agent:
+
+```
+Old way: Have documentation-writer subagent create API docs
+New way: "Please create comprehensive API documentation for..."
+```
+
+#### Code Reviewer → Direct Review Requests
+
+Instead of delegating to a code reviewer sub-agent:
+
+```
+Old way: Get code-reviewer subagent to check this implementation
+New way: "Please review this code for security, performance, and maintainability issues..."
+```
+
+### Converting Existing Agent Configurations
+
+If you have existing agent configurations you'd like to preserve, you can:
+
+1. **Save the files**: Copy your agent files to a backup location
+2. **Extract the system prompts**: Save the specialized prompts as snippets
+3. **Use them as references**: Include relevant parts of these prompts in your requests
+
+#### Example Migration
+
+**Previous testing-expert agent:**
+
+```markdown
+---
+name: testing-expert
+description: Writes comprehensive unit tests, integration tests, and handles test automation
+---
+
+You are a testing specialist focused on creating high-quality, maintainable tests...
+```
+
+**Current approach:**
+
+```
+"Please act as a testing specialist with expertise in unit testing, integration testing, and test automation. Create comprehensive tests following best practices..."
+```
+
+## Archive Reference
+
+For historical reference and potential future restoration, the complete sub-agent documentation is preserved below. All examples and configurations are written in the past tense to reflect their discontinued status.
 
 #### Basic Structure
 

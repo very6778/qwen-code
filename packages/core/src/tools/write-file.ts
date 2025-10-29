@@ -231,7 +231,6 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       DEFAULT_DIFF_OPTIONS,
     );
 
-    
     const confirmationDetails: ToolEditConfirmationDetails = {
       type: 'edit',
       title: `Confirm Write: ${shortenPath(relativePath)}`,
@@ -244,7 +243,7 @@ class WriteFileToolInvocation extends BaseToolInvocation<
         if (outcome === ToolConfirmationOutcome.ProceedAlways) {
           this.config.setApprovalMode(ApprovalMode.AUTO_EDIT);
         }
-        },
+      },
     };
     return confirmationDetails;
   }

@@ -7,8 +7,8 @@
 import type React from 'react';
 import { Text, Box } from 'ink';
 import { MarkdownDisplay } from '../../utils/MarkdownDisplay.js';
-import { Colors } from '../../colors.js';
 import { SCREEN_READER_MODEL_PREFIX } from '../../textConstants.js';
+import { TOOL_STATUS } from '../../constants.js';
 
 interface GeminiMessageProps {
   text: string;
@@ -23,7 +23,7 @@ export const GeminiMessage: React.FC<GeminiMessageProps> = ({
   availableTerminalHeight,
   terminalWidth,
 }) => {
-  const prefix = '  '; // Two spaces to maintain layout without icon
+  const prefix = '⏺ '; // Status circle + space
   const prefixWidth = prefix.length;
   const sanitizedText = normalizeLeadingEmptyLines(text);
 
@@ -34,7 +34,7 @@ export const GeminiMessage: React.FC<GeminiMessageProps> = ({
           color={Colors.Gray}
           aria-label={SCREEN_READER_MODEL_PREFIX}
         >
-          {prefix}
+          {TOOL_STATUS.SUCCESS}{' '}
         </Text>
       </Box>
       <Box flexGrow={1} flexDirection="column" paddingLeft={1} paddingRight={4}>

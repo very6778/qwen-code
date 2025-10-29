@@ -68,7 +68,6 @@ export const FolderTrustDialog: React.FC<FolderTrustDialogProps> = ({
         borderColor={Colors.AccentYellow}
         padding={1}
         width="100%"
-        marginLeft={1}
       >
         <Box flexDirection="column" marginBottom={1}>
           <Text bold>Do you trust this folder?</Text>
@@ -86,7 +85,7 @@ export const FolderTrustDialog: React.FC<FolderTrustDialogProps> = ({
         />
       </Box>
       {isRestarting && (
-        <Box marginLeft={1} marginTop={1}>
+        <Box marginTop={1} paddingX={1}>
           <Text color={Colors.AccentYellow}>
             To see changes, Qwen Code must be restarted. Press r to exit and
             apply changes now.

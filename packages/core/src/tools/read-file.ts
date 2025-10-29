@@ -11,10 +11,7 @@ import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
 import { ToolNames } from './tool-names.js';
 
 import type { PartUnion } from '@google/genai';
-import {
-  processSingleFileContent,
-  getSpecificMimeType,
-} from '../utils/fileUtils.js';
+import { processSingleFileContent } from '../utils/fileUtils.js';
 import type { Config } from '../config/config.js';
 // Mock telemetry constants and functions
 const FileOperation = {

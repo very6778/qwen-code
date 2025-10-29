@@ -32,8 +32,8 @@ import {
   ApprovalMode,
   parseAndFormatApiError,
   logApiCancel,
-  ApiCancelEvent,
 } from '@qwen-code/qwen-code-core';
+import { ApiCancelEvent } from '@qwen-code/qwen-code-core';
 import { type Part, type PartListUnion, FinishReason } from '@google/genai';
 import type {
   HistoryItem,
@@ -128,6 +128,23 @@ export const useGeminiStream = (
     }
     return new GitService(config.getProjectRoot(), storage);
   }, [config, storage]);
+
+  const appendCancelIndicatorToLastUser = useCallback(() => {
+    const lastUser = [...history]
+      .reverse()
+      .find((item) => item.type === 'user' && typeof item.text === 'string');
+    if (!lastUser || typeof lastUser.text !== 'string') {
+      return;
+    }
+    const indicator = 'ℹ Request cancelled.';
+    if (lastUser.text.includes(indicator)) {
+      return;
+    }
+    const needsSeparator = /\s$/.test(lastUser.text) ? '' : '  ';
+    updateHistoryItem(lastUser.id, {
+      text: `${lastUser.text}${needsSeparator}${indicator}`,
+    });
+  }, [history, updateHistoryItem]);
 
   const [toolCalls, scheduleToolCalls, markToolsAsSubmitted] =
     useReactToolScheduler(
@@ -255,13 +272,7 @@ export const useGeminiStream = (
     if (pendingHistoryItemRef.current) {
       addItem(pendingHistoryItemRef.current, Date.now());
     }
-    addItem(
-      {
-        type: MessageType.INFO,
-        text: 'Request cancelled.',
-      },
-      Date.now(),
-    );
+    appendCancelIndicatorToLastUser();
     setPendingHistoryItem(null);
     onCancelSubmit();
     setIsResponding(false);
@@ -273,6 +284,7 @@ export const useGeminiStream = (
     pendingHistoryItemRef,
     config,
     getPromptCount,
+    appendCancelIndicatorToLastUser,
   ]);
 
   useKeypress(
@@ -424,6 +436,12 @@ export const useGeminiStream = (
         // Prevents additional output after a user initiated cancel.
         return '';
       }
+      if (
+        currentGeminiMessageBuffer.length === 0 &&
+        /^\s*$/.test(eventValue)
+      ) {
+        return currentGeminiMessageBuffer;
+      }
       let newGeminiMessageBuffer = currentGeminiMessageBuffer + eventValue;
       if (
         pendingHistoryItemRef.current?.type !== 'gemini' &&
@@ -563,7 +581,7 @@ export const useGeminiStream = (
         addItem(
           {
             type: 'info',
-            text: `⚠️  ${message}`,
+            text: `----  ${message}`,
           },
           userMessageTimestamp,
         );
@@ -608,8 +626,8 @@ export const useGeminiStream = (
         {
           type: 'error',
           text:
-            `🚫 Session token limit exceeded: ${value.currentTokens.toLocaleString()} tokens > ${value.limit.toLocaleString()} limit.\n\n` +
-            `💡 Solutions:\n` +
+            `---- Session token limit exceeded: ${value.currentTokens.toLocaleString()} tokens > ${value.limit.toLocaleString()} limit.\n\n` +
+            `---- Solutions:\n` +
             `   • Start a new session: Use /clear command\n` +
             `   • Increase limit: Add "sessionTokenLimit": (e.g., 128000) to your settings.json\n` +
             `   • Compress history: Use /compress command to compress history`,
@@ -803,7 +821,26 @@ export const useGeminiStream = (
         }
 
         if (pendingHistoryItemRef.current) {
-          addItem(pendingHistoryItemRef.current, userMessageTimestamp);
+          let pendingItem = pendingHistoryItemRef.current;
+          if (
+            (pendingItem.type === 'gemini' ||
+              pendingItem.type === 'gemini_content') &&
+            typeof pendingItem.text === 'string'
+          ) {
+            const trimmed = pendingItem.text.replace(/\s+$/u, '');
+            pendingItem = {
+              ...pendingItem,
+              text: trimmed,
+            };
+          }
+          if (
+            pendingItem.type !== 'gemini' &&
+            pendingItem.type !== 'gemini_content'
+          ) {
+            addItem(pendingItem, userMessageTimestamp);
+          } else if (pendingItem.text.trim().length > 0) {
+            addItem(pendingItem, userMessageTimestamp);
+          }
           setPendingHistoryItem(null);
         }
         if (loopDetectedRef.current) {

@@ -20,26 +20,17 @@ export const UserMessage: React.FC<UserMessageProps> = ({ text, terminalWidth = 
   const isSlashCommand = checkIsSlashCommand(text);
 
   const textColor = isSlashCommand ? Colors.AccentPurple : Colors.Gray;
-  const frameLineColor = isSlashCommand ? Colors.AccentPurple : '#53626e';
-
-  const horizontalLine = '─'.repeat(Math.max(0, terminalWidth));
 
   return (
-    <Box flexDirection="column">
-      <Text color={frameLineColor}>{horizontalLine}</Text>
-      <Box
-        flexDirection="row"
-      >
-        <Text color={textColor} aria-label={SCREEN_READER_USER_PREFIX}>
-          {prefix}
+    <Box flexDirection="row">
+      <Text color={textColor} aria-label={SCREEN_READER_USER_PREFIX}>
+        {prefix}
+      </Text>
+      <Box flexGrow={1}>
+        <Text wrap="wrap" color={textColor}>
+          {text}
         </Text>
-        <Box flexGrow={1}>
-          <Text wrap="wrap" color={textColor}>
-            {text}
-          </Text>
-        </Box>
       </Box>
-      <Text color={frameLineColor}>{horizontalLine}</Text>
     </Box>
   );
 };

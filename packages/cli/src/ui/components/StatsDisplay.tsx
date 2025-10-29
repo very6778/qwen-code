@@ -206,9 +206,14 @@ export const StatsDisplay: React.FC<StatsDisplayProps> = ({
         </StatRow>
         <StatRow title="Tool Calls:">
           <Text>
-            {tools.totalCalls} ({' '}
-            <Text color={theme.status.success}>✓ {tools.totalSuccess}</Text>{' '}
-            <Text color={theme.status.error}>x {tools.totalFail}</Text> )
+            {String(tools['totalCalls'])} ({' '}
+            <Text color={theme.status.success}>
+              ✓ {String(tools['totalSuccess'])}
+            </Text>{' '}
+            <Text color={theme.status.error}>
+              x {String(tools['totalFail'])}
+            </Text>{' '}
+            )
           </Text>
         </StatRow>
         <StatRow title="Success Rate:">

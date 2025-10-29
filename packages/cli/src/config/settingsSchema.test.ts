@@ -185,7 +185,7 @@ describe('SettingsSchema', () => {
       expect(SETTINGS_SCHEMA.security.properties.auth.showInDialog).toBe(false);
       expect(SETTINGS_SCHEMA.tools.properties.core.showInDialog).toBe(false);
       expect(SETTINGS_SCHEMA.mcpServers.showInDialog).toBe(false);
-      expect(SETTINGS_SCHEMA.telemetry.showInDialog).toBe(false);
+      // expect(SETTINGS_SCHEMA.telemetry.showInDialog).toBe(false); // Telemetry removed from schema
 
       // Check that some settings are appropriately hidden
       expect(SETTINGS_SCHEMA.ui.properties.theme.showInDialog).toBe(false); // Changed to false

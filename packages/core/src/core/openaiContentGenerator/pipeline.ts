@@ -114,6 +114,7 @@ export class ContentGenerationPipeline {
   ): AsyncGenerator<GenerateContentResponse> {
     const collectedGeminiResponses: GenerateContentResponse[] = [];
     const collectedOpenAIChunks: OpenAI.Chat.ChatCompletionChunk[] = [];
+    let chunkCount = 0;
 
     // Reset streaming tool calls to prevent data pollution from previous streams
     this.converter.resetStreamingToolCalls();
@@ -123,9 +124,27 @@ export class ContentGenerationPipeline {
 
     try {
       // Stage 2a: Convert and yield each chunk while preserving original
+      console.log(`[MiniMax] Starting to process stream chunks...`);
+
       for await (const chunk of stream) {
+        chunkCount++;
         // Always collect OpenAI chunks for logging, regardless of Gemini conversion result
         collectedOpenAIChunks.push(chunk);
+
+        // Debug first few chunks for MiniMax
+        if (this.contentGeneratorConfig.model?.includes('minimax') && chunkCount <= 3) {
+          console.log(`[MiniMax] Chunk ${chunkCount}:`, {
+            id: chunk.id,
+            object: chunk.object,
+            created: chunk.created,
+            model: chunk.model,
+            choices: chunk.choices?.map(c => ({
+              index: c.index,
+              delta: c.delta,
+              finishReason: c.finish_reason
+            }))
+          });
+        }
 
         const response = this.converter.convertOpenAIChunkToGemini(chunk);
 
@@ -172,9 +191,32 @@ export class ContentGenerationPipeline {
         openaiRequest,
         collectedOpenAIChunks,
       );
+        console.log(`[MiniMax] Stream completed successfully. Total chunks: ${chunkCount}`);
+
+      // Stage 2e: Stream completed successfully - perform logging with original OpenAI chunks
+      context.duration = Date.now() - context.startTime;
+
+      await this.config.telemetryService.logStreamingSuccess(
+        context,
+        collectedGeminiResponses,
+        openaiRequest,
+        collectedOpenAIChunks,
+      );
     } catch (error) {
       // Clear streaming tool calls on error to prevent data pollution
       this.converter.resetStreamingToolCalls();
+
+      // Enhanced error logging for MiniMax
+      if (this.contentGeneratorConfig.model?.includes('minimax')) {
+        console.error(`[MiniMax] Stream error after ${chunkCount} chunks:`, {
+          error: (error as Error).message,
+          errorType: error?.constructor?.name || 'Unknown',
+          stack: (error as Error).stack,
+          status: (error as any).status,
+          code: (error as any).code,
+          headers: (error as any).headers
+        });
+      }
 
       // Use shared error handling logic
       await this.handleError(error, context, request);
@@ -345,6 +387,14 @@ export class ContentGenerationPipeline {
   ): Promise<T> {
     const context = this.createRequestContext(userPromptId, isStreaming);
 
+    // Debug for MiniMax
+    if (this.contentGeneratorConfig.model?.includes('minimax')) {
+      console.log(`[MiniMax] Starting executeWithErrorHandling`);
+      console.log(`[MiniMax] - User prompt ID: ${userPromptId}`);
+      console.log(`[MiniMax] - Is streaming: ${isStreaming}`);
+      console.log(`[MiniMax] - Request config keys:`, Object.keys(request.config || {}));
+    }
+
     try {
       const openaiRequest = await this.buildRequest(
         request,
@@ -352,11 +402,38 @@ export class ContentGenerationPipeline {
         isStreaming,
       );
 
+      // Debug for MiniMax - built request
+      if (this.contentGeneratorConfig.model?.includes('minimax')) {
+        console.log(`[MiniMax] Built OpenAI request:`, {
+          model: openaiRequest.model,
+          messages: openaiRequest.messages?.length,
+          temperature: openaiRequest.temperature,
+          stream: openaiRequest.stream,
+          maxTokens: openaiRequest.max_tokens
+        });
+      }
+
       const result = await executor(openaiRequest, context);
 
       context.duration = Date.now() - context.startTime;
+
+      // Debug for MiniMax - success
+      if (this.contentGeneratorConfig.model?.includes('minimax')) {
+        console.log(`[MiniMax] executeWithErrorHandling completed successfully in ${context.duration}ms`);
+      }
+
       return result;
     } catch (error) {
+      // Debug for MiniMax - error
+      if (this.contentGeneratorConfig.model?.includes('minimax')) {
+        console.error(`[MiniMax] executeWithErrorHandling error:`, {
+          message: (error as Error).message,
+          type: error?.constructor?.name || 'Unknown',
+          status: (error as any).status,
+          code: (error as any).code
+        });
+      }
+
       // Use shared error handling logic
       return await this.handleError(
         error,

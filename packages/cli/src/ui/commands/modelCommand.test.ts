@@ -39,8 +39,8 @@ function createMockConfig(
 
 describe('modelCommand', () => {
   let mockContext: CommandContext;
-  const mockGetOpenAIAvailableModelFromEnv = vi.mocked(
-    availableModelsModule.getOpenAIAvailableModelFromEnv,
+  const mockGetOpenAIAvailableModels = vi.mocked(
+    availableModelsModule.getOpenAIAvailableModels,
   );
 
   beforeEach(() => {
@@ -109,11 +109,10 @@ describe('modelCommand', () => {
     });
   });
 
-  it('should return dialog action for USE_OPENAI auth type when model is available', async () => {
-    mockGetOpenAIAvailableModelFromEnv.mockReturnValue({
-      id: 'gpt-4',
-      label: 'gpt-4',
-    });
+  it('should return dialog action for USE_OPENAI auth type when GLM-4.6 is available', async () => {
+    mockGetOpenAIAvailableModels.mockReturnValue([
+      { id: 'glm-4.6', label: 'GLM-4.6 (Z.ai)' },
+    ]);
 
     const mockConfig = createMockConfig({
       model: 'test-model',
@@ -130,7 +129,7 @@ describe('modelCommand', () => {
   });
 
   it('should return error for USE_OPENAI auth type when no model is available', async () => {
-    mockGetOpenAIAvailableModelFromEnv.mockReturnValue(null);
+    mockGetOpenAIAvailableModels.mockReturnValue([]);
 
     const mockConfig = createMockConfig({
       model: 'test-model',

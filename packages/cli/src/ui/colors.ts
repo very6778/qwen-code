@@ -53,4 +53,17 @@ export const Colors: ColorsTheme = {
   get GradientColors() {
     return themeManager.getActiveTheme().colors.GradientColors;
   },
+  // Professional CLI colors for enhanced contrast
+  get HighContrastGreen() {
+    return themeManager.getActiveTheme().colors.HighContrastGreen || '#00FF00';  // Bright green for success status
+  },
+  get HighContrastRed() {
+    return themeManager.getActiveTheme().colors.HighContrastRed || '#FF0000';    // Bright red for error status
+  },
+  get MutedGray() {
+    return themeManager.getActiveTheme().colors.MutedGray || '#9E9E9E';    // Muted gray for secondary information (dimColor)
+  },
+  get BoldGreen() {
+    return themeManager.getActiveTheme().colors.BoldGreen || '#00C853';    // Bold green for operation names
+  },
 };

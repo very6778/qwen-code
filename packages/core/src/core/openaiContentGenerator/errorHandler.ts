@@ -5,7 +5,23 @@
  */
 
 import type { GenerateContentParameters } from '@google/genai';
-import type { RequestContext } from './telemetryService.js';
+
+export interface RequestContext {
+  startTime: number;
+  userPromptId?: string;
+  isStreaming?: boolean;
+  duration?: number;
+  model?: string;
+  authType?: string;
+  error?: any;
+  responseId?: string;
+  promptId?: string;
+  requestText?: string;
+  responseText?: string;
+  responseTokens?: number;
+  statusCode?: number;
+  [key: string]: any;
+}
 
 export interface ErrorHandler {
   handle(
@@ -94,7 +110,7 @@ export class EnhancedErrorHandler implements ErrorHandler {
     context: RequestContext,
     isTimeoutError: boolean,
   ): string {
-    const durationSeconds = Math.round(context.duration / 1000);
+    const durationSeconds = Math.round((context.duration || 0) / 1000);
 
     if (isTimeoutError) {
       const prefix = context.isStreaming
