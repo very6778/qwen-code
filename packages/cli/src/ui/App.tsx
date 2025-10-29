@@ -1183,33 +1183,6 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
           </Box>
         </OverflowProvider>
 
-        {streamingState !== StreamingState.Idle && (
-          <Box flexDirection="column" marginY={1}>
-            <LoadingIndicator
-              thought={
-                streamingState === StreamingState.WaitingForConfirmation ||
-                config.getAccessibility()?.disableLoadingPhrases ||
-                config.getScreenReader()
-                  ? undefined
-                  : thought
-              }
-              currentLoadingPhrase={
-                streamingState === StreamingState.WaitingForConfirmation ||
-                config.getAccessibility()?.disableLoadingPhrases ||
-                config.getScreenReader()
-                  ? undefined
-                  : currentLoadingPhrase
-              }
-              elapsedTime={elapsedTime}
-              queuedMessages={messageQueue}
-              maxQueuedMessages={MAX_DISPLAYED_QUEUED_MESSAGES}
-              width={mainAreaWidth}
-              topPaddingLines={0}
-              linesBelow={0}
-            />
-          </Box>
-        )}
-
         <Box flexDirection="column" ref={mainControlsRef}>
           {/* Move UpdateNotification to render update notification above input area */}
           {updateInfo && <UpdateNotification message={updateInfo.message} />}
@@ -1455,40 +1428,61 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 </Box>
               </Box>
 
-              {showErrorDetails && (
-                <OverflowProvider>
-                  <Box flexDirection="column">
-                    <DetailedMessagesDisplay
-                      messages={filteredConsoleMessages}
-                      maxHeight={
-                        constrainHeight ? debugConsoleMaxHeight : undefined
-                      }
-                      width={inputWidth}
-                    />
-                    <ShowMoreLines constrainHeight={constrainHeight} />
-                  </Box>
-                </OverflowProvider>
+              {streamingState !== StreamingState.Idle && (
+                <Box width="100%">
+                  <LoadingIndicator
+                    thought={
+                      streamingState ===
+                        StreamingState.WaitingForConfirmation ||
+                      config.getAccessibility()?.disableLoadingPhrases ||
+                      config.getScreenReader()
+                        ? undefined
+                        : thought
+                    }
+                    currentLoadingPhrase={
+                      streamingState ===
+                        StreamingState.WaitingForConfirmation ||
+                      config.getAccessibility()?.disableLoadingPhrases ||
+                      config.getScreenReader()
+                        ? undefined
+                        : currentLoadingPhrase
+                    }
+                    elapsedTime={elapsedTime}
+                    queuedMessages={messageQueue}
+                    maxQueuedMessages={MAX_DISPLAYED_QUEUED_MESSAGES}
+                    width={mainAreaWidth}
+                    topPaddingLines={0}
+                    linesBelow={0}
+                  />
+                </Box>
               )}
 
               {isInputActive && (
-                <InputPrompt
-                  buffer={buffer}
-                  inputWidth={inputWidth}
-                  frameWidth={promptFrameWidth}
-                  suggestionsWidth={suggestionsWidth}
-                  onSubmit={handleFinalSubmit}
-                  userMessages={userMessages}
-                  onClearScreen={handleClearScreen}
-                  config={config}
-                  slashCommands={slashCommands}
-                  commandContext={commandContext}
-                  shellModeActive={shellModeActive}
-                  setShellModeActive={setShellModeActive}
-                  onEscapePromptChange={handleEscapePromptChange}
-                  focus={isFocused}
-                  vimHandleInput={vimHandleInput}
-                  placeholder={placeholder}
-                />
+                <Box
+                  paddingTop={streamingState === StreamingState.Idle ? 1 : 0}
+                  width="100%"
+                  flexDirection="column"
+                  ref={inputPromptRef}
+                >
+                  <InputPrompt
+                    buffer={buffer}
+                    inputWidth={inputWidth}
+                    frameWidth={promptFrameWidth}
+                    suggestionsWidth={suggestionsWidth}
+                    onSubmit={handleFinalSubmit}
+                    userMessages={userMessages}
+                    onClearScreen={handleClearScreen}
+                    config={config}
+                    slashCommands={slashCommands}
+                    commandContext={commandContext}
+                    shellModeActive={shellModeActive}
+                    setShellModeActive={setShellModeActive}
+                    onEscapePromptChange={handleEscapePromptChange}
+                    focus={isFocused}
+                    vimHandleInput={vimHandleInput}
+                    placeholder={placeholder}
+                  />
+                </Box>
               )}
             </>
           )}
