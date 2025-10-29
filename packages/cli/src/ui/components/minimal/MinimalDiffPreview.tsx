@@ -64,11 +64,16 @@ export const MinimalDiffPreview: React.FC<MinimalDiffPreviewProps> = ({
     [displayableLines, shouldTruncate],
   );
 
-  const maxLineNumber = Math.max(
+  const maxOldLine = Math.max(
     0,
-    ...linesToRender.map((line) => getDisplayLineNumber(line) ?? 0),
+    ...linesToRender.map((line) => line.oldLine ?? 0),
   );
-  const gutterWidth = Math.max(2, maxLineNumber.toString().length);
+  const maxNewLine = Math.max(
+    0,
+    ...linesToRender.map((line) => line.newLine ?? 0),
+  );
+  const oldWidth = Math.max(2, maxOldLine.toString().length);
+  const newWidth = Math.max(2, maxNewLine.toString().length);
 
   return (
     <Box flexDirection="column" marginLeft={2}>
@@ -76,7 +81,8 @@ export const MinimalDiffPreview: React.FC<MinimalDiffPreviewProps> = ({
         <DiffRow
           key={`${line.type}-${line.oldLine ?? 'x'}-${line.newLine ?? 'y'}-${index}`}
           line={line}
-          gutterWidth={gutterWidth}
+          oldGutterWidth={oldWidth}
+          newGutterWidth={newWidth}
         />
       ))}
       {shouldTruncate && (
@@ -99,10 +105,15 @@ export const MinimalDiffPreview: React.FC<MinimalDiffPreviewProps> = ({
 
 interface DiffRowProps {
   line: ParsedDiffLine;
-  gutterWidth: number;
+  oldGutterWidth: number;
+  newGutterWidth: number;
 }
 
-const DiffRow: React.FC<DiffRowProps> = ({ line, gutterWidth }) => {
+const DiffRow: React.FC<DiffRowProps> = ({
+  line,
+  oldGutterWidth,
+  newGutterWidth,
+}) => {
   if (line.type === 'hunk') {
     return (
       <Text color={HUNK_COLOR} dimColor>
@@ -111,11 +122,14 @@ const DiffRow: React.FC<DiffRowProps> = ({ line, gutterWidth }) => {
     );
   }
 
-  const lineNumber = getDisplayLineNumber(line);
-  const lineLabel =
-    lineNumber !== undefined
-      ? lineNumber.toString().padStart(gutterWidth)
-      : ' '.repeat(gutterWidth);
+  const oldLabel =
+    line.oldLine !== undefined
+      ? line.oldLine.toString().padStart(oldGutterWidth)
+      : ' '.repeat(oldGutterWidth);
+  const newLabel =
+    line.newLine !== undefined
+      ? line.newLine.toString().padStart(newGutterWidth)
+      : ' '.repeat(newGutterWidth);
 
   let backgroundColor: string | undefined;
   let prefixSymbol = ' ';
@@ -136,7 +150,7 @@ const DiffRow: React.FC<DiffRowProps> = ({ line, gutterWidth }) => {
   return (
     <Box flexDirection="row">
       <Text color={Colors.Gray}>
-        {lineLabel}{' '}
+        {oldLabel} {newLabel}{' '}
       </Text>
       <Text backgroundColor={backgroundColor} color={textColor}>
         {prefixSymbol} {line.content}
@@ -144,13 +158,3 @@ const DiffRow: React.FC<DiffRowProps> = ({ line, gutterWidth }) => {
     </Box>
   );
 };
-
-function getDisplayLineNumber(line: ParsedDiffLine): number | undefined {
-  if (line.type === 'del') {
-    return line.oldLine;
-  }
-  if (line.type === 'add' || line.type === 'context') {
-    return line.newLine ?? line.oldLine;
-  }
-  return undefined;
-}

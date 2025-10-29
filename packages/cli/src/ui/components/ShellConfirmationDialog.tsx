@@ -71,6 +71,7 @@ export const ShellConfirmationDialog: React.FC<
       borderColor={Colors.AccentYellow}
       padding={1}
       width="100%"
+      marginLeft={1}
     >
       <Box flexDirection="column" marginBottom={1}>
         <Text bold>Shell Command Execution</Text>

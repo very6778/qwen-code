@@ -179,13 +179,10 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       if (shellModeActive) {
         shellHistory.addCommandToHistory(submittedValue);
       }
-      // Store the submitted value first
-      const finalValue = submittedValue;
       // Clear the buffer *before* calling onSubmit to prevent potential re-submission
       // if onSubmit triggers a re-render while the buffer still holds the old value.
       buffer.setText('');
-      // Submit immediately without delay to maintain responsiveness
-      onSubmit(finalValue);
+      onSubmit(submittedValue);
       resetCompletionState();
       resetReverseSearchCompletionState();
     },
@@ -859,7 +856,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
       </Box>
       {horizontalLine && <Text color={frameLineColor}>{horizontalLine}</Text>}
       {completion.showSuggestions && (
-        <Box paddingRight={1}>
+        <Box paddingRight={2}>
           <SuggestionsDisplay
             suggestions={completion.suggestions}
             activeIndex={completion.activeSuggestionIndex}
@@ -871,7 +868,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         </Box>
       )}
       {reverseSearchActive && (
-        <Box paddingRight={1}>
+        <Box paddingRight={2}>
           <SuggestionsDisplay
             suggestions={reverseSearchCompletion.suggestions}
             activeIndex={reverseSearchCompletion.activeSuggestionIndex}

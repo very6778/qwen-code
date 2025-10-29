@@ -115,5 +115,5 @@ export const AboutBox: React.FC<AboutBoxProps> = ({
         </Box>
       </Box>
     )}
-  </Box>
+    </Box>
 );

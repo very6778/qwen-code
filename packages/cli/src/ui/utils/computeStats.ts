@@ -39,7 +39,7 @@ export const computeSessionStats = (
     (acc, model) => acc + model.api.totalLatencyMs,
     0,
   );
-  const totalToolTime = tools['totalDurationMs'] as any as number;
+  const totalToolTime = tools.totalDurationMs;
   const agentActiveTime = totalApiTime + totalToolTime;
   const apiTimePercent =
     agentActiveTime > 0 ? (totalApiTime / agentActiveTime) * 100 : 0;
@@ -62,11 +62,7 @@ export const computeSessionStats = (
     tools.totalDecisions['reject'] +
     tools.totalDecisions['modify'];
   const successRate =
-    (tools['totalCalls'] as any as number) > 0
-      ? ((tools['totalSuccess'] as any as number) /
-          (tools['totalCalls'] as any as number)) *
-        100
-      : 0;
+    tools.totalCalls > 0 ? (tools.totalSuccess / tools.totalCalls) * 100 : 0;
   const agreementRate =
     totalDecisions > 0
       ? (tools.totalDecisions['accept'] / totalDecisions) * 100

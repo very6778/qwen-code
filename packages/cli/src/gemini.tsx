@@ -16,8 +16,7 @@ import { render } from 'ink';
 import { spawn } from 'node:child_process';
 import dns from 'node:dns';
 import os from 'node:os';
-import fs from 'node:fs';
-import { basename, join } from 'node:path';
+import { basename } from 'node:path';
 import v8 from 'node:v8';
 import React from 'react';
 import { validateAuthMethod } from './config/auth.js';
@@ -31,7 +30,6 @@ import { setMaxSizedBoxDebugging } from './ui/components/shared/MaxSizedBox.js';
 import { SettingsContext } from './ui/contexts/SettingsContext.js';
 import { themeManager } from './ui/themes/theme-manager.js';
 import { ConsolePatcher } from './ui/utils/ConsolePatcher.js';
-import { TerminalManager } from './ui/utils/terminalManager.js';
 import { detectAndEnableKittyProtocol } from './ui/utils/kittyProtocolDetector.js';
 import { checkForUpdates } from './ui/utils/updateCheck.js';
 import { cleanupCheckpoints, registerCleanup } from './utils/cleanup.js';
@@ -135,16 +133,6 @@ export async function startInteractiveUI(
   workspaceRoot: string,
 ) {
   const version = await getCliVersion();
-
-  // Initialize fullscreen mode for professional terminal experience
-  const terminalManager = new TerminalManager();
-  if (TerminalManager.isFullscreenSupported()) {
-    terminalManager.clearFullscreen();
-  }
-
-  // Register terminal cleanup for graceful exit
-  registerCleanup(() => terminalManager.restoreTerminal());
-
   // Detect and enable Kitty keyboard protocol once at startup
   await detectAndEnableKittyProtocol();
   setWindowTitle(basename(workspaceRoot), settings);
@@ -213,7 +201,7 @@ export async function startInteractiveUI(
 export async function main() {
   setupUnhandledRejectionHandler();
   const workspaceRoot = process.cwd();
-  const mainLogPath = join(workspaceRoot, 'main-logging');
+  const mainLogPath = join(workspaceRoot, 'main-log.md');
   process.env['QWEN_MAIN_LOG_PATH'] = mainLogPath;
   try {
     fs.writeFileSync(mainLogPath, '');
@@ -293,6 +281,7 @@ export async function main() {
 
   await config.initialize();
 
+  
   // Load custom themes from settings
   themeManager.loadCustomThemes(settings.merged.ui?.customThemes);
 

@@ -54,9 +54,8 @@ export function useMessageQueue({
     if (streamingState === StreamingState.Idle && messageQueue.length > 0) {
       // Combine all messages with double newlines for clarity
       const combinedMessage = messageQueue.join('\n\n');
-      // Clear the queue first to prevent display issues
+      // Clear the queue and submit
       setMessageQueue([]);
-      // Submit immediately for better responsiveness
       submitQuery(combinedMessage);
     }
   }, [streamingState, messageQueue, submitQuery]);

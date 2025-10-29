@@ -7,6 +7,7 @@
 import React, { Fragment, useEffect, useId } from 'react';
 import { Box, Text } from 'ink';
 import stringWidth from 'string-width';
+import { Colors } from '../../colors.js';
 import { toCodePoints } from '../../utils/textUtils.js';
 import { useOverflowActions } from '../../contexts/OverflowContext.js';
 
@@ -103,9 +104,13 @@ export const MaxSizedBox: React.FC<MaxSizedBoxProps> = ({
   additionalHiddenLinesCount = 0,
 }) => {
   const id = useId();
-  const { removeOverflowingId } = useOverflowActions() || {};
+  const { addOverflowingId, removeOverflowingId } = useOverflowActions() || {};
 
   const laidOutStyledText: StyledText[][] = [];
+  const targetMaxHeight = Math.max(
+    Math.round(maxHeight ?? Number.MAX_SAFE_INTEGER),
+    MINIMUM_MAX_HEIGHT,
+  );
 
   if (maxWidth === undefined) {
     throw new Error('maxWidth must be defined when maxHeight is set.');
@@ -130,30 +135,69 @@ export const MaxSizedBox: React.FC<MaxSizedBoxProps> = ({
 
   React.Children.forEach(children, visitRows);
 
-  // We always show all content now, so no overflow handling needed
+  const contentWillOverflow =
+    (targetMaxHeight !== undefined &&
+      laidOutStyledText.length > targetMaxHeight) ||
+    additionalHiddenLinesCount > 0;
+  const visibleContentHeight =
+    contentWillOverflow && targetMaxHeight !== undefined
+      ? targetMaxHeight - 1
+      : targetMaxHeight;
+
+  const hiddenLinesCount =
+    visibleContentHeight !== undefined
+      ? Math.max(0, laidOutStyledText.length - visibleContentHeight)
+      : 0;
+  const totalHiddenLines = hiddenLinesCount + additionalHiddenLinesCount;
+
   useEffect(() => {
-    // No overflow tracking since we show everything
+    if (totalHiddenLines > 0) {
+      addOverflowingId?.(id);
+    } else {
+      removeOverflowingId?.(id);
+    }
+
     return () => {
       removeOverflowingId?.(id);
     };
-  }, [id, removeOverflowingId]);
+  }, [id, totalHiddenLines, addOverflowingId, removeOverflowingId]);
+
+  const visibleStyledText =
+    hiddenLinesCount > 0
+      ? overflowDirection === 'top'
+        ? laidOutStyledText.slice(hiddenLinesCount, laidOutStyledText.length)
+        : laidOutStyledText.slice(0, visibleContentHeight)
+      : laidOutStyledText;
+
+  const visibleLines = visibleStyledText.map((line, index) => (
+    <Box key={index}>
+      {line.length > 0 ? (
+        line.map((segment, segIndex) => (
+          <Text key={segIndex} {...segment.props}>
+            {segment.text}
+          </Text>
+        ))
+      ) : (
+        <Text> </Text>
+      )}
+    </Box>
+  ));
 
   return (
     <Box flexDirection="column" width={maxWidth} flexShrink={0}>
-      {/* Always show all content - no hidden lines messages */}
-      {laidOutStyledText.map((line, index) => (
-        <Box key={index}>
-          {line.length > 0 ? (
-            line.map((segment, segIndex) => (
-              <Text key={segIndex} {...segment.props}>
-                {segment.text}
-              </Text>
-            ))
-          ) : (
-            <Text> </Text>
-          )}
-        </Box>
-      ))}
+      {totalHiddenLines > 0 && overflowDirection === 'top' && (
+        <Text color={Colors.Gray} wrap="truncate">
+          ... first {totalHiddenLines} line{totalHiddenLines === 1 ? '' : 's'}{' '}
+          hidden ...
+        </Text>
+      )}
+      {visibleLines}
+      {totalHiddenLines > 0 && overflowDirection === 'bottom' && (
+        <Text color={Colors.Gray} wrap="truncate">
+          ... last {totalHiddenLines} line{totalHiddenLines === 1 ? '' : 's'}{' '}
+          hidden ...
+        </Text>
+      )}
     </Box>
   );
 };

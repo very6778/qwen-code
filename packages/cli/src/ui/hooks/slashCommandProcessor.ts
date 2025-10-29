@@ -53,7 +53,7 @@ export const useSlashCommandProcessor = (
   openPrivacyNotice: () => void,
   openSettingsDialog: () => void,
   openModelSelectionDialog: () => void,
-  toggleVimEnabled: () => Promise<boolean>,
+    toggleVimEnabled: () => Promise<boolean>,
   setIsProcessing: (isProcessing: boolean) => void,
   setGeminiMdFileCount: (count: number) => void,
   _showQuitConfirmation: () => void,
@@ -225,6 +225,7 @@ export const useSlashCommandProcessor = (
     ],
   );
 
+  
   useEffect(() => {
     const controller = new AbortController();
     const load = async () => {
@@ -375,7 +376,7 @@ export const useSlashCommandProcessor = (
                     case 'theme':
                       openThemeDialog();
                       return { type: 'handled' };
-                    case 'privacy':
+                                        case 'privacy':
                       openPrivacyNotice();
                       return { type: 'handled' };
                     case 'settings':
@@ -384,7 +385,7 @@ export const useSlashCommandProcessor = (
                     case 'model':
                       openModelSelectionDialog();
                       return { type: 'handled' };
-                    case 'help':
+                                        case 'help':
                       return { type: 'handled' };
                     case 'subagent_create':
                     case 'subagent_list':
@@ -639,7 +640,7 @@ export const useSlashCommandProcessor = (
       openPrivacyNotice,
       setQuittingMessages,
       openSettingsDialog,
-      setShellConfirmationRequest,
+            setShellConfirmationRequest,
       setSessionShellAllowlist,
       setIsProcessing,
       setConfirmationRequest,

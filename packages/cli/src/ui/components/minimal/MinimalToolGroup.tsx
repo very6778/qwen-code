@@ -7,9 +7,7 @@
 import type React from 'react';
 import { useMemo } from 'react';
 import { Box } from 'ink';
-import type {
-  IndividualToolCallDisplay,
-} from '../../types.js';
+import type { IndividualToolCallDisplay } from '../../types.js';
 import { ToolCallStatus } from '../../types.js';
 import { MinimalToolMessage } from './MinimalToolMessage.js';
 import { ToolConfirmationMessage } from '../messages/ToolConfirmationMessage.js';
@@ -30,8 +28,7 @@ export const MinimalToolGroup: React.FC<MinimalToolGroupProps> = ({
   terminalWidth,
   config,
   isFocused = true,
-  }) => {
-
+}) => {
   const toolAwaitingApproval = useMemo(
     () => toolCalls.find((tc) => tc.status === ToolCallStatus.Confirming),
     [toolCalls],
@@ -96,4 +93,3 @@ export const MinimalToolGroup: React.FC<MinimalToolGroupProps> = ({
     </Box>
   );
 };
-

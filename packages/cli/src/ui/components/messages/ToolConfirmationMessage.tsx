@@ -45,7 +45,7 @@ export const ToolConfirmationMessage: React.FC<
   const childWidth = terminalWidth - 2; // 2 for padding
 
   const handleConfirm = async (outcome: ToolConfirmationOutcome) => {
-    onConfirm(outcome);
+        onConfirm(outcome);
   };
 
   const isTrustedFolder = config.isTrustedFolder() !== false;

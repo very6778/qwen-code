@@ -1,4 +1,4 @@
-codex
+# Claude Code
 
 <div align="center">
 

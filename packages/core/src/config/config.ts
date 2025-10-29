@@ -96,6 +96,15 @@ export interface SummarizeToolOutputSettings {
   tokenBudget?: number;
 }
 
+export interface TelemetrySettings {
+  enabled?: boolean;
+  target?: TelemetryTarget;
+  otlpEndpoint?: string;
+  otlpProtocol?: 'grpc' | 'http';
+  logPrompts?: boolean;
+  outfile?: string;
+}
+
 export interface GitCoAuthorSettings {
   enabled?: boolean;
   name?: string;
@@ -249,7 +258,7 @@ export interface ConfigParameters {
 export class Config {
   private toolRegistry!: ToolRegistry;
   private promptRegistry!: PromptRegistry;
-  private sessionId: string;
+    private sessionId: string;
   private fileSystemService: FileSystemService;
   private contentGeneratorConfig!: ContentGeneratorConfig;
   private readonly embeddingModel: string;
@@ -271,6 +280,7 @@ export class Config {
   private approvalMode: ApprovalMode;
   private readonly showMemoryUsage: boolean;
   private readonly accessibility: AccessibilitySettings;
+  private readonly telemetrySettings: TelemetrySettings;
   private readonly gitCoAuthor: GitCoAuthorSettings;
   private readonly usageStatisticsEnabled: boolean;
   private geminiClient!: GeminiClient;
@@ -292,7 +302,7 @@ export class Config {
   private readonly folderTrustFeature: boolean;
   private readonly folderTrust: boolean;
   private ideMode: boolean;
-  private inFallbackMode = false;
+    private inFallbackMode = false;
   private readonly systemPromptMappings?: Array<{
     baseUrls?: string[];
     modelNames?: string[];
@@ -364,6 +374,14 @@ export class Config {
     this.approvalMode = params.approvalMode ?? ApprovalMode.DEFAULT;
     this.showMemoryUsage = params.showMemoryUsage ?? false;
     this.accessibility = params.accessibility ?? {};
+    this.telemetrySettings = {
+      enabled: params.telemetry?.enabled ?? false,
+      target: params.telemetry?.target ?? DEFAULT_TELEMETRY_TARGET,
+      otlpEndpoint: params.telemetry?.otlpEndpoint ?? DEFAULT_OTLP_ENDPOINT,
+      otlpProtocol: params.telemetry?.otlpProtocol,
+      logPrompts: params.telemetry?.logPrompts ?? true,
+      outfile: params.telemetry?.outfile,
+    };
     this.gitCoAuthor = {
       enabled: params.gitCoAuthor?.enabled ?? true,
       name: params.gitCoAuthor?.name ?? 'Qwen-Coder',
@@ -448,13 +466,14 @@ export class Config {
       throw Error('Config was already initialized');
     }
     this.initialized = true;
-    // Initialize centralized FileDiscoveryService
+        // Initialize centralized FileDiscoveryService
     this.getFileService();
     if (this.getCheckpointingEnabled()) {
       await this.getGitService();
     }
     this.promptRegistry = new PromptRegistry();
     this.toolRegistry = await this.createToolRegistry();
+    logCliConfiguration(this, new StartSessionEvent(this, this.toolRegistry));
   }
 
   async refreshAuth(authMethod: AuthType) {
@@ -710,19 +729,19 @@ export class Config {
   }
 
   getTelemetryEnabled(): boolean {
-    return false;
+    return this.telemetrySettings.enabled ?? false;
   }
 
   getTelemetryLogPromptsEnabled(): boolean {
-    return false;
+    return this.telemetrySettings.logPrompts ?? true;
   }
 
   getTelemetryOtlpEndpoint(): string {
-    return 'http://localhost:4317';
+    return this.telemetrySettings.otlpEndpoint ?? DEFAULT_OTLP_ENDPOINT;
   }
 
   getTelemetryOtlpProtocol(): 'grpc' | 'http' {
-    return 'grpc';
+    return this.telemetrySettings.otlpProtocol ?? 'grpc';
   }
 
   getTelemetryTarget(): TelemetryTarget {
@@ -730,7 +749,7 @@ export class Config {
   }
 
   getTelemetryOutfile(): string | undefined {
-    return undefined;
+    return this.telemetrySettings.outfile;
   }
 
   getGitCoAuthor(): GitCoAuthorSettings {
@@ -848,6 +867,7 @@ export class Config {
     return this.tavilyApiKey;
   }
 
+  
   getIdeMode(): boolean {
     return this.ideMode;
   }
@@ -970,6 +990,7 @@ export class Config {
     return this.fileExclusions;
   }
 
+  
   async createToolRegistry(): Promise<ToolRegistry> {
     const registry = new ToolRegistry(this);
 
@@ -1005,7 +1026,7 @@ export class Config {
       }
     };
 
-    registerCoreTool(LSTool, this);
+        registerCoreTool(LSTool, this);
     registerCoreTool(ReadFileTool, this);
 
     if (this.getUseRipgrep()) {

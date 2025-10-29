@@ -100,7 +100,7 @@ describe('WriteFileTool', () => {
     mockConfigInternal.getGeminiClient.mockReturnValue(
       mockGeminiClientInstance,
     );
-
+    
     tool = new WriteFileTool(mockConfig);
 
     // Reset mocks before each test

@@ -56,6 +56,7 @@ export * from './services/gitService.js';
 export * from './services/chatRecordingService.js';
 export * from './services/fileSystemService.js';
 
+
 // Export Shell Execution Service
 export * from './services/shellExecutionService.js';
 
@@ -63,6 +64,7 @@ export * from './services/shellExecutionService.js';
 export * from './tools/tools.js';
 export * from './tools/tool-error.js';
 export * from './tools/tool-registry.js';
+
 
 // Export prompt logic
 export * from './prompts/mcp-prompts.js';
