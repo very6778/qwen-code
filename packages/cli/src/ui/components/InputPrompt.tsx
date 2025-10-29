@@ -69,7 +69,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   vimHandleInput,
 }) => {
   const normalizedFrameWidth = Math.max(0, Math.floor(frameWidth));
-  const promptBackgroundColor = '#2c2c2c';
+  const promptBackgroundColor = '#353535';
   const promptTextColor = '#d4d4d4';
   const placeholderColor = '#999797';
   const [justNavigatedHistory, setJustNavigatedHistory] = useState(false);
