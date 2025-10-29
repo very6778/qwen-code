@@ -213,7 +213,7 @@ export async function startInteractiveUI(
 export async function main() {
   setupUnhandledRejectionHandler();
   const workspaceRoot = process.cwd();
-  const mainLogPath = join(workspaceRoot, 'main-logging');
+  const mainLogPath = join(workspaceRoot, 'main-log.md');
   process.env['QWEN_MAIN_LOG_PATH'] = mainLogPath;
   try {
     fs.writeFileSync(mainLogPath, '');

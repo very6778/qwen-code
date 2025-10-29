@@ -401,7 +401,7 @@ export const logInvalidChunk = (config: any, event: any) => {
   }
 };
 
-const MAIN_LOG_FILE_NAME = 'main-logging';
+const MAIN_LOG_FILE_NAME = 'main-log.md';
 
 function resolveMainLogPath(): string {
   const envPath = process.env['QWEN_MAIN_LOG_PATH'];
@@ -421,7 +421,7 @@ function safeStringify(value: unknown): string {
   }
 }
 
-function appendToMainLog(kind: string, event: unknown) {
+export function appendToMainLog(kind: string, event: unknown) {
   const timestamp = new Date().toISOString();
   const line = `[${timestamp}] [${kind}] ${safeStringify(event)}\n`;
   try {
