@@ -1491,7 +1491,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
               {isInputActive && (
                 <Box
-                  paddingTop={1}
+                  paddingTop={streamingState === StreamingState.Idle ? 1 : 0}
                   width="100%"
                   flexDirection="column"
                   ref={inputPromptRef}
