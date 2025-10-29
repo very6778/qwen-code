@@ -23,8 +23,8 @@ function getAvailableModelsForAuthType(authType: AuthType): AvailableModel[] {
     case AuthType.QWEN_OAUTH:
       return AVAILABLE_MODELS_QWEN;
     case AuthType.USE_OPENAI: {
-      const openAIModel = getOpenAIAvailableModelFromEnv();
-      return openAIModel ? [openAIModel] : [];
+      const model = getOpenAIAvailableModelFromEnv();
+      return model ? [model] : [];
     }
         default:
       // For other auth types, return empty array for now

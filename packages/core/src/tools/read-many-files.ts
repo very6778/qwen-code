@@ -18,6 +18,7 @@ import {
   DEFAULT_ENCODING,
   getSpecificMimeType,
   DEFAULT_MAX_LINES_TEXT_FILE,
+  getSpecificMimeType,
 } from '../utils/fileUtils.js';
 import type { PartListUnion } from '@google/genai';
 import type { Config } from '../config/config.js';

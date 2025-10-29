@@ -238,6 +238,7 @@ export async function createContentGenerator(
   }
 
   if (config.authType === AuthType.QWEN_OAUTH) {
+    // For other Qwen models, use the regular Qwen Content Generator
     // Import required classes dynamically
     const { getQwenOAuthClient: getQwenOauthClient } = await import(
       '../qwen/qwenOAuth2.js'

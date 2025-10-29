@@ -391,9 +391,6 @@ export const useSlashCommandProcessor = (
                     case 'subagent_list':
                       // Sub-agent functionality removed
                       return { type: 'handled' };
-                    case 'editor':
-                      // Editor functionality removed
-                      return { type: 'handled' };
                     default: {
                       const unhandled: never = result.dialog;
                       throw new Error(

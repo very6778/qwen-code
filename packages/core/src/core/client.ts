@@ -24,9 +24,7 @@ import { LoopDetectionService } from '../services/loopDetectionService.js';
 import {
   appendToMainLog,
   logChatCompression,
-  logNextSpeakerCheck,
   makeChatCompressionEvent,
-  NextSpeakerCheckEvent
 } from '../telemetry-mocks.js';
 import {
   getDirectoryContextString,
