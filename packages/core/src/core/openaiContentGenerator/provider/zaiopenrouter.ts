@@ -40,10 +40,6 @@ export class ZaiOpenRouterProvider extends DefaultOpenAICompatibleProvider {
       'X-Title': 'Qwen Code',
       'X-Model': model,
     };
-
-    if (enhancedRequest.stream === undefined) {
-      delete enhancedRequest.stream;
-    }
   }
 
   override buildRequest(
@@ -60,6 +56,10 @@ export class ZaiOpenRouterProvider extends DefaultOpenAICompatibleProvider {
       // Add cache control headers similar to DashScope to ensure proper streaming
       stream: request.stream,
     };
+
+    if (enhancedRequest.stream === undefined) {
+      delete enhancedRequest.stream;
+    }
 
     // Convert Gemini "tools" schema into OpenRouter structured output format.
     if (Array.isArray(enhancedRequest.tools) && enhancedRequest.tools.length > 0) {
