@@ -63,28 +63,35 @@ export class ZaiOpenRouterProvider extends DefaultOpenAICompatibleProvider {
 
     // Convert Gemini "tools" schema into OpenRouter structured output format.
     if (Array.isArray(enhancedRequest.tools) && enhancedRequest.tools.length > 0) {
-      const functionTool = enhancedRequest.tools.find(
-        (tool: any) => tool?.type === 'function' && tool?.function?.parameters,
+      const helperToolIndex = enhancedRequest.tools.findIndex(
+        (tool: any) =>
+          tool?.type === 'function' &&
+          tool?.function?.name === 'respond_in_schema' &&
+          tool?.function?.parameters,
       );
 
-      if (functionTool?.function?.parameters) {
-        const schema = JSON.parse(
-          JSON.stringify(functionTool.function.parameters),
-        );
-        const schemaName =
-          functionTool.function.name || 'respond_in_schema';
+      if (helperToolIndex >= 0) {
+        const helperOnly = enhancedRequest.tools.length === 1;
 
-        enhancedRequest.response_format = {
-          type: 'json_schema',
-          json_schema: {
-            name: schemaName,
-            strict: true,
-            schema,
-          },
-        };
+        if (helperOnly) {
+          const helperTool = enhancedRequest.tools[helperToolIndex];
+          const schema = JSON.parse(
+            JSON.stringify(helperTool.function.parameters),
+          );
+          const schemaName = helperTool.function.name || 'respond_in_schema';
 
-        // Remove tools to avoid sending both formats simultaneously.
-        delete enhancedRequest.tools;
+          enhancedRequest.response_format = {
+            type: 'json_schema',
+            json_schema: {
+              name: schemaName,
+              strict: true,
+              schema,
+            },
+          };
+
+          // Structured output already enforced via response_format; drop helper tool entirely.
+          delete enhancedRequest.tools;
+        }
       }
     }
 
