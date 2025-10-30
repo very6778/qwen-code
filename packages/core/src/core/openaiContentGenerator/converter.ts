@@ -23,6 +23,16 @@ import type OpenAI from 'openai';
 import { safeJsonParse } from '../../utils/safeJsonParse.js';
 import { StreamingToolCallParser } from './streamingToolCallParser.js';
 
+const stringifyForError = (value: unknown): string => {
+  try {
+    return JSON.stringify(value);
+  } catch (error) {
+    return `"[unserializable: ${
+      error instanceof Error ? error.message : String(error)
+    }]"`;
+  }
+};
+
 /**
  * Tool call accumulator for streaming responses
  */
@@ -496,6 +506,13 @@ export class OpenAIContentConverter {
   convertOpenAIResponseToGemini(
     openaiResponse: OpenAI.Chat.ChatCompletion,
   ): GenerateContentResponse {
+    if (!openaiResponse.choices || openaiResponse.choices.length === 0) {
+      throw new Error(
+        `API response did not include any choices: ${stringifyForError(
+          openaiResponse,
+        )}`,
+      );
+    }
     const choice = openaiResponse.choices[0];
     const response = new GenerateContentResponse();
 
