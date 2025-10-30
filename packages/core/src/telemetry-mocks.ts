@@ -449,6 +449,7 @@ export const logApiRequest = (_config: any, event: any) => {
 
 export const logApiResponse = (_config: any, event: any) => {
   appendToMainLog('api-response', event);
+  updateFromApiResponse(event);
   if (process.env['NODE_ENV'] === 'development') {
     console.log(`[Mock] API response:`, event);
   }
@@ -747,6 +748,115 @@ export interface ToolCallStats {
   };
 }
 
+type UiTelemetryListener = (payload: {
+  metrics: SessionMetrics;
+  lastPromptTokenCount: number;
+}) => void;
+
+const createEmptyToolStats = (): SessionMetrics['tools'] => ({
+  totalCalls: 0,
+  totalSuccess: 0,
+  totalFail: 0,
+  totalDurationMs: 0,
+  totalDecisions: {},
+  byName: {},
+});
+
+const createEmptyFileStats = (): SessionMetrics['files'] => ({
+  totalReads: 0,
+  totalWrites: 0,
+  totalEdits: 0,
+  totalLinesAdded: 0,
+  totalLinesRemoved: 0,
+});
+
+const createEmptyMetrics = (): SessionMetrics => ({
+  totalTokens: 0,
+  totalTime: 0,
+  requestCount: 0,
+  models: {},
+  tools: createEmptyToolStats(),
+  files: createEmptyFileStats(),
+});
+
+const createEmptyModelMetrics = (model: string): ModelMetrics => ({
+  model,
+  promptTokens: 0,
+  completionTokens: 0,
+  totalTokens: 0,
+  cost: 0,
+  tokens: {
+    input: 0,
+    output: 0,
+    total: 0,
+    prompt: 0,
+    cached: 0,
+    thoughts: 0,
+    tool: 0,
+    candidates: 0,
+  },
+  api: {
+    totalRequests: 0,
+    totalTime: 0,
+    successRate: 0,
+    averageLatency: 0,
+    totalErrors: 0,
+    totalLatencyMs: 0,
+  },
+});
+
+let metricsState: SessionMetrics = createEmptyMetrics();
+let lastPromptTokenCountState = 0;
+const telemetryListeners = new Set<UiTelemetryListener>();
+
+const cloneMetrics = (metrics: SessionMetrics): SessionMetrics =>
+  JSON.parse(JSON.stringify(metrics));
+
+const emitTelemetryUpdate = () => {
+  const snapshot = {
+    metrics: cloneMetrics(metricsState),
+    lastPromptTokenCount: lastPromptTokenCountState,
+  };
+  telemetryListeners.forEach((listener) => listener(snapshot));
+};
+
+const updateFromApiResponse = (event: ApiResponseEvent) => {
+  const usage = event.usageMetadata;
+  if (!usage) {
+    return;
+  }
+
+  const promptTokens = Math.max(usage.promptTokenCount ?? 0, 0);
+  const totalTokens = Math.max(usage.totalTokenCount ?? promptTokens, 0);
+  const completionTokens = Math.max(
+    usage.candidatesTokenCount ?? totalTokens - promptTokens,
+    0,
+  );
+  const cachedTokens = Math.max(usage.cachedContentTokenCount ?? 0, 0);
+  const modelName = event.model || 'unknown-model';
+
+  const modelMetrics =
+    metricsState.models[modelName] ??
+    (metricsState.models[modelName] = createEmptyModelMetrics(modelName));
+
+  modelMetrics.promptTokens += promptTokens;
+  modelMetrics.completionTokens += completionTokens;
+  modelMetrics.totalTokens += totalTokens;
+  modelMetrics.tokens.prompt += promptTokens;
+  modelMetrics.tokens.input += promptTokens;
+  modelMetrics.tokens.output += completionTokens;
+  modelMetrics.tokens.total += totalTokens;
+  modelMetrics.tokens.cached += cachedTokens;
+  modelMetrics.tokens.candidates += completionTokens;
+  modelMetrics.api.totalRequests += 1;
+
+  metricsState.totalTokens += totalTokens;
+  metricsState.requestCount += 1;
+
+  lastPromptTokenCountState = promptTokens;
+  emitTelemetryUpdate();
+};
+
 // Mock telemetry service
 export const uiTelemetryService = {
   recordEvent: (name: string, attributes?: Record<string, any>) => {
@@ -764,35 +874,29 @@ export const uiTelemetryService = {
     if (process.env['NODE_ENV'] === 'development') {
       console.log(`[Mock] Reset last prompt token count`);
     }
+    lastPromptTokenCountState = 0;
+    emitTelemetryUpdate();
   },
-  getMetrics: (): SessionMetrics => ({
-    totalTokens: 0,
-    totalTime: 0,
-    requestCount: 0,
-    models: {},
-    tools: {
-      totalCalls: 0,
-      totalSuccess: 0,
-      totalFail: 0,
-      totalDurationMs: 0,
-      totalDecisions: {},
-      byName: {}
-    },
-    files: {
-      totalReads: 0,
-      totalWrites: 0,
-      totalEdits: 0,
-      totalLinesAdded: 0,
-      totalLinesRemoved: 0
+  getMetrics: (): SessionMetrics => cloneMetrics(metricsState),
+  getLastPromptTokenCount: () => lastPromptTokenCountState,
+  on: (event: string, callback: UiTelemetryListener) => {
+    if (event === 'update') {
+      telemetryListeners.add(callback);
+      callback({
+        metrics: cloneMetrics(metricsState),
+        lastPromptTokenCount: lastPromptTokenCountState,
+      });
+      return;
     }
-  }),
-  getLastPromptTokenCount: () => 0,
-  on: (event: string, callback: Function) => {
     if (process.env['NODE_ENV'] === 'development') {
       console.log(`[Mock] Telemetry on:`, event);
     }
   },
-  off: (event: string, callback: Function) => {
+  off: (event: string, callback: UiTelemetryListener) => {
+    if (event === 'update') {
+      telemetryListeners.delete(callback);
+      return;
+    }
     if (process.env['NODE_ENV'] === 'development') {
       console.log(`[Mock] Telemetry off:`, event);
     }
