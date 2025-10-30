@@ -77,7 +77,7 @@ const BATCHABLE_TOOL_NAMES = new Set([
 const normalizeStreamText = (text: string): string =>
   text
     .replace(/\u00a0/g, ' ')
-    .replace(/(?:\n[^\S\r\n]*){3,}/g, '\n\n');
+    .replace(/(?:\n[^\S\r\n]*){2,}/g, '\n');
 
 enum StreamProcessingStatus {
   Completed,
