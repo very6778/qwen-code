@@ -731,27 +731,51 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
 
   const prefixDisplay = shellModeActive
     ? reverseSearchActive
-      ? chalk.hex(theme.text.link)('(r:) ')
-      : chalk.hex(theme.status.warning)('! ')
-    : chalk.hex('#f5f5f5')('› ');
+      ? chalk.bgHex(promptBackgroundColor)(
+          chalk.hex(theme.text.link)('(r:) '),
+        )
+      : chalk.bgHex(promptBackgroundColor)(
+          chalk.hex(theme.status.warning)('! '),
+        )
+    : chalk.bgHex(promptBackgroundColor)(
+        chalk.hex('#f5f5f5')('› '),
+      );
   const prefixAriaLabel =
     shellModeActive && reverseSearchActive
       ? SCREEN_READER_USER_PREFIX
       : undefined;
 
+  const totalWidth = Math.max(
+    normalizedFrameWidth,
+    prefixWidth + effectiveInputWidth,
+  );
+  const blankLine = totalWidth
+    ? chalk.bgHex(promptBackgroundColor)(' '.repeat(totalWidth))
+    : '';
+
   return (
     <>
       <Box
         width={normalizedFrameWidth > 0 ? normalizedFrameWidth : undefined}
-        flexDirection="row"
-        paddingY={1}
-        backgroundColor={promptBackgroundColor}
+        flexDirection="column"
       >
-        <Text aria-label={prefixAriaLabel}>{prefixDisplay}</Text>
-        <Box flexGrow={1} flexDirection="column">
+        {blankLine && <Text>{blankLine}</Text>}
+        <Box flexDirection="row">
+          <Text aria-label={prefixAriaLabel}>{prefixDisplay}</Text>
+          <Box flexGrow={1} flexDirection="column">
           {buffer.text.length === 0 && placeholder ? (
             <Text>
-              {chalk.hex(placeholderColor)(getPlaceholderText())}
+              {chalk.bgHex(promptBackgroundColor)(
+                chalk.hex(placeholderColor)(
+                  `${getPlaceholderText()}${' '.repeat(
+                    Math.max(
+                      0,
+                      effectiveInputWidth -
+                        stringWidth(getPlaceholderText()),
+                    ),
+                  )}`,
+                ),
+              )}
             </Text>
           ) : (
             linesToRender
@@ -823,6 +847,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                 }
 
                 lineContent = chalk.hex(promptTextColor)(lineContent);
+                lineContent = chalk.bgHex(promptBackgroundColor)(lineContent);
 
                 return (
                   <Text key={`line-${visualIdxInRenderedSet}`}>
@@ -839,6 +864,9 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                   let ghostContent =
                     chalk.hex(theme.text.secondary)(ghostLine) +
                     ' '.repeat(padding);
+                  ghostContent = chalk.bgHex(promptBackgroundColor)(
+                    ghostContent,
+                  );
                   return (
                     <Text key={`ghost-line-${index}`}>
                       {ghostContent}
@@ -847,7 +875,9 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
                 }),
               )
           )}
+          </Box>
         </Box>
+        {blankLine && <Text>{blankLine}</Text>}
       </Box>
       {completion.showSuggestions && (
         <Box paddingRight={1}>
