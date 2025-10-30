@@ -36,7 +36,7 @@ import { getFunctionCalls } from '../utils/generateContentResponseUtilities.js';
 import { isFunctionResponse } from '../utils/messageInspectors.js';
 import { checkNextSpeaker } from '../utils/nextSpeakerChecker.js';
 import { retryWithBackoff } from '../utils/retry.js';
-import { flatMapTextParts } from '../utils/partUtils.js';
+import { flatMapTextParts, getResponseText } from '../utils/partUtils.js';
 import type {
   ContentGenerator,
   ContentGeneratorConfig,
@@ -592,6 +592,17 @@ export class GeminiClient {
         );
         if (functionCall && functionCall.args) {
           return functionCall.args as Record<string, unknown>;
+        }
+      }
+      const textContent = getResponseText(result);
+      if (textContent) {
+        try {
+          return JSON.parse(textContent) as Record<string, unknown>;
+        } catch (parseError) {
+          console.warn(
+            'Failed to parse structured response text as JSON:',
+            parseError,
+          );
         }
       }
       return {};

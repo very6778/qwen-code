@@ -40,6 +40,10 @@ export class ZaiOpenRouterProvider extends DefaultOpenAICompatibleProvider {
       'X-Title': 'Qwen Code',
       'X-Model': model,
     };
+
+    if (enhancedRequest.stream === undefined) {
+      delete enhancedRequest.stream;
+    }
   }
 
   override buildRequest(
@@ -48,15 +52,41 @@ export class ZaiOpenRouterProvider extends DefaultOpenAICompatibleProvider {
   ): any {
     const model = this.contentGeneratorConfig.model ?? DEFAULT_ZAI_MODEL;
     const isMiniMax = model?.includes('minimax');
-
-    const enhancedRequest = {
+    const enhancedRequest: any = {
       ...request,
       model: model, // Use the actual model name instead of resolved model
       temperature: request.temperature ?? (isMiniMax ? 0.7 : 0.3),
       top_p: request.top_p ?? 0.9,
       // Add cache control headers similar to DashScope to ensure proper streaming
-      stream: request.stream ?? true,
+      stream: request.stream,
     };
+
+    // Convert Gemini "tools" schema into OpenRouter structured output format.
+    if (Array.isArray(enhancedRequest.tools) && enhancedRequest.tools.length > 0) {
+      const functionTool = enhancedRequest.tools.find(
+        (tool: any) => tool?.type === 'function' && tool?.function?.parameters,
+      );
+
+      if (functionTool?.function?.parameters) {
+        const schema = JSON.parse(
+          JSON.stringify(functionTool.function.parameters),
+        );
+        const schemaName =
+          functionTool.function.name || 'respond_in_schema';
+
+        enhancedRequest.response_format = {
+          type: 'json_schema',
+          json_schema: {
+            name: schemaName,
+            strict: true,
+            schema,
+          },
+        };
+
+        // Remove tools to avoid sending both formats simultaneously.
+        delete enhancedRequest.tools;
+      }
+    }
 
     // Debug logging for MiniMax requests
     if (isMiniMax) {
