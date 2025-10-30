@@ -257,6 +257,21 @@ describe('ReadManyFilesTool', () => {
       expect(result.returnDisplay).toMatch(/^Read /);
     });
 
+    it('should display basenames for files in different directories', async () => {
+      createFile('packages/cli/package.json', '{"name":"cli"}');
+      createFile('packages/test-utils/package.json', '{"name":"utils"}');
+      const params = {
+        paths: [
+          'packages/cli/package.json',
+          'packages/test-utils/package.json',
+        ],
+      };
+      const invocation = tool.build(params);
+      expect(invocation.getDescription()).toBe('package.json, package.json');
+      await invocation.execute(new AbortController().signal);
+      expect(invocation.getDescription()).toBe('package.json, package.json');
+    });
+
     it('should handle glob patterns', async () => {
       createFile('file.txt', 'Text file');
       createFile('another.txt', 'Another text');

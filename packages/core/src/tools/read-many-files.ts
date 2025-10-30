@@ -172,19 +172,15 @@ class ReadManyFilesToolInvocation extends BaseToolInvocation<
   }
 
   private formatDisplayList(values: readonly string[]): string {
-    const uniqueValues = Array.from(
-      new Set(
-        values
-          .map((value) => value.trim())
-          .filter((value) => value.length > 0),
-      ),
-    );
+    const sanitizedValues = values
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
 
-    if (uniqueValues.length === 0) {
+    if (sanitizedValues.length === 0) {
       return 'multiple files';
     }
 
-    const basenames = uniqueValues.map((value) => {
+    const displayEntries = sanitizedValues.map((value) => {
       const normalized = value.replace(/\\/g, '/');
       if (normalized.includes('*')) {
         return normalized;
@@ -193,17 +189,13 @@ class ReadManyFilesToolInvocation extends BaseToolInvocation<
       return baseName || normalized;
     });
 
-    const baseNameSet = new Set(basenames);
-    const displayList =
-      baseNameSet.size === basenames.length ? basenames : uniqueValues;
-
     const MAX_ITEMS = 3;
-    if (displayList.length <= MAX_ITEMS) {
-      return displayList.join(', ');
+    if (displayEntries.length <= MAX_ITEMS) {
+      return displayEntries.join(', ');
     }
 
-    const shown = displayList.slice(0, MAX_ITEMS).join(', ');
-    const remainingCount = displayList.length - MAX_ITEMS;
+    const shown = displayEntries.slice(0, MAX_ITEMS).join(', ');
+    const remainingCount = displayEntries.length - MAX_ITEMS;
     return `${shown} (+${remainingCount} more)`;
   }
 
