@@ -15,7 +15,6 @@ import type { ProcessedFileReadResult } from '../utils/fileUtils.js';
 import {
   detectFileType,
   processSingleFileContent,
-  DEFAULT_ENCODING,
   DEFAULT_MAX_LINES_TEXT_FILE,
   getSpecificMimeType,
 } from '../utils/fileUtils.js';
@@ -140,61 +139,72 @@ class ReadManyFilesToolInvocation extends BaseToolInvocation<
   ReadManyFilesParams,
   ToolResult
 > {
+  private displayDescription: string;
+
   constructor(
     private readonly config: Config,
     params: ReadManyFilesParams,
   ) {
     super(params);
+    this.displayDescription = this.buildPatternSummary();
   }
 
   getDescription(): string {
-    const allPatterns = [...this.params.paths, ...(this.params.include || [])];
-    const pathDesc = `using patterns: 
-${allPatterns.join('`, `')}
- (within target directory: 
-${this.config.getTargetDir()}
-) `;
+    return this.displayDescription;
+  }
 
-    // Determine the final list of exclusion patterns exactly as in execute method
-    const paramExcludes = this.params.exclude || [];
-    const paramUseDefaultExcludes = this.params.useDefaultExcludes !== false;
-    const geminiIgnorePatterns = this.config
-      .getFileService()
-      .getGeminiIgnorePatterns();
-    const finalExclusionPatternsForDescription: string[] =
-      paramUseDefaultExcludes
-        ? [
-            ...getDefaultExcludes(this.config),
-            ...paramExcludes,
-            ...geminiIgnorePatterns,
-          ]
-        : [...paramExcludes, ...geminiIgnorePatterns];
+  private buildPatternSummary(): string {
+    const searchPatterns = [
+      ...this.params.paths,
+      ...(this.params.include || []),
+    ];
+    if (searchPatterns.length === 0) {
+      return 'multiple files';
+    }
+    return this.formatDisplayList(searchPatterns);
+  }
 
-    let excludeDesc = `Excluding: ${
-      finalExclusionPatternsForDescription.length > 0
-        ? `patterns like 
-${finalExclusionPatternsForDescription
-  .slice(0, 2)
-  .join(
-    '`, `',
-  )}${finalExclusionPatternsForDescription.length > 2 ? '...`' : '`'}`
-        : 'none specified'
-    }`;
+  private buildFileSummary(filePaths: string[]): string {
+    if (filePaths.length === 0) {
+      return this.buildPatternSummary();
+    }
+    return this.formatDisplayList(filePaths);
+  }
 
-    // Add a note if .qwenignore patterns contributed to the final list of exclusions
-    if (geminiIgnorePatterns.length > 0) {
-      const geminiPatternsInEffect = geminiIgnorePatterns.filter((p) =>
-        finalExclusionPatternsForDescription.includes(p),
-      ).length;
-      if (geminiPatternsInEffect > 0) {
-        excludeDesc += ` (includes ${geminiPatternsInEffect} from .qwenignore)`;
-      }
+  private formatDisplayList(values: readonly string[]): string {
+    const uniqueValues = Array.from(
+      new Set(
+        values
+          .map((value) => value.trim())
+          .filter((value) => value.length > 0),
+      ),
+    );
+
+    if (uniqueValues.length === 0) {
+      return 'multiple files';
     }
 
-    return `Will attempt to read and concatenate files ${pathDesc}. ${excludeDesc}. File encoding: ${DEFAULT_ENCODING}. Separator: "${DEFAULT_OUTPUT_SEPARATOR_FORMAT.replace(
-      '{filePath}',
-      'path/to/file.ext',
-    )}".`;
+    const basenames = uniqueValues.map((value) => {
+      const normalized = value.replace(/\\/g, '/');
+      if (normalized.includes('*')) {
+        return normalized;
+      }
+      const baseName = path.posix.basename(normalized);
+      return baseName || normalized;
+    });
+
+    const baseNameSet = new Set(basenames);
+    const displayList =
+      baseNameSet.size === basenames.length ? basenames : uniqueValues;
+
+    const MAX_ITEMS = 3;
+    if (displayList.length <= MAX_ITEMS) {
+      return displayList.join(', ');
+    }
+
+    const shown = displayList.slice(0, MAX_ITEMS).join(', ');
+    const remainingCount = displayList.length - MAX_ITEMS;
+    return `${shown} (+${remainingCount} more)`;
   }
 
   async execute(signal: AbortSignal): Promise<ToolResult> {
@@ -223,6 +233,8 @@ ${finalExclusionPatternsForDescription
     const skippedFiles: Array<{ path: string; reason: string }> = [];
     const processedFilesRelativePaths: string[] = [];
     const contentParts: PartListUnion = [];
+    let totalLinesRead = 0;
+    let sawTruncation = false;
 
     const effectiveExcludes = useDefaultExcludes
       ? [...getDefaultExcludes(this.config), ...exclude]
@@ -462,6 +474,15 @@ ${finalExclusionPatternsForDescription
           }
 
           processedFilesRelativePaths.push(relativePathForDisplay);
+          if (
+            typeof fileReadResult.originalLineCount === 'number' &&
+            !Number.isNaN(fileReadResult.originalLineCount)
+          ) {
+            totalLinesRead += fileReadResult.originalLineCount;
+          }
+          if (fileReadResult.isTruncated) {
+            sawTruncation = true;
+          }
 
           const lines =
             typeof fileReadResult.llmContent === 'string'
@@ -491,45 +512,23 @@ ${finalExclusionPatternsForDescription
       }
     }
 
-    let displayMessage = `### ReadManyFiles Result (Target Dir: \`${this.config.getTargetDir()}\`)\n\n`;
-    if (processedFilesRelativePaths.length > 0) {
-      displayMessage += `Successfully read and concatenated content from **${processedFilesRelativePaths.length} file(s)**.\n`;
-      if (processedFilesRelativePaths.length <= 10) {
-        displayMessage += `\n**Processed Files:**\n`;
-        processedFilesRelativePaths.forEach(
-          (p) => (displayMessage += `- \`${p}\`\n`),
-        );
-      } else {
-        displayMessage += `\n**Processed Files (first 10 shown):**\n`;
-        processedFilesRelativePaths
-          .slice(0, 10)
-          .forEach((p) => (displayMessage += `- \`${p}\`\n`));
-        displayMessage += `- ...and ${processedFilesRelativePaths.length - 10} more.\n`;
-      }
+    this.displayDescription = this.buildFileSummary(processedFilesRelativePaths);
+
+    let summary: string;
+    if (totalLinesRead > 0) {
+      summary = `Read ${totalLinesRead} ${totalLinesRead === 1 ? 'line' : 'lines'}`;
+    } else if (processedFilesRelativePaths.length > 0) {
+      summary = `Read ${processedFilesRelativePaths.length} file(s)`;
+    } else {
+      summary = 'No files were read';
+    }
+
+    if (sawTruncation) {
+      summary += ' (some lines were shortened)';
     }
 
     if (skippedFiles.length > 0) {
-      if (processedFilesRelativePaths.length === 0) {
-        displayMessage += `No files were read and concatenated based on the criteria.\n`;
-      }
-      if (skippedFiles.length <= 5) {
-        displayMessage += `\n**Skipped ${skippedFiles.length} item(s):**\n`;
-      } else {
-        displayMessage += `\n**Skipped ${skippedFiles.length} item(s) (first 5 shown):**\n`;
-      }
-      skippedFiles
-        .slice(0, 5)
-        .forEach(
-          (f) => (displayMessage += `- \`${f.path}\` (Reason: ${f.reason})\n`),
-        );
-      if (skippedFiles.length > 5) {
-        displayMessage += `- ...and ${skippedFiles.length - 5} more.\n`;
-      }
-    } else if (
-      processedFilesRelativePaths.length === 0 &&
-      skippedFiles.length === 0
-    ) {
-      displayMessage += `No files were read and concatenated based on the criteria.\n`;
+      summary += `; skipped ${skippedFiles.length} item(s)`;
     }
 
     if (contentParts.length > 0) {
@@ -541,7 +540,7 @@ ${finalExclusionPatternsForDescription
     }
     return {
       llmContent: contentParts,
-      returnDisplay: displayMessage.trim(),
+      returnDisplay: summary,
     };
   }
 }

@@ -232,9 +232,7 @@ describe('ReadManyFilesTool', () => {
         `--- ${expectedPath} ---\n\nContent of file1\n\n`,
         `\n--- End of content ---`,
       ]);
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **1 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should read multiple specified files', async () => {
@@ -256,9 +254,7 @@ describe('ReadManyFilesTool', () => {
           c.includes(`--- ${expectedPath2} ---\n\nContent2\n\n`),
         ),
       ).toBe(true);
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **2 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should handle glob patterns', async () => {
@@ -282,9 +278,7 @@ describe('ReadManyFilesTool', () => {
         ),
       ).toBe(true);
       expect(content.find((c) => c.includes('sub/data.json'))).toBeUndefined();
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **2 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should respect exclude patterns', async () => {
@@ -302,9 +296,7 @@ describe('ReadManyFilesTool', () => {
       expect(
         content.find((c) => c.includes('src/main.test.ts')),
       ).toBeUndefined();
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **1 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should handle nonexistent specific files gracefully', async () => {
@@ -314,9 +306,7 @@ describe('ReadManyFilesTool', () => {
       expect(result.llmContent).toEqual([
         'No files matching the criteria were found or all were skipped.',
       ]);
-      expect(result.returnDisplay).toContain(
-        'No files were read and concatenated based on the criteria.',
-      );
+      expect(result.returnDisplay).toMatch(/^No files were read/);
     });
 
     it('should use default excludes', async () => {
@@ -334,9 +324,7 @@ describe('ReadManyFilesTool', () => {
       expect(
         content.find((c) => c.includes('node_modules/some-lib/index.js')),
       ).toBeUndefined();
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **1 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should NOT use default excludes if useDefaultExcludes is false', async () => {
@@ -361,9 +349,7 @@ describe('ReadManyFilesTool', () => {
           c.includes(`--- ${expectedPath2} ---\n\napp code\n\n`),
         ),
       ).toBe(true);
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **2 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should include images as inlineData parts if explicitly requested by extension', async () => {
@@ -385,9 +371,7 @@ describe('ReadManyFilesTool', () => {
         },
         '\n--- End of content ---',
       ]);
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **1 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should include images as inlineData parts if explicitly requested by name', async () => {
@@ -409,6 +393,7 @@ describe('ReadManyFilesTool', () => {
         },
         '\n--- End of content ---',
       ]);
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should skip PDF files if not explicitly requested by extension or name', async () => {
@@ -426,10 +411,7 @@ describe('ReadManyFilesTool', () => {
             c.includes(`--- ${expectedPath} ---\n\ntext notes\n\n`),
         ),
       ).toBe(true);
-      expect(result.returnDisplay).toContain('**Skipped 1 item(s):**');
-      expect(result.returnDisplay).toContain(
-        '- `document.pdf` (Reason: asset file (image/pdf) was not explicitly requested by name or extension)',
-      );
+      expect(result.returnDisplay).toMatch(/^Read .*; skipped 1 item\(s\)$/);
     });
 
     it('should include PDF files as inlineData parts if explicitly requested by extension', async () => {
@@ -446,6 +428,7 @@ describe('ReadManyFilesTool', () => {
         },
         '\n--- End of content ---',
       ]);
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should include PDF files as inlineData parts if explicitly requested by name', async () => {
@@ -462,6 +445,7 @@ describe('ReadManyFilesTool', () => {
         },
         '\n--- End of content ---',
       ]);
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should return error if path is ignored by a .qwenignore pattern', async () => {
@@ -471,9 +455,10 @@ describe('ReadManyFilesTool', () => {
       const params = { paths: ['foo.bar', 'bar.ts', 'foo.quux'] };
       const invocation = tool.build(params);
       const result = await invocation.execute(new AbortController().signal);
-      expect(result.returnDisplay).not.toContain('foo.bar');
-      expect(result.returnDisplay).not.toContain('foo.quux');
-      expect(result.returnDisplay).toContain('bar.ts');
+      expect(result.returnDisplay).toMatch(/^Read /);
+      expect(invocation.getDescription()).toContain('bar.ts');
+      expect(invocation.getDescription()).not.toContain('foo.bar');
+      expect(invocation.getDescription()).not.toContain('foo.quux');
     });
 
     it('should read files from multiple workspace directories', async () => {
@@ -526,9 +511,7 @@ describe('ReadManyFilesTool', () => {
           c.includes(`--- ${expectedPath2} ---\n\nContent2\n\n`),
         ),
       ).toBe(true);
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **2 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
 
       fs.rmSync(tempDir1, { recursive: true, force: true });
       fs.rmSync(tempDir2, { recursive: true, force: true });
@@ -578,9 +561,7 @@ Content of receive-detail
 `,
         `\n--- End of content ---`,
       ]);
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **1 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
 
     it('should read files with special characters in the name', async () => {
@@ -597,9 +578,7 @@ Content of file[1]
 `,
         `\n--- End of content ---`,
       ]);
-      expect(result.returnDisplay).toContain(
-        'Successfully read and concatenated content from **1 file(s)**',
-      );
+      expect(result.returnDisplay).toMatch(/^Read /);
     });
   });
 
@@ -696,7 +675,7 @@ Content of file[1]
 
       // Should successfully process valid files despite one failure
       expect(content.length).toBeGreaterThanOrEqual(3);
-      expect(result.returnDisplay).toContain('Successfully read');
+      expect(result.returnDisplay).toMatch(/^Read /);
 
       // Verify valid files were processed
       const expectedPath1 = path.join(tempRootDir, 'valid1.txt');
