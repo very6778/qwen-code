@@ -1111,8 +1111,8 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   // enough but not too large to make the terminal hard to use.
   const staticAreaMaxItemHeight = Math.max(terminalHeight * 4, 100);
   const placeholder = vimModeEnabled
-    ? "  Press 'i' for INSERT mode and 'Esc' for NORMAL mode."
-    : '  Type your message';
+    ? "Press 'i' for INSERT mode and 'Esc' for NORMAL mode."
+    : 'Type your message';
 
   return (
     <StreamingContext.Provider value={streamingState}>
@@ -1401,21 +1401,37 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 flexDirection={isNarrow ? 'column' : 'row'}
                 alignItems={isNarrow ? 'flex-start' : 'center'}
               >
-                <Box>
-                  {process.env['GEMINI_SYSTEM_MD'] && (
-                    <Text color={Colors.AccentRed}>|⌐■_■| </Text>
-                  )}
-                  {ctrlCPressedOnce ? (
-                    <Text color={Colors.AccentYellow}>
-                      Press Ctrl+C again to confirm exit.
-                    </Text>
-                  ) : ctrlDPressedOnce ? (
-                    <Text color={Colors.AccentYellow}>
-                      Press Ctrl+D again to exit.
-                    </Text>
-                  ) : showEscapePrompt ? (
-                    <Text color={Colors.Gray}>Press Esc again to clear.</Text>
-                  ) : null}
+                <Box
+                  justifyContent="space-between"
+                  width="100%"
+                  flexDirection={isNarrow ? 'column' : 'row'}
+                  alignItems={isNarrow ? 'flex-start' : 'center'}
+                >
+                  <Box>
+                    {process.env['GEMINI_SYSTEM_MD'] && (
+                      <Text color={Colors.AccentRed}>|⌐■_■| </Text>
+                    )}
+                    {ctrlCPressedOnce ? (
+                      <Text color={Colors.AccentYellow}>
+                        Press Ctrl+C again to confirm exit.
+                      </Text>
+                    ) : ctrlDPressedOnce ? (
+                      <Text color={Colors.AccentYellow}>
+                        Press Ctrl+D again to exit.
+                      </Text>
+                    ) : showEscapePrompt ? (
+      <Text color={Colors.Gray}>Press Esc again to clear.</Text>
+                    ) : null}
+                  </Box>
+                  <Box paddingTop={isNarrow ? 1 : 0}>
+                    {showAutoAcceptIndicator !== ApprovalMode.DEFAULT &&
+                      !shellModeActive && (
+                        <AutoAcceptIndicator
+                          approvalMode={showAutoAcceptIndicator}
+                        />
+                      )}
+                    {shellModeActive && <ShellModeIndicator />}
+                  </Box>
                 </Box>
                 <Box paddingTop={isNarrow ? 1 : 0}>
                   {showAutoAcceptIndicator !== ApprovalMode.DEFAULT &&

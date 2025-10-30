@@ -58,7 +58,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   config,
   slashCommands,
   commandContext,
-  placeholder = '  Type your message',
+  placeholder = 'Type your message',
   focus = true,
   inputWidth,
   frameWidth,
@@ -69,9 +69,9 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   vimHandleInput,
 }) => {
   const normalizedFrameWidth = Math.max(0, Math.floor(frameWidth));
-  const promptBackgroundColor = '#242424';
+  const promptBackgroundColor = '#353535';
   const promptTextColor = '#d4d4d4';
-  const placeholderColor = '#999797';
+  const placeholderColor = '#7f7f7f';
   const [justNavigatedHistory, setJustNavigatedHistory] = useState(false);
   const [escPressCount, setEscPressCount] = useState(0);
   const [showEscapePrompt, setShowEscapePrompt] = useState(false);
@@ -98,7 +98,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     ? reverseSearchActive
       ? '(r:) '
       : '! '
-    : '> ';
+    : '› ';
   const prefixWidth = Math.min(
     normalizedFrameWidth,
     stringWidth(promptPrefixText),
@@ -107,22 +107,17 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
     0,
     Math.min(inputWidth, normalizedFrameWidth - prefixWidth),
   );
-  const getPaddedPlaceholder = useCallback((): string => {
+  const getPlaceholderText = useCallback((): string => {
     if (!placeholder) {
       return '';
     }
-    let displayText = placeholder;
     if (effectiveInputWidth > 0) {
-      if (stringWidth(displayText) > effectiveInputWidth) {
-        displayText = cpSlice(displayText, 0, effectiveInputWidth);
+      if (stringWidth(placeholder) > effectiveInputWidth) {
+        return cpSlice(placeholder, 0, effectiveInputWidth);
       }
-      const paddingLength = Math.max(
-        0,
-        effectiveInputWidth - stringWidth(displayText),
-      );
-      displayText = displayText + ' '.repeat(paddingLength);
+      return placeholder;
     }
-    return displayText;
+    return placeholder;
   }, [effectiveInputWidth, placeholder]);
 
   const completion = useCommandCompletion(
@@ -740,7 +735,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           chalk.hex(theme.status.warning)('! '),
         )
     : chalk.bgHex(promptBackgroundColor)(
-        chalk.hex('#f5f5f5')('> '),
+        chalk.hex('#f5f5f5')('› '),
       );
   const prefixAriaLabel =
     shellModeActive && reverseSearchActive
@@ -768,7 +763,15 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           {buffer.text.length === 0 && placeholder ? (
             <Text>
               {chalk.bgHex(promptBackgroundColor)(
-                chalk.hex(placeholderColor)(getPaddedPlaceholder()),
+                chalk.hex(placeholderColor)(
+                  `${getPlaceholderText()}${' '.repeat(
+                    Math.max(
+                      0,
+                      effectiveInputWidth -
+                        stringWidth(getPlaceholderText()),
+                    ),
+                  )}`,
+                ),
               )}
             </Text>
           ) : (

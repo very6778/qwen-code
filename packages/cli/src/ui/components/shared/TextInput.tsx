@@ -133,7 +133,7 @@ export function TextInput({
   return (
     <Box flexDirection="column" gap={1}>
       <Box>
-        <Text color={theme.text.accent}>{'> '}</Text>
+        <Text color={theme.text.accent}>{'› '}</Text>
         <Box flexGrow={1} flexDirection="column">
           {buffer.text.length === 0 && placeholder ? (
             <Text>
