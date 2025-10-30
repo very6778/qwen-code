@@ -74,6 +74,11 @@ const BATCHABLE_TOOL_NAMES = new Set([
   'ReadFolder',
 ]);
 
+const normalizeStreamText = (text: string): string =>
+  text
+    .replace(/\u00a0/g, ' ')
+    .replace(/(?:\n[^\S\r\n]*){3,}/g, '\n\n');
+
 enum StreamProcessingStatus {
   Completed,
   UserCancelled,
@@ -442,7 +447,9 @@ export const useGeminiStream = (
       ) {
         return currentGeminiMessageBuffer;
       }
-      let newGeminiMessageBuffer = currentGeminiMessageBuffer + eventValue;
+      let newGeminiMessageBuffer = normalizeStreamText(
+        currentGeminiMessageBuffer + eventValue,
+      );
       if (
         pendingHistoryItemRef.current?.type !== 'gemini' &&
         pendingHistoryItemRef.current?.type !== 'gemini_content'
