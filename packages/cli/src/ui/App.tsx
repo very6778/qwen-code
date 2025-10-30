@@ -1573,7 +1573,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
               // Temporary CLI space-saving options
               hideGitInfo={true}
               hideSandboxInfo={true}
-              hideModelInfo={true}
+              hideModelInfo={false}
               hideProjectPath={true}
               hideModelName={true}
             />

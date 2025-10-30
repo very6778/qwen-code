@@ -155,6 +155,7 @@ const PATTERNS: Array<[RegExp, TokenCount]> = [
   [/^glm-4\.5v(?:-.*)?$/, LIMITS['64k']],
   [/^glm-4\.5-air(?:-.*)?$/, LIMITS['128k']],
   [/^glm-4\.5(?:-.*)?$/, LIMITS['128k']],
+  [/^glm-4\.6(?:-.*)?$/, LIMITS['200k']],
   
   // -------------------
   // DeepSeek
@@ -198,6 +199,7 @@ const OUTPUT_PATTERNS: Array<[RegExp, TokenCount]> = [
 
   // Qwen3-VL-Plus: 32K max output tokens
   [/^qwen3-vl-plus$/, LIMITS['32k']],
+  [/^glm-4\.6(?:-.*)?$/, LIMITS['8k']],
 ];
 
 /**

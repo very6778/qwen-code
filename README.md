@@ -27,11 +27,11 @@ codex
 
 Qwen Code is a powerful command-line AI workflow tool adapted from [**Gemini CLI**](https://github.com/google-gemini/gemini-cli) ([details](./README.gemini.md)), specifically optimized for [Qwen3-Coder](https://github.com/QwenLM/Qwen3-Coder) models. It enhances your development workflow with advanced code understanding, automated tasks, and intelligent assistance.
 
-## 💡 Free Options Available
+##  Free Options Available
 
 Get started with Qwen Code at no cost using any of these free options:
 
-### 🔥 Qwen OAuth (Recommended)
+###  Qwen OAuth (Recommended)
 
 - **2,000 requests per day** with no token limits
 - **60 requests per minute** rate limit
@@ -39,7 +39,7 @@ Get started with Qwen Code at no cost using any of these free options:
 - Automatic credential management and refresh
 - Use `/auth` command to switch to Qwen OAuth if you have initialized with OpenAI compatible mode
 
-### 🌏 Regional Free Tiers
+###  Regional Free Tiers
 
 - **Mainland China**: ModelScope offers **2,000 free API calls per day**
 - **International**: OpenRouter provides **up to 1,000 free API calls per day** worldwide
@@ -120,7 +120,7 @@ Create or edit `.qwen/settings.json` in your home directory:
 - **`/clear`** - Clear all conversation history and start fresh
 - **`/stats`** - Check current token usage and limits
 
-> 📝 **Note**: Session token limit applies to a single conversation, not cumulative API calls.
+>  **Note**: Session token limit applies to a single conversation, not cumulative API calls.
 
 ### Vision Model Configuration
 
@@ -172,13 +172,13 @@ To completely disable vision model support, add to your `.qwen/settings.json`:
 }
 ```
 
-> 💡 **Tip**: In YOLO mode (`--yolo`), vision switching happens automatically without prompts when images are detected.
+>  **Tip**: In YOLO mode (`--yolo`), vision switching happens automatically without prompts when images are detected.
 
 ### Authorization
 
 Choose your preferred authentication method based on your needs:
 
-#### 1. Qwen OAuth (🚀 Recommended - Start in 30 seconds)
+#### 1. Qwen OAuth ( Recommended - Start in 30 seconds)
 
 The easiest way to get started - completely free with generous quotas:
 
@@ -196,10 +196,10 @@ qwen
 
 **Free Tier Benefits:**
 
-- ✅ **2,000 requests/day** (no token counting needed)
-- ✅ **60 requests/minute** rate limit
-- ✅ **Automatic credential refresh**
-- ✅ **Zero cost** for individual users
+-  **2,000 requests/day** (no token counting needed)
+-  **60 requests/minute** rate limit
+-  **Automatic credential refresh**
+-  **Zero cost** for individual users
 - ℹ️ **Note**: Model fallback may occur to maintain service quality
 
 #### 2. OpenAI-Compatible API
@@ -226,7 +226,7 @@ Use API keys for OpenAI or other compatible providers:
 
 **API Provider Options**
 
-> ⚠️ **Regional Notice:**
+>  **Regional Notice:**
 >
 > - **Mainland China**: Use Alibaba Cloud Bailian or ModelScope
 > - **International**: Use Alibaba Cloud ModelStudio or OpenRouter
@@ -244,8 +244,8 @@ export OPENAI_MODEL="qwen3-coder-plus"
 
 **Option 2: ModelScope (Free Tier)** ([Apply for API Key](https://modelscope.cn/docs/model-service/API-Inference/intro))
 
-- ✅ **2,000 free API calls per day**
-- ⚠️ Connect your Aliyun account to avoid authentication errors
+-  **2,000 free API calls per day**
+-  Connect your Aliyun account to avoid authentication errors
 
 ```bash
 export OPENAI_API_KEY="your_api_key_here"
@@ -352,7 +352,7 @@ qwen
 > Implement caching for expensive operations
 ```
 
-### 📝 Documentation & Testing
+###  Documentation & Testing
 
 ```text
 > Generate comprehensive JSDoc comments for all public APIs
@@ -362,7 +362,7 @@ qwen
 > Generate a README for this module
 ```
 
-### 🚀 Development Acceleration
+###  Development Acceleration
 
 ```text
 > Set up a new Express server with authentication
